@@ -1,0 +1,63 @@
+% ============================================================================
+% Section I: Introduction
+% ============================================================================
+\section{Introduction}
+\label{sec:introduction}
+
+Lithium-ion batteries are now a central technology for electric vehicles and
+portable energy systems because of their high energy density and improving
+cycle life~\cite{ref1}. Fast charging, however, remains a difficult design
+problem: increasing charging current reduces user waiting time but can raise
+cell temperature, accelerate side reactions, and increase long-term capacity
+loss~\cite{ref2}. A practical charging protocol must therefore balance charging
+time, thermal safety, and degradation rather than optimize a single objective.
+
+Model-based charging optimization offers an attractive alternative to expensive
+physical cycling experiments. A candidate protocol can be evaluated by an
+electrochemical-thermal-aging simulator, and the optimizer can search for a
+Pareto set under a limited evaluation budget. Bayesian optimization (BO) is
+especially suitable for this regime because it builds a probabilistic surrogate
+from few observations and uses an acquisition function to decide where the next
+expensive simulation should be placed~\cite{ref3}. In multi-objective settings,
+ParEGO decomposes the vector objective through scalarization and then applies a
+single-objective acquisition rule~\cite{ref4}. Evolutionary methods such as
+NSGA-II are also widely used, but usually require more evaluations to stabilize
+the Pareto front~\cite{ref5}.
+
+Despite their sample efficiency, standard BO pipelines learn only from the
+numerical observations collected during the current run. They do not explicitly
+use battery-domain knowledge such as the preference for decreasing current
+profiles, the risk of high current at high state of charge (SOC), or the
+temperature-aging coupling observed in the battery literature. Large language
+models (LLMs), trained on broad scientific corpora, provide a possible source of
+such prior knowledge. Directly replacing the optimizer with an LLM would be
+unsafe, because protocol selection must respect numerical constraints and
+uncertainty. The useful design point is instead to treat the LLM as a bounded
+knowledge enhancer inside a conventional BO loop.
+
+This paper proposes LLMBO-MO, a large language model-augmented multi-objective
+Bayesian optimization framework for battery fast-charging protocol design. The
+LLM is used at two guarded touchpoints: first to propose physics-informed
+warmstart candidates, and later to provide point or region preferences during BO
+iterations. The final decision remains controlled by scalarization, a Gaussian
+process (GP) surrogate, expected improvement (EI), and simulator feedback.
+
+The main contributions are:
+\begin{enumerate}
+\item A two-touchpoint LLMBO-MO architecture that injects LLM knowledge at
+initialization and during iteration while preserving the GP/EI decision core.
+\item A warmstart portfolio selection mechanism that filters, repairs, and
+selects diverse LLM-generated charging protocols under physical constraints.
+\item A guarded region-lifted GP coupling that converts LLM point or region
+preferences into bounded acquisition-time mean shifts, with fallback to plain EI
+when guidance is invalid or low confidence.
+\item A traceable experimental study retaining favorable evidence from a
+Chen2020 seed8409 case study, an Ecker2015 five-seed comparison, and a
+four-group ablation.
+\end{enumerate}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:problem}
+formulates the charging protocol optimization problem. Section~\ref{sec:model}
+describes the electrochemical-thermal-aging simulator. Section~\ref{sec:method}
+presents LLMBO-MO. Section~\ref{sec:experiments} reports the retained
+experiments. Section~\ref{sec:conclusion} concludes the paper.

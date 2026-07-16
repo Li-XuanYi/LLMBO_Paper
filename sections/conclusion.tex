@@ -1,0 +1,20 @@
+% ============================================================================
+% Section VI: Conclusion
+% ============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+This paper presented LLMBO-MO, a large language model-augmented
+multi-objective Bayesian optimization framework for battery fast-charging
+protocol design. The framework uses the LLM at two guarded touchpoints:
+warmstart generation and iteration-level point/region guidance. The optimizer
+keeps the final decision inside a conventional BO loop through Riesz/Tchebycheff
+scalarization, GP modeling, EI acquisition, risk penalties, and simulator
+feedback. Retained experiments show favorable LLMBO-MO behavior in a Chen2020
+seed8409 case study, strong five-seed improvement on Ecker2015, and an ablation
+where the full two-touchpoint configuration achieves the highest mean HV.
+
+Future work will add stronger statistical validation across more cell models,
+study locally hosted LLM backends to reduce runtime overhead, and extend the
+framework to variable-stage protocols with mixed discrete-continuous decision
+spaces.

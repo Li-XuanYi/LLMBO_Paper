@@ -1,0 +1,58 @@
+% ============================================================================
+% Section III: Electrochemical-Thermal-Aging Model
+% ============================================================================
+\section{Electrochemical-Thermal-Aging Model}
+\label{sec:model}
+
+% 3.1 Electrochemical Model
+\subsection{Electrochemical Model}
+
+The simulator uses the Single Particle Model with electrolyte (SPMe), a
+reduced-order electrochemical model that preserves electrolyte concentration
+dynamics while approximating each electrode by a representative spherical
+particle~\cite{ref6}. SPMe offers a useful trade-off between physical fidelity
+and computational cost for optimization. The implementation is based on
+PyBaMM~\cite{ref7}. The Chen2020 parameter set is used for the LG
+INR21700-M50 cell, and the Ecker2015 parameter set is used as an additional
+cross-parameter validation case~\cite{ref8,ref9}.
+
+% 3.2 Thermal Model
+\subsection{Thermal Model}
+
+A lumped thermal model is coupled to the electrochemical model:
+\begin{equation}
+\rho C_p \frac{\partial T}{\partial t}
+=q_{\mathrm{gen}}-h_c(T-T_{\mathrm{air}}),
+\label{eq:thermal}
+\end{equation}
+where $q_{\mathrm{gen}}$ is heat generation from electrochemical reactions and
+ohmic loss, $\rho$ is density, $C_p$ is heat capacity, and $h_c$ is the
+convective coefficient. The peak temperature rise objective is extracted as
+$\Delta T_p=\max_t T(t)-T_{\mathrm{init}}$.
+
+% 3.3 Aging Model
+\subsection{Aging Model}
+
+The aging objective is represented as a capacity-fade percentage:
+\begin{equation}
+Q_s=\frac{Q_{\mathrm{eff}}}
+{\mathrm{Cap}(\bar{s},\bar{T},\bar{I})}\times 100\%,
+\label{eq:aging}
+\end{equation}
+where $\bar{s}$, $\bar{T}$, and $\bar{I}$ are the mean SOC, temperature, and
+current during charging. The effective capacity function follows an empirical
+temperature- and current-dependent form used for fast-charging optimization.
+This objective is not intended to replace long-horizon cycling experiments; it
+provides a consistent simulation-side degradation signal for comparing
+protocols under the same model assumptions.
+
+% 3.4 Simulation Implementation
+\subsection{Simulation Implementation}
+
+For a protocol $\btheta$, the simulator runs three sequential stages. First, it
+computes the SOC breakpoints from $\Delta s_1$, $\Delta s_2$, and the remaining
+third-stage width. Second, it solves the SPMe-thermal model stage by stage with
+constant currents $I_1$, $I_2$, and $I_3$. Third, it extracts $t_c$,
+$\Delta T_p$, and $Q_s$ from the concatenated trajectory. The optimizer sees
+the simulator as a black-box vector function, while feasibility flags and
+penalty values prevent failed simulations from breaking the BO loop.
