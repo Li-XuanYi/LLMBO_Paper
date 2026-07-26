@@ -1,71 +1,70 @@
 \begin{figure*}[t]
 \centering
-\resizebox{\textwidth}{!}{%
+\resizebox{0.94\textwidth}{!}{%
 \begin{tikzpicture}[
-    font=\small,
-    node distance=8mm and 11mm,
+    x=1cm,
+    y=1cm,
+    font=\sffamily\small,
     block/.style={
-        draw,
-        rounded corners=2pt,
+        draw=blue!65!black,
+        line width=0.70pt,
+        rounded corners=1.5pt,
+        fill=white,
         align=center,
-        minimum width=28mm,
-        minimum height=10mm,
-        fill=white
+        minimum width=2.55cm,
+        minimum height=1.15cm
     },
-    llm/.style={
+    advisory/.style={
         block,
-        fill=blue!6,
-        draw=blue!55!black
+        draw=orange!82!black,
+        text=orange!82!black,
+        minimum width=2.05cm
     },
-    model/.style={
-        block,
-        fill=green!7,
-        draw=green!45!black
+    simulator/.style={block, draw=teal!65!black},
+    output/.style={block, draw=teal!65!black},
+    flow/.style={
+        -{Latex[length=2.1mm,width=1.3mm]},
+        line width=0.85pt,
+        draw=blue!72!black
     },
-    eval/.style={
-        block,
-        fill=orange!9,
-        draw=orange!70!black
-    },
-    store/.style={
-        block,
-        fill=gray!8,
-        draw=gray!65!black
-    },
-    arrow/.style={-{Latex[length=2.2mm]}, thick},
-    feedback/.style={-{Latex[length=2.2mm]}, thick, dashed, gray!70!black}
+    advice/.style={
+        -{Latex[length=2.0mm,width=1.25mm]},
+        line width=0.80pt,
+        draw=orange!82!black,
+        dashed
+    }
 ]
 
-\node[block] (problem) {Charging protocol\\bounds and constraints};
-\node[llm, right=of problem] (warm) {LLM WarmStart\\candidate pool};
-\node[block, right=of warm] (portfolio) {Validation, repair\\and portfolio selection};
-\node[store, right=of portfolio] (dbinit) {Initial\\ObservationDB};
+\node[block] (problem) at (1.50,1.25) {\textbf{Charging problem}};
+\node[block] (warm) at (4.60,1.25) {\textbf{Warm start}};
+\node[block] (core) at (7.70,1.25) {\textbf{GP + EI}};
+\node[simulator] (sim) at (10.80,1.25) {\textbf{Battery simulator}};
+\node[output] (out) at (13.90,1.25) {\textbf{Pareto set}\\[-1pt]\textbf{+ HV trace}};
 
-\node[model, below=of dbinit] (scalar) {Riesz weights\\Tchebycheff scalarization};
-\node[model, left=of scalar] (gp) {GP surrogate\\on scalarized targets};
-\node[llm, left=of gp] (guide) {LLM point/region\\guidance};
-\node[model, left=of guide] (lift) {Region-Lifted GP\\or plain EI fallback};
-\node[eval, below=of lift] (sim) {PyBaMM simulator\\SPMe/thermal/aging};
-\node[store, right=of sim] (db) {Database update\\Pareto front and HV};
+\node[advisory] (llm) at (6.15,3.35) {\textbf{LLM}};
 
-\draw[arrow] (problem) -- (warm);
-\draw[arrow] (warm) -- (portfolio);
-\draw[arrow] (portfolio) -- (dbinit);
-\draw[arrow] (dbinit) -- (scalar);
-\draw[arrow] (scalar) -- (gp);
-\draw[arrow] (gp) -- (guide);
-\draw[arrow] (guide) -- (lift);
-\draw[arrow] (gp.south west) |- (lift.east);
-\draw[arrow] (lift) -- (sim);
-\draw[arrow] (sim) -- (db);
-\draw[feedback] (db.east) -- ++(9mm,0) |- (scalar.east);
-\draw[feedback] (db.north) |- (guide.south);
+\draw[flow] (problem) -- (warm);
+\draw[flow] (warm) -- (core);
+\draw[flow] (core) -- (sim);
+\draw[flow] (sim) -- (out);
 
-\node[draw=blue!55!black, rounded corners=2pt, fit=(warm)(guide), inner sep=3mm, label={[blue!55!black]above:LLM knowledge touchpoints}] {};
-\node[draw=green!45!black, rounded corners=2pt, fit=(scalar)(gp)(lift), inner sep=3mm, label={[green!45!black]below:BO decision core}] {};
+\draw[flow] (sim.south) -- ++(0,-0.65) -| (core.south);
+
+\draw[advice] (llm.south west) -- (warm.north);
+\draw[advice] (llm.south east) -- (core.north);
+
+\node[font=\sffamily\scriptsize, text=orange!82!black]
+    at (4.65,2.57) {initialization};
+\node[font=\sffamily\scriptsize, text=orange!82!black]
+    at (7.65,2.57) {guarded guidance};
+\node[font=\sffamily\scriptsize, text=blue!72!black]
+    at (9.25,0.18) {evaluated feedback};
 
 \end{tikzpicture}%
 }
-\caption{Closed-loop LLMBO-MO framework. The LLM contributes knowledge at initialization and during iteration, while guard checks pass valid guidance to region-lifted GP coupling or fall back to plain EI. The BO core keeps final decisions tied to scalarization, GP uncertainty, acquisition optimization, and simulator feedback.}
+\caption{LLMBO-MO at a glance. The LLM is restricted to two advisory
+touchpoints: constructing the warm start and guiding acquisition during an
+early search window. The GP--EI loop remains numerical, and only simulator
+evaluations update the Pareto set and hypervolume trace.}
 \label{fig:framework}
 \end{figure*}

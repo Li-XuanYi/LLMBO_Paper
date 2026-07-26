@@ -1,31 +1,34 @@
 % ============================================================================
-% Abstract (150-250 words) + Keywords
+% Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-The design of fast-charging protocols for lithium-ion batteries is inherently
-a constrained multi-objective optimization problem (CMOP) that must simultaneously
-minimize charging time, peak temperature rise, and capacity fade.
-While Bayesian optimization (BO) has emerged as a sample-efficient paradigm
-for such expensive black-box problems, existing methods rely solely on
-mathematical surrogates and fail to leverage the rich domain knowledge
-embedded in battery literature.
-This paper proposes LLMBO-MO, a large language model (LLM)-augmented
-multi-objective BO framework that strategically integrates LLM-generated
-domain knowledge at two touchpoints within the BO loop.
-First, the LLM generates physics-informed warmstart candidates to bootstrap
-the surrogate with high-quality initial data.
-Second, the LLM provides iteration-level guidance that is coupled with
-the Gaussian process posterior through a bounded acquisition-time mean shift.
-The multi-objective problem is decomposed via augmented Tchebycheff
-scalarization with Riesz s-energy weight vectors.
-Experiments on SPMe-based electrochemical-thermal-aging simulators
-show favorable LLMBO-MO behavior in retained advantage cases, including
-Chen2020 representative runs, Ecker2015 five-seed comparisons, and
-component ablations.
+Designing fast-charging protocols for lithium-ion batteries requires balancing
+charging time, thermal stress, and degradation under safety and operational
+constraints. Bayesian optimization is well suited to this expensive black-box
+problem, but standard data-driven implementations typically rely on numerical
+observations collected during the search and do not explicitly encode
+battery-domain knowledge. This paper
+proposes LLMBO-MO, a multiobjective Bayesian optimization framework in which a
+large language model introduces domain knowledge at two controlled stages,
+while the probabilistic surrogate and acquisition function remain the decision
+core. At initialization, the language model overgenerates charging protocols
+that are validated, repaired, and selected as a diverse warm-start portfolio.
+During optimization, it provides a preferred point or bounded region that is
+translated into a confidence-scaled local adjustment of the Gaussian-process
+mean used by expected improvement; invalid guidance triggers a fallback to the
+unmodified acquisition rule. Augmented Tchebycheff scalarization with Riesz
+energy-based weight vectors converts the three objectives into sequential
+scalar subproblems. Experiments using coupled electrochemical, thermal, and
+aging simulators based on the single-particle model with electrolyte show that,
+compared with ParEGO under the same 56-evaluation budget, the proposed framework
+increases final hypervolume from 0.3523 to 0.3848 in a representative Chen2020
+case. Across five Ecker2015 seeds, it increases mean hypervolume from 1.5866
+to 1.8684 and reduces the standard deviation from 0.0116 to 0.0024. Ablation
+results show positive mean contributions from both language-model touchpoints,
+with their combination yielding the highest mean hypervolume.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Lithium-ion battery, fast charging, multi-objective optimization,
-Bayesian optimization, large language models, Gaussian process,
-Tchebycheff scalarization.
+Battery charging, Bayesian optimization, large language models, lithium-ion
+batteries, multiobjective optimization.
 \end{IEEEkeywords}

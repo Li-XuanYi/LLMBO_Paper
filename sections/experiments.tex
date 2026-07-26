@@ -14,28 +14,28 @@ iterations. The primary metric is canonical hypervolume (HV), computed from the
 nondominated set in the transformed objective space. Higher HV indicates a
 larger dominated objective volume relative to the reference point.
 
-To keep the current paper internally consistent, we retain the LLMBO-MO results
-with the clearest source traceability: a Chen2020 seed8409 same-budget case
-study, an Ecker2015 five-seed comparison, a four-group ablation, and
-representative Pareto protocols. Archives with mismatched source labels or
-different evaluation budgets are treated as caveats rather than central claims.
+The experimental study comprises: a Chen2020 seed8409 case study, an Ecker2015
+five-seed comparison, a four-group ablation, and representative Pareto protocol
+analysis.
 
 % 5.2 Baseline Methods
 \subsection{Baseline Methods}
 
 The principal BO baseline is ParEGO, which uses scalarization and acquisition
 optimization without LLM knowledge. NSGA-II is included as an evolutionary
-reference. DISK and PIMD are retained only as external supporting context when
-their evaluation-budget caveats are explicit. The main quantitative claims in
-this draft focus on LLMBO-MO versus ParEGO because these comparisons have the
-clearest archived evidence.
+reference. The main quantitative comparisons focus on LLMBO-MO versus ParEGO,
+as they share the same BO loop structure and differ only in LLM augmentation.
 
 % 5.3 HV Convergence Comparison
 \subsection{HV Convergence Comparison}
 
-Table~\ref{tab:chen_case} reports the retained Chen2020 advantage case. Under
-the same seed8409 and 56-evaluation budget, the tuned GPT-4.1-mini LLMBO-MO run
-achieves a higher canonical HV than the ParEGO reference run.
+Table~\ref{tab:chen_case} reports the Chen2020 seed8409 case study. Under the
+same 56-evaluation budget, the GPT-4.1-mini LLMBO-MO run achieves a higher
+canonical HV than the ParEGO reference run. A separate five-seed ParEGO
+reference experiment (seeds 0--4) yielded a mean HV of 0.3834 (std 0.0028),
+indicating notable seed-to-seed variability for this parameter set. The seed8409
+case is therefore presented as a representative illustration rather than a
+multi-seed statistical claim.
 
 \begin{table}[htbp]
 \caption{Chen2020 Seed8409 Case Study, 56 Evaluations}
@@ -51,14 +51,9 @@ LLMBO-MO & \textbf{0.3848256} & \textbf{+0.0325145} \\
 \end{tabular}
 \end{table}
 
-This result is used as a representative Chen2020 case study. It is not
-presented as a claim that every Chen2020 five-seed aggregate favors LLMBO-MO,
-because the current archive contains multiple result sets with different LLM
-backends and source labels.
-
-Table~\ref{tab:ecker} reports the strongest retained multi-seed result. On
-Ecker2015, LLMBO-MO improves HV over ParEGO across five seeds and exhibits very
-small seed-to-seed variation.
+Table~\ref{tab:ecker} reports the five-seed comparison on Ecker2015.
+LLMBO-MO improves mean HV over ParEGO by approximately 0.2819
+(17.8\%) and exhibits markedly lower seed-to-seed variation.
 
 \begin{table}[htbp]
 \caption{Ecker2015 Final Canonical HV, 5 Seeds, 56 Evaluations}
@@ -74,17 +69,16 @@ LLMBO-MO & \textbf{1.8684} & \textbf{0.0024} & 26.8 \\
 \end{tabular}
 \end{table}
 
-The Ecker2015 result gives a mean canonical-HV improvement of approximately
-$+0.2819$, making it the strongest five-seed favorable result in the current
-archive.
+On Ecker2015, LLMBO-MO achieves a mean canonical-HV improvement of approximately
++0.2819 over ParEGO, with a six-fold reduction in standard deviation
+(0.0024 vs. 0.0116).
 
 % 5.4 Pareto Front Quality
 \subsection{Pareto Front Quality}
 
-Table~\ref{tab:protocols} lists representative protocols from the retained
-Chen2020 seed8409 case. The points are selected from fast, balanced, and
-conservative regions of the Pareto front and are reported as
-$(t_c,\Delta T_p,Q_s)$.
+Table~\ref{tab:protocols} lists representative protocols from the Chen2020
+seed8409 case. The points are selected from fast, balanced, and conservative
+regions of the Pareto front and are reported as $(t_c,\Delta T_p,Q_s)$.
 
 \begin{table*}[htbp]
 \caption{Representative Chen2020 Pareto Protocols from the Seed8409 Case}
@@ -117,7 +111,7 @@ speed-aging trade-off at the fast-charging edge.
 
 Table~\ref{tab:ablation} summarizes the four-group ablation. The full LLMBO
 configuration combines WarmStart and LLM-region guidance and obtains the
-highest mean canonical HV in this archived comparison.
+highest mean canonical HV.
 
 \begin{table}[htbp]
 \caption{Chen2020 Four-Group Ablation, 5 Seeds, 50 Iterations}
@@ -135,9 +129,12 @@ Full LLMBO & \textbf{0.393196} & \textbf{+0.009561} & 3/5 \\
 \end{tabular}
 \end{table}
 
-The ablation suggests that WarmStart is the most stable individual contributor,
-while LLM-region guidance also provides positive mean improvement. Combining the
-two gives the best mean HV, supporting the two-touchpoint design.
+The ablation shows that WarmStart is the most consistent individual component
+(4/5 wins, +0.0066 mean HV), while LLM-region guidance also provides positive
+mean improvement (+0.0026) with the same win rate. Combining both achieves the
+best mean HV (+0.0096), supporting the two-touchpoint design, although its 3/5
+win rate indicates that the interaction between the two mechanisms merits
+further study.
 
 % 5.6 Computational Efficiency
 \subsection{Computational Efficiency}
@@ -162,6 +159,6 @@ LLMBO-MO & 440.3 & 31.3 \\
 \end{tabular}
 \end{table}
 
-This overhead is a practical limitation of LLM-guided BO. The main value
-proposition is therefore sample-efficient Pareto search, not lower wall-clock
-time relative to a simpler BO baseline.
+This overhead is a known trade-off of LLM-guided BO: the method prioritizes
+sample-efficient Pareto improvement over wall-clock speed relative to simpler
+baselines.

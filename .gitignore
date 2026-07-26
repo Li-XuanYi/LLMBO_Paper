@@ -15,6 +15,13 @@
 *.vrb
 main.pdf
 
+# Generated figures
+figures/rendered/
+
+# Experiment cache and outputs
+.riesz_cache/
+chen2020_5seed_exp/
+
 # Editor / OS
 *.swp
 .DS_Store

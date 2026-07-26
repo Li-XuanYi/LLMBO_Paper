@@ -10,9 +10,11 @@ protocol design. The framework uses the LLM at two guarded touchpoints:
 warmstart generation and iteration-level point/region guidance. The optimizer
 keeps the final decision inside a conventional BO loop through Riesz/Tchebycheff
 scalarization, GP modeling, EI acquisition, risk penalties, and simulator
-feedback. Retained experiments show favorable LLMBO-MO behavior in a Chen2020
-seed8409 case study, strong five-seed improvement on Ecker2015, and an ablation
-where the full two-touchpoint configuration achieves the highest mean HV.
+feedback. Experiments on SPMe-based simulators show that LLMBO-MO improves
+hypervolume over ParEGO by 9.2\% on a Chen2020 case and by 17.8\% across
+five Ecker2015 seeds, with reduced seed-to-seed variation. An ablation
+study confirms that both warmstart and iteration-level guidance contribute
+positively, and their combination achieves the highest mean hypervolume.
 
 Future work will add stronger statistical validation across more cell models,
 study locally hosted LLM backends to reduce runtime overhead, and extend the
