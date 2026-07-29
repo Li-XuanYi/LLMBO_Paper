@@ -3,29 +3,25 @@
 % ============================================================================
 \begin{abstract}
 Designing fast-charging protocols for lithium-ion batteries requires balancing
-charging time, thermal stress, and degradation under safety and operational
-constraints. Bayesian optimization is well suited to this expensive black-box
-problem, but standard data-driven implementations typically rely on numerical
-observations collected during the search and do not explicitly encode
-battery-domain knowledge. This paper
-proposes LLMBO-MO, a multiobjective Bayesian optimization framework in which a
-large language model introduces domain knowledge at two controlled stages,
-while the probabilistic surrogate and acquisition function remain the decision
-core. At initialization, the language model overgenerates charging protocols
-that are validated, repaired, and selected as a diverse warm-start portfolio.
-During optimization, it provides a preferred point or bounded region that is
-translated into a confidence-scaled local adjustment of the Gaussian-process
-mean used by expected improvement; invalid guidance triggers a fallback to the
-unmodified acquisition rule. Augmented Tchebycheff scalarization with Riesz
-energy-based weight vectors converts the three objectives into sequential
-scalar subproblems. Experiments using coupled electrochemical, thermal, and
-aging simulators based on the single-particle model with electrolyte show that,
-compared with ParEGO under the same 56-evaluation budget, the proposed framework
-increases final hypervolume from 0.3523 to 0.3848 in a representative Chen2020
-case. Across five Ecker2015 seeds, it increases mean hypervolume from 1.5866
-to 1.8684 and reduces the standard deviation from 0.0116 to 0.0024. Ablation
-results show positive mean contributions from both language-model touchpoints,
-with their combination yielding the highest mean hypervolume.
+charging time, thermal stress, and degradation under tight safety constraints.
+Bayesian optimization (BO) is attractive for this expensive black-box problem,
+yet its early decisions are based on few observations and typically cannot use
+contextual knowledge about battery operation. This paper presents LLMBO-MO, a
+constrained multiobjective BO framework that treats large-language-model (LLM)
+output as a fallible prior rather than as an objective observation or final
+decision. The LLM supports a diverse warm start and indicates promising regions
+during early optimization, while simulator evaluations alone update the
+Gaussian-process surrogate. Its influence on acquisition is bounded, and
+invalid guidance reverts to standard expected improvement. Augmented
+Tchebycheff scalarization handles the conflicting objectives. Under matched
+56-evaluation budgets on coupled electrochemical--thermal--aging simulators,
+LLMBO-MO improves final hypervolume over ParEGO by 9.2\% in a representative
+Chen2020 case and by 17.8\% on average across five Ecker2015 seeds. In the
+latter comparison, the hypervolume standard deviation decreases from 0.0116 to
+0.0024. Ablations show positive mean contributions from both LLM touchpoints,
+with their combination achieving the highest mean hypervolume. These results
+support guarded LLM guidance as a promising route to more sample-efficient
+Pareto search in the simulated fast-charging setting.
 \end{abstract}
 
 \begin{IEEEkeywords}

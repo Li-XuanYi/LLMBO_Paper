@@ -29,8 +29,9 @@ reranking, or direct insertion of LLM-generated iteration candidates is used.
 If a preference cannot be converted into a valid feasible region, the method
 fails open to ordinary EI.
 
-Figure~\ref{fig:framework} separates the evaluated-data path from the two
-advisory LLM paths and makes the numerical decision boundary explicit.
+Figure~\ref{fig:framework} summarizes the constrained warm start, the
+numerical MOBO loop, and the two advisory LLM touchpoints while keeping the
+simulator-evaluated data path explicit.
 \input{figures/fig_llambo_mo_framework}
 
 % 4.2 Decomposition Strategy
@@ -156,9 +157,8 @@ few valid LLM candidates remain, deterministic battery heuristics and
 Latin-hypercube/random samples complete the initialization. Only after simulator
 evaluation are these protocols added to $\bD$.
 
-The complete hypothesis-to-observation path is summarized in
-Fig.~\ref{fig:warmstart_portfolio}.
-\input{figures/fig_warmstart_portfolio}
+The complete hypothesis-to-observation path is shown in the constrained
+warm-start block of Fig.~\ref{fig:framework}.
 
 \subsubsection{Touchpoint 2: Weight-Conditioned Point/Region Preference}
 
@@ -231,10 +231,9 @@ In the reported configuration, the lift is active only during the first
 $T_{\mathrm L}=16$ BO iterations; subsequent iterations use the unmodified GP
 posterior.
 
-Figure~\ref{fig:guarded_region_lift} shows how this optional advisory branch
-joins the otherwise conventional MOBO loop without changing the observation
-database or GP variance.
-\input{figures/fig_guarded_region_lift}
+The numerical-loop block of Fig.~\ref{fig:framework} shows how this optional
+advisory branch joins the otherwise conventional MOBO loop without changing
+the observation database or GP variance.
 
 % 4.6 Acquisition Function
 \subsection{Expected Improvement and Stagnation-Aware Search}
@@ -270,9 +269,11 @@ to the point with largest predictive uncertainty.
 % 4.7 Overall Algorithm
 \subsection{Overall Algorithm}
 
-\begin{algorithm}[t]
+\raggedbottom
+\begin{algorithm}[H]
 \caption{LLMBO-MO}
 \label{alg:llmbo}
+\footnotesize
 \begin{algorithmic}[1]
 \Require Simulator $\bS$, LLM $\bL$, BO budget $T$, warm-start count
 $n_{\mathrm{ws}}$, weight set $\bW$, guidance horizon $T_{\mathrm L}$
@@ -302,3 +303,4 @@ $J_{\mathrm{ws}}$
 \State \Return $\bP$
 \end{algorithmic}
 \end{algorithm}
+\flushbottom

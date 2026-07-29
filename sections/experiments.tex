@@ -4,161 +4,222 @@
 \section{Experiments}
 \label{sec:experiments}
 
-% 5.1 Experimental Setup
-\subsection{Experimental Setup}
+\subsection{Experimental Protocol}
 
-Experiments are conducted on SPMe-based simulators using the Chen2020 and
-Ecker2015 parameter sets. Each BO run uses 56 simulator evaluations unless
-otherwise stated, corresponding to six initialization evaluations and 50 BO
-iterations. The primary metric is canonical hypervolume (HV), computed from the
-nondominated set in the transformed objective space. Higher HV indicates a
-larger dominated objective volume relative to the reference point.
+All results are obtained in simulation; no new physical-cell measurements are
+reported. The simulator uses the SPMe formulation in
+Section~\ref{sec:model} with either the Chen2020 or Ecker2015 parameter set.
+The optimizer minimizes charging time, peak temperature rise, and capacity
+fade. Unless noted otherwise, one run consists of six initialization
+evaluations followed by 50 BO iterations, giving 56 simulator evaluations.
 
-The experimental study comprises: a Chen2020 seed8409 case study, an Ecker2015
-five-seed comparison, a four-group ablation, and representative Pareto protocol
-analysis.
+The archive field \texttt{canonical\_hv} is used as the primary quality
+measure. It is the hypervolume of the nondominated set in the transformed
+objective space under a fixed benchmark-specific reference box. The value is
+dimensionless but not restricted to $[0,1]$; absolute values are therefore
+compared only within the same cell parameterization. Reported uncertainties
+are sample standard deviations across seeds.
 
-% 5.2 Baseline Methods
-\subsection{Baseline Methods}
+The figures use three distinct scopes. Fixed-budget tables contain either the
+Chen2020 seed-8409 case or five paired Ecker2015 runs. The Pareto-count curve
+aggregates five archived runs per method, whereas the three-dimensional Pareto
+plot pools Chen2020 LLMBO-MO archives to expose the attainable design envelope.
+These scopes are stated in the captions and are not combined into one
+statistical estimate.
 
-The principal BO baseline is ParEGO, which uses scalarization and acquisition
-optimization without LLM knowledge. NSGA-II is included as an evolutionary
-reference. The main quantitative comparisons focus on LLMBO-MO versus ParEGO,
-as they share the same BO loop structure and differ only in LLM augmentation.
+\subsection{Baselines}
 
-% 5.3 HV Convergence Comparison
-\subsection{HV Convergence Comparison}
+ParEGO is the principal BO baseline because it uses the same scalarized
+surrogate-and-acquisition structure without language-model guidance. NSGA-II
+provides an evolutionary reference, while DISK and PIMD provide additional
+population-based comparators in the archived Chen2020 plot. All methods are
+evaluated through simulator calls; LLM suggestions are never counted as
+objective observations before simulation.
 
-Table~\ref{tab:chen_case} reports the Chen2020 seed8409 case study. Under the
-same 56-evaluation budget, the GPT-4.1-mini LLMBO-MO run achieves a higher
-canonical HV than the ParEGO reference run. A separate five-seed ParEGO
-reference experiment (seeds 0--4) yielded a mean HV of 0.3834 (std 0.0028),
-indicating notable seed-to-seed variability for this parameter set. The seed8409
-case is therefore presented as a representative illustration rather than a
-multi-seed statistical claim.
+\subsection{Fixed-Budget Search Behavior}
 
-\begin{table}[htbp]
-\caption{Chen2020 Seed8409 Case Study, 56 Evaluations}
-\label{tab:chen_case}
+Figure~\ref{fig:search_diagnostics} separates final-set quality from archive
+growth. The left panel retains the original canonical-HV scale, which makes
+the early jumps and subsequent plateaus visible. The right panel counts
+nondominated protocols after each BO iteration; it is an archive diagnostic,
+not an evaluation-normalized quality metric.
+
+\begin{figure*}[!t]
 \centering
-\begin{tabular}{lcc}
+\begin{minipage}[t]{0.495\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{rendered/Exp/Compare.png}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.495\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{rendered/Exp/Optimal.png}
+\end{minipage}
+\caption{Chen2020 search diagnostics. \emph{Left:} representative
+canonical-HV trajectories. The LLMBO-MO and ParEGO centerlines are from
+seed~8409; NSGA-II, DISK, and PIMD are five-seed means. The LLMBO-MO and
+ParEGO ribbons are archived proxy dispersion envelopes and are not confidence
+intervals; the remaining ribbons show one sample standard deviation.
+\emph{Right:} five-seed mean number of nondominated charging protocols, with
+$\pm1$ sample-standard-deviation bands. The underlying archives contain
+different initial database sizes, so the right panel is used only to describe
+archive growth.}
+\label{fig:search_diagnostics}
+\end{figure*}
+
+Table~\ref{tab:fixed_budget} reports the matched fixed-budget values used for
+the numerical comparison. On the Chen2020 seed-8409 case, LLMBO-MO increases
+canonical HV from 0.3523 to 0.3848. This is a single-seed result and is not
+treated as evidence of a population-level mean improvement. On Ecker2015,
+LLMBO-MO improves the five-seed mean from 1.5866 to 1.8684, an absolute gain
+of 0.2818 (17.8\%). Its sample standard deviation is reduced by approximately
+79\% relative to ParEGO.
+
+\begin{table}[H]
+\caption{Fixed-Budget Results at 56 Simulator Evaluations}
+\label{tab:fixed_budget}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{@{}llcc@{}}
 \toprule
-Method & Canonical HV & Improvement \\
+Cell model & Method & Runs & Final canonical HV \\
 \midrule
-ParEGO reference & 0.3523111 & -- \\
-LLMBO-MO & \textbf{0.3848256} & \textbf{+0.0325145} \\
+\multirow{2}{*}{Chen2020}
+& ParEGO reference & 1 & 0.3523 \\
+& LLMBO-MO & 1 & \textbf{0.3848} \\
+\midrule
+\multirow{2}{*}{Ecker2015}
+& ParEGO & 5 & 1.5866 $\pm$ 0.0116 \\
+& LLMBO-MO & 5 & \textbf{1.8684 $\pm$ 0.0024} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:ecker} reports the five-seed comparison on Ecker2015.
-LLMBO-MO improves mean HV over ParEGO by approximately 0.2819
-(17.8\%) and exhibits markedly lower seed-to-seed variation.
+The archive-size panel in Fig.~\ref{fig:search_diagnostics} ends at
+$49.4\pm2.4$ nondominated protocols for LLMBO-MO and $45.8\pm0.7$ for
+ParEGO. Because the archived LLMBO-MO runs begin from a larger evaluated
+database, this difference is not used to claim better sample efficiency. The
+fixed-budget HV values in Table~\ref{tab:fixed_budget} remain the primary
+comparison.
 
-\begin{table}[htbp]
-\caption{Ecker2015 Final Canonical HV, 5 Seeds, 56 Evaluations}
-\label{tab:ecker}
+\subsection{Pareto Structure and Charging Profiles}
+
+Figure~\ref{fig:pareto_profiles} connects the objective-space trade-offs to
+time-domain charging behavior. The left panel pools 730 evaluated Chen2020
+points from the archived LLMBO-MO runs and displays the 233 nondominated
+points. Pooling is used only to reveal the design envelope; the resulting
+cloud is not used to compute Table~\ref{tab:fixed_budget}. The objective
+values of the starred solutions are listed directly beneath the plot.
+
+\begin{figure*}[!t]
 \centering
-\begin{tabular}{lccc}
+\begin{minipage}[t]{0.495\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{rendered/Exp/Patero.png}
+  \vspace{0.5ex}
+
+  {\scriptsize
+  \setlength{\tabcolsep}{3.5pt}
+  \begin{tabular}{@{}lccc@{}}
+  \toprule
+  Point & Charging time (s) & Temp. rise (K) & Fade (\%) \\
+  \midrule
+  A & 2880 & 7.567 & 1.261 \\
+  B & 5295 & 4.996 & \textbf{0.538} \\
+  C & 6151 & 2.837 & 0.571 \\
+  D & 6928 & 1.535 & 0.685 \\
+  E & 7199 & \textbf{1.528} & 0.640 \\
+  \bottomrule
+  \end{tabular}}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.495\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{rendered/Exp/I_t.png}
+\end{minipage}
+\caption{Objective-space and time-domain views of Chen2020 charging
+protocols. \emph{Left:} pooled LLMBO-MO nondominated set; stars A--E mark
+representative trade-offs from fast/high-stress to slow/low-stress charging.
+\emph{Right:} simulator replay of one tuned LLMBO-MO protocol, a
+warm-start-only protocol, and the numerical baseline: (a) terminal voltage,
+(b) cell temperature, (c) applied current, and (d) state of charge. The
+archived legend ``LLMGP Tuned'' denotes the tuned LLMBO-MO configuration.
+These curves are simulated trajectories rather than physical-cell
+measurements.}
+\label{fig:pareto_profiles}
+\end{figure*}
+
+Point A occupies the fast-charging edge and incurs the largest temperature
+rise and capacity fade. Point B minimizes fade among the five marked
+solutions, whereas C lies near the knee of the time--temperature trade-off.
+Points D and E reduce thermal stress to approximately 1.53~K at the cost of
+longer charging. The replayed tuned protocol in the right panel uses a brief
+5-A middle stage, shortens charging relative to the warm-start and baseline
+profiles, and correspondingly produces a larger temperature excursion. All
+three voltage traces remain below the 4.3-V limit.
+
+\begin{figure*}[!t]
+\centering
+\begin{minipage}[c]{0.58\textwidth}
+\centering
+\includegraphics[width=\linewidth]{rendered/Exp/Ablation.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.39\textwidth}
+\centering
+\footnotesize
+\textsc{Five-seed numerical summary}\par
+\smallskip
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Method & Mean HV & Std HV & Pareto Size \\
+Variant & Final HV & $\Delta$ & Wins \\
 \midrule
-ParEGO & 1.5866 & 0.0116 & 34.6 \\
-LLMBO-MO & \textbf{1.8684} & \textbf{0.0024} & 26.8 \\
+Baseline & 0.3836 $\pm$ 0.0101 & -- & -- \\
+WarmStart & 0.3902 $\pm$ 0.0078 & +0.0066 & 4/5 \\
+LLM\_Region & 0.3862 $\pm$ 0.0112 & +0.0026 & 4/5 \\
+Full LLMBO & \textbf{0.3932} $\pm$ 0.0117
+& \textbf{+0.0096} & 3/5 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{minipage}
+\caption{Chen2020 four-group ablation over five seeds and 50 BO iterations.
+\emph{Left:} final canonical-HV distributions; markers show individual seeds,
+boxes show the interquartile range and median, and annotations give the means.
+\emph{Right:} the corresponding mean, sample standard deviation, gain over the
+baseline, and paired-seed win count. The full method combines constrained warm
+starting and iteration-level LLM region guidance.}
+\label{fig:ablation}
+\end{figure*}
 
-On Ecker2015, LLMBO-MO achieves a mean canonical-HV improvement of approximately
-+0.2819 over ParEGO, with a six-fold reduction in standard deviation
-(0.0024 vs. 0.0116).
-
-% 5.4 Pareto Front Quality
-\subsection{Pareto Front Quality}
-
-Table~\ref{tab:protocols} lists representative protocols from the Chen2020
-seed8409 case. The points are selected from fast, balanced, and conservative
-regions of the Pareto front and are reported as $(t_c,\Delta T_p,Q_s)$.
-
-\begin{table*}[htbp]
-\caption{Representative Chen2020 Pareto Protocols from the Seed8409 Case}
-\label{tab:protocols}
-\centering
-\begin{tabular}{llccc}
-\toprule
-Method & Region & Charging time (s) & Peak temp. rise (K) & Capacity fade (\%) \\
-\midrule
-\multirow{3}{*}{LLMBO-MO}
-& Fast & 2880 & 7.567 & 1.261 \\
-& Balanced & 6112 & 2.857 & 0.571 \\
-& Conservative & 7200 & 1.529 & 0.640 \\
-\midrule
-\multirow{3}{*}{ParEGO reference}
-& Fast & 3304 & 6.315 & 1.024 \\
-& Balanced & 5290 & 3.202 & 0.621 \\
-& Conservative & 7109 & 1.537 & 0.651 \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-The balanced and conservative representatives show that LLMBO-MO can offer
-competitive temperature-degradation trade-offs, not only a better scalar HV.
-The fast representative is more aggressive and illustrates the expected
-speed-aging trade-off at the fast-charging edge.
-
-% 5.5 Ablation Study
+\newpage
 \subsection{Ablation Study}
 
-Table~\ref{tab:ablation} summarizes the four-group ablation. The full LLMBO
-configuration combines WarmStart and LLM-region guidance and obtains the
-highest mean canonical HV.
+The four-group summary isolates the two LLM touchpoints at the configuration
+level. Baseline, WarmStart, and LLM\_Region are taken from the May~22
+five-seed archive; the full method is taken from the paired May~23 rerun using
+the same selected warm-start initialization. Thus, Fig.~\ref{fig:ablation}
+preserves the five-seed distributions but is a consolidated archive summary,
+not a single simultaneously executed four-arm batch.
 
-\begin{table}[htbp]
-\caption{Chen2020 Four-Group Ablation, 5 Seeds, 50 Iterations}
-\label{tab:ablation}
-\centering
-\begin{tabular}{lccc}
-\toprule
-Variant & Mean HV & $\Delta$HV & Wins \\
-\midrule
-Baseline & 0.383635 & -- & -- \\
-WarmStart & 0.390242 & +0.006607 & 4/5 \\
-LLM\_Region & 0.386211 & +0.002576 & 4/5 \\
-Full LLMBO & \textbf{0.393196} & \textbf{+0.009561} & 3/5 \\
-\bottomrule
-\end{tabular}
-\end{table}
+Warm starting produces the larger and more repeatable individual-component
+gain, improving the mean by 0.0066 and winning four of five paired seeds.
+Region guidance also improves the mean, but with greater dispersion. Their
+combination gives the highest mean HV, 0.3932, although the 3/5 win count and
+the consolidated-batch construction caution against attributing the gain to a
+uniform per-seed interaction.
 
-The ablation shows that WarmStart is the most consistent individual component
-(4/5 wins, +0.0066 mean HV), while LLM-region guidance also provides positive
-mean improvement (+0.0026) with the same win rate. Combining both achieves the
-best mean HV (+0.0096), supporting the two-touchpoint design, although its 3/5
-win rate indicates that the interaction between the two mechanisms merits
-further study.
+\subsection{Runtime and Scope}
 
-% 5.6 Computational Efficiency
-\subsection{Computational Efficiency}
+The archived Chen2020 timing runs give $194.3\pm11.8$~s for NSGA-II,
+$252.4\pm17.7$~s for ParEGO, and $440.3\pm31.3$~s for LLMBO-MO. LLMBO-MO is
+approximately 1.74 times slower than ParEGO because wall time includes LLM
+requests, response validation, region processing, and a larger acquisition
+pool. Hardware and API-latency metadata were not retained, so these values
+document overhead within the archive rather than a portable runtime
+benchmark.
 
-Runtime measurements on Chen2020 with a DeepSeek-V3 backend show that LLMBO-MO
-requires additional wall-clock time because it includes LLM calls, guidance
-parsing, region processing, and a richer acquisition pool. Table~\ref{tab:time}
-reports these values as computational context only.
-
-\begin{table}[htbp]
-\caption{Runtime Context on Chen2020, 5 Seeds}
-\label{tab:time}
-\centering
-\begin{tabular}{lcc}
-\toprule
-Method & Runtime mean (s) & Runtime std (s) \\
-\midrule
-NSGA-II & 194.3 & 11.8 \\
-ParEGO & 252.4 & 17.7 \\
-LLMBO-MO & 440.3 & 31.3 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-This overhead is a known trade-off of LLM-guided BO: the method prioritizes
-sample-efficient Pareto improvement over wall-clock speed relative to simpler
-baselines.
+The evidence is limited to simulation, two parameterizations, and at most
+five seeds. The Chen2020 comparison figure also mixes single-seed centerlines
+with multi-seed baselines, as stated in its caption. Physical-cell validation
+and a fully paired multi-seed study with identical initial databases remain
+necessary before making claims about hardware-level charging performance or
+general statistical superiority.

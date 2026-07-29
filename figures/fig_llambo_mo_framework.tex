@@ -1,70 +1,13 @@
-\begin{figure*}[t]
+\begin{figure*}[!t]
 \centering
-\resizebox{0.94\textwidth}{!}{%
-\begin{tikzpicture}[
-    x=1cm,
-    y=1cm,
-    font=\sffamily\small,
-    block/.style={
-        draw=blue!65!black,
-        line width=0.70pt,
-        rounded corners=1.5pt,
-        fill=white,
-        align=center,
-        minimum width=2.55cm,
-        minimum height=1.15cm
-    },
-    advisory/.style={
-        block,
-        draw=orange!82!black,
-        text=orange!82!black,
-        minimum width=2.05cm
-    },
-    simulator/.style={block, draw=teal!65!black},
-    output/.style={block, draw=teal!65!black},
-    flow/.style={
-        -{Latex[length=2.1mm,width=1.3mm]},
-        line width=0.85pt,
-        draw=blue!72!black
-    },
-    advice/.style={
-        -{Latex[length=2.0mm,width=1.25mm]},
-        line width=0.80pt,
-        draw=orange!82!black,
-        dashed
-    }
-]
-
-\node[block] (problem) at (1.50,1.25) {\textbf{Charging problem}};
-\node[block] (warm) at (4.60,1.25) {\textbf{Warm start}};
-\node[block] (core) at (7.70,1.25) {\textbf{GP + EI}};
-\node[simulator] (sim) at (10.80,1.25) {\textbf{Battery simulator}};
-\node[output] (out) at (13.90,1.25) {\textbf{Pareto set}\\[-1pt]\textbf{+ HV trace}};
-
-\node[advisory] (llm) at (6.15,3.35) {\textbf{LLM}};
-
-\draw[flow] (problem) -- (warm);
-\draw[flow] (warm) -- (core);
-\draw[flow] (core) -- (sim);
-\draw[flow] (sim) -- (out);
-
-\draw[flow] (sim.south) -- ++(0,-0.65) -| (core.south);
-
-\draw[advice] (llm.south west) -- (warm.north);
-\draw[advice] (llm.south east) -- (core.north);
-
-\node[font=\sffamily\scriptsize, text=orange!82!black]
-    at (4.65,2.57) {initialization};
-\node[font=\sffamily\scriptsize, text=orange!82!black]
-    at (7.65,2.57) {guarded guidance};
-\node[font=\sffamily\scriptsize, text=blue!72!black]
-    at (9.25,0.18) {evaluated feedback};
-
-\end{tikzpicture}%
-}
-\caption{LLMBO-MO at a glance. The LLM is restricted to two advisory
-touchpoints: constructing the warm start and guiding acquisition during an
-early search window. The GP--EI loop remains numerical, and only simulator
-evaluations update the Pareto set and hypervolume trace.}
+\includegraphics[width=0.72\textwidth]{rendered/50c31aae80db666ba5cda3c6588b0cc.png}
+\caption{Unified LLMBO-MO workflow. \emph{A:} constrained warm-start
+construction combines domain-informed LLM candidates with physics priors and
+space-filling samples, then repairs, screens, and verifies the portfolio in
+the simulator. \emph{B:} the numerical multi-objective BO loop performs
+scalarization, GP fitting, expected-improvement optimization, and simulator
+evaluation. The LLM enters only through the two advisory touchpoints; invalid
+or infeasible iteration-level guidance falls back to plain EI, and only
+simulator outputs update the optimization state.}
 \label{fig:framework}
 \end{figure*}
