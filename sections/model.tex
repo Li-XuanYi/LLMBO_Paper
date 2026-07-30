@@ -1,11 +1,12 @@
 % ============================================================================
-% Section III: Electrochemical--Thermal Evaluation Model
+% Section IV: Electrochemical--Thermal Evaluation Model
 % ============================================================================
 \section{Electrochemical--Thermal Evaluation Model}
 \label{sec:model}
 
 The proposed optimization framework requires a forward model that maps each
-charging protocol to its charging-time, thermal, and degradation responses.
+charging protocol to its charging-time, thermal, and degradation-indicator
+responses.
 Since the focus of this work is the optimization strategy rather than the
 development of a new battery model, all methods are evaluated using the same
 physics-based simulation environment. The simulator combines an
@@ -107,14 +108,14 @@ performance assessment.
 % ----------------------------------------------------------------------------
 % 3.3 Degradation proxy
 % ----------------------------------------------------------------------------
-\subsection{Protocol-Level Degradation Proxy}
+\subsection{Protocol-Level Degradation Indicator}
 
-A single fast-charging simulation is insufficient to resolve long-horizon
-capacity fade directly without introducing a substantially more expensive aging
-model. Accordingly, the third objective is defined as a semi-empirical
-protocol-level degradation proxy. Let $\bar s$, $\bar T$, and $\bar I$ denote
-the trajectory-averaged SOC, temperature, and charging current, respectively.
-An empirical effective-capacity function,
+A single fast-charging simulation cannot resolve long-horizon capacity fade
+without introducing a substantially more expensive aging model. Accordingly,
+the third objective is a semi-empirical protocol-level degradation indicator.
+Let $\bar s$, $\bar T$, and $\bar I$ denote the trajectory-averaged SOC,
+temperature, and charging current, respectively. An empirical
+effective-capacity function,
 $\mathrm{Cap}(\bar s,\bar T,\bar I)$, is used to summarize the combined
 influence of these operating conditions. The resulting degradation indicator is
 \begin{equation}
@@ -127,11 +128,10 @@ Q_s(\btheta)
 \end{equation}
 
 A smaller $Q_s$ corresponds to a less severe charging condition under the
-adopted empirical model. Importantly, $Q_s$ is used as a \emph{relative
-degradation indicator} for comparing charging protocols under a common
-simulation environment; it should not be interpreted as a chemistry-specific
-prediction of the absolute capacity loss caused by a single charging event.
-This distinction is maintained throughout the experimental analysis.
+adopted empirical model. Importantly, $Q_s$ is a \emph{relative degradation
+indicator} for comparing protocols under a common simulation environment; it
+is not a chemistry-specific prediction of the absolute capacity loss caused by
+one charging event. This distinction is maintained throughout the evaluation.
 
 % ----------------------------------------------------------------------------
 % 3.4 Black-box interface

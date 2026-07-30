@@ -1,5 +1,5 @@
 % ============================================================================
-% Section IV: Proposed LLMBO-MO Framework
+% Section V: Proposed LLMBO-MO Framework
 % ============================================================================
 \section{Proposed LLMBO-MO Framework}
 \label{sec:method}
@@ -27,7 +27,7 @@ In the configuration evaluated in Section~\ref{sec:experiments}, this adjustment
 uses GP posterior cross-covariance; no separate LLM acquisition bonus, LLM
 reranking, or direct insertion of LLM-generated iteration candidates is used.
 If a preference cannot be converted into a valid feasible region, the method
-fails open to ordinary EI.
+reverts to ordinary EI.
 
 Figure~\ref{fig:framework} summarizes the constrained warm start, the
 numerical MOBO loop, and the two advisory LLM touchpoints while keeping the
@@ -38,7 +38,8 @@ simulator-evaluated data path explicit.
 \subsection{Objective Transformation and Scalar Decomposition}
 
 The three objectives in~\eqref{eq:cmop} have substantially different numerical
-scales. We therefore transform charging time and capacity fade logarithmically,
+scales. We therefore transform charging time and the degradation indicator
+logarithmically,
 while retaining the temperature-rise objective in its original scale:
 \begin{equation}
 \tilde{\mathbf f}(\btheta)=
@@ -149,9 +150,9 @@ c_{\mathrm{ws}}(\btheta)
 +\omega_d d_{\min}(\btheta,\mathcal C_{\mathrm{sel}}),
 \label{eq:portfolio}
 \end{equation}
-where $c_{\mathrm{ws}}\in[0,1]$ is the candidate confidence and $d_{\min}$ is
-the minimum Euclidean distance in normalized decision space to an already
-selected protocol. A small number of near-boundary probes can be retained to
+where $c_{\mathrm{ws}}\in[0,1]$ is the LLM-reported candidate confidence and
+$d_{\min}$ is the minimum Euclidean distance in normalized decision space to
+an already selected protocol. A small number of near-boundary probes can be retained to
 avoid collapsing the initial design into only conservative schedules. If too
 few valid LLM candidates remain, deterministic battery heuristics and
 Latin-hypercube/random samples complete the initialization. Only after simulator
@@ -168,8 +169,8 @@ recent evaluated protocols, short-horizon hypervolume feedback, boundary-failure
 statistics, and feedback on the previously adopted region. The prompt explicitly
 asks for a preference rather than the next experiment. The output is restricted
 to either a raw-coordinate point $\btheta_{\mathrm{pref}}$, a hyper-rectangular
-region $[\mathbf{lb},\mathbf{ub}]$, or no preference, together with a confidence
-$c_t\in[0,1]$ and a short mechanistic rationale.
+region $[\mathbf{lb},\mathbf{ub}]$, or no preference, together with a
+self-reported confidence $c_t\in[0,1]$ and a short mechanistic rationale.
 
 The interface checks the output format, coordinate system, direction of the
 preference, and parameter bounds. A region is clipped/repaired to admissible
@@ -208,7 +209,8 @@ The confidence-normalized lift strength is
 \label{eq:lambda}
 \end{equation}
 where $\varepsilon_v>0$ prevents numerical division by a vanishing regional
-variance. For any candidate $\btheta$, let
+variance and bounds $\lambda_t$ by $1/\sqrt{\varepsilon_v}$. For any candidate
+$\btheta$, let
 $\boldsymbol{\Sigma}_{\theta G,t}$ denote the GP posterior cross-covariance
 between $\btheta$ and the anchors. The acquisition-time mean becomes
 \begin{equation}
@@ -266,11 +268,7 @@ thereby increasing exploration while preserving EI as the ranking criterion. If
 EI is numerically flat over the candidate pool, the implementation falls back
 to the point with largest predictive uncertainty.
 
-% 4.7 Overall Algorithm
-\subsection{Overall Algorithm}
-
-\raggedbottom
-\begin{algorithm}[H]
+\begin{algorithm}[!t]
 \caption{LLMBO-MO}
 \label{alg:llmbo}
 \footnotesize
@@ -303,4 +301,3 @@ $J_{\mathrm{ws}}$
 \State \Return $\bP$
 \end{algorithmic}
 \end{algorithm}
-\flushbottom

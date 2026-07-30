@@ -16,6 +16,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{graphicx}
+\usepackage{microtype}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,backgrounds,calc,fit,positioning,shapes.geometric}
 \usepackage{textcomp}
@@ -23,10 +24,7 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{array}
-\usepackage{float}
-\usepackage{subfigure}
 \usepackage{url}
-\usepackage{balance}
 
 % Search paths for split content
 \graphicspath{{figures/}}
@@ -75,13 +73,15 @@ This work was supported in part by ...}
 
 % ---- Body ------------------------------------------------------------------
 \input{sections/introduction}   % Sec. I
-\input{sections/problem}        % Sec. II
-\input{sections/model}          % Sec. III
-\input{sections/method}         % Sec. IV
-\input{sections/experiments}    % Sec. V
-\input{sections/conclusion}     % Sec. VI
+\input{sections/related_work}   % Sec. II
+\input{sections/problem}        % Sec. III
+\input{sections/model}          % Sec. IV
+\input{sections/method}         % Sec. V
+\input{sections/experiments}    % Sec. VI
+\input{sections/conclusion}     % Sec. VII
 
 % ---- References ------------------------------------------------------------
+\IEEEtriggeratref{15}
 \input{sections/references}
 
 \end{document}

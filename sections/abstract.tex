@@ -2,26 +2,28 @@
 % Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-Designing fast-charging protocols for lithium-ion batteries requires balancing
-charging time, thermal stress, and degradation under tight safety constraints.
-Bayesian optimization (BO) is attractive for this expensive black-box problem,
-yet its early decisions are based on few observations and typically cannot use
-contextual knowledge about battery operation. This paper presents LLMBO-MO, a
-constrained multiobjective BO framework that treats large-language-model (LLM)
-output as a fallible prior rather than as an objective observation or final
-decision. The LLM supports a diverse warm start and indicates promising regions
-during early optimization, while simulator evaluations alone update the
-Gaussian-process surrogate. Its influence on acquisition is bounded, and
-invalid guidance reverts to standard expected improvement. Augmented
-Tchebycheff scalarization handles the conflicting objectives. Under matched
-56-evaluation budgets on coupled electrochemical--thermal--aging simulators,
+Fast-charging protocol design is an expensive constrained multiobjective
+problem that must balance charging time, thermal stress, and a degradation
+indicator. Conventional Bayesian optimization (BO) is sample efficient, but
+its cold-start decisions depend on few task-specific observations and generic
+statistical priors. This paper presents LLMBO-MO, a multiobjective BO framework
+that treats large-language-model (LLM) output as a fallible preference prior
+rather than as an objective observation or a final decision. The LLM first
+supports a diverse, constraint-screened warm start and then supplies
+weight-conditioned point or region preferences during early optimization.
+Simulator evaluations alone update the Gaussian-process surrogate, while a
+posterior-covariance mean lift gives valid guidance bounded influence at
+acquisition time; missing or invalid guidance reverts to standard expected
+improvement. Augmented Tchebycheff scalarization distributes the search across
+the three objectives. Under matched 56-evaluation budgets on coupled
+electrochemical--thermal simulators with a protocol-level degradation proxy,
 LLMBO-MO improves final hypervolume over ParEGO by 9.2\% in a representative
 Chen2020 case and by 17.8\% on average across five Ecker2015 seeds. In the
 latter comparison, the hypervolume standard deviation decreases from 0.0116 to
 0.0024. Ablations show positive mean contributions from both LLM touchpoints,
-with their combination achieving the highest mean hypervolume. These results
-support guarded LLM guidance as a promising route to more sample-efficient
-Pareto search in the simulated fast-charging setting.
+with their combination attaining the highest mean hypervolume. The evidence is
+simulation-based and supports guarded LLM guidance as a promising route to
+more sample-efficient Pareto search.
 \end{abstract}
 
 \begin{IEEEkeywords}

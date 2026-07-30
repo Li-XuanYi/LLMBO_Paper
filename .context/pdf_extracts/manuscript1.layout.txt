@@ -1,0 +1,847 @@
+ Large language model-enhanced Bayesian optimization for parameter identification
+                            of lithium-ion batteries
+
+                                     Xiao Kuaia , Jia-Hui Rena , Bing-Chuan Wanga , Yun Fengb
+                                              a Central South University, Changsha 410083, China
+                                                 b Hunan University, Changsha 410082, China
+
+
+
+
+Abstract
+Lithium-ion batteries play a vital role in modern energy storage systems, with their performance and safety critically dependent
+on the accurate identification of key parameters. Bayesian optimization (BO), renowned for its effectiveness in data-scarce and
+complex nonlinear scenarios, has emerged as a powerful tool for parameter identification. However, the effectiveness of BO largely
+depends on the quality of surrogate models and sampling efficiency, posing significant challenges in low-sample contexts. Recently,
+large language models (LLMs) have shown great promise when integrated with BO, owing to their exceptional few-shot learning
+capabilities and their ability to extract meaningful insights from sparse data. This paper is the first attempt to apply the combination
+of LLMs and BO for the efficient parameter identification of lithium-ion batteries. By representing BO components in natural
+language, the presented LLM-enhanced BO (LLMBO) establishes a well-informed warm start that directly generates promising
+initial parameter estimates for the pseudo-two-dimensional battery model, thereby accelerating the parameter identification process.
+Moreover, by leveraging the few-shot learning and contextual inference capabilities of LLMs, LLMBO effectively incorporates
+prior domain knowledge to guide early-stage exploration, resulting in more accurate and efficient identification of lithium-ion
+battery parameters. Experimental results show that LLMBO outperforms the traditional BO and other heuristic algorithms in terms
+of both accuracy and efficiency, demonstrating its significant advantages. Additionally, we compare the performance of different
+kinds of LLMs in parameter identification tasks, providing valuable insights into their effectiveness.
+Keywords: Large language models, Bayesian optimization, Parameter identification, Lithium-ion battery.
+
+
+1. Introduction                                                          approaches to tackle these challenges. These efforts aim to im-
+                                                                         prove both the precision of key parameter identification and
+1.1. Background                                                          the effectiveness of optimization processes in electrochemical
+     Lithium-ion batteries play a crucial role in modern energy          systems. In summary, effective parameter identification has
+storage systems [1, 2], with their performance and safety heav-          become crucial for enhancing lithium-ion battery performance
+ily influenced by various factors, especially the accurate identi-       and extending its lifespan [6].
+fication of key parameters [3]. The accurate assessment of these
+parameters depends not only on the physical characteristics of           1.2. Parameter identification methods
+the battery, such as diffusion coefficients, open-circuit voltage            Currently, parameter identification methods for lithium-ion
+curves, and thermal properties, but also on the chemical reac-           batteries can be primarily categorized into three classes. While
+tions occurring within the battery and the current-voltage rela-         these approaches have achieved notable success in specific sce-
+tionship [4, 5]. These parameters are crucial for enhancing bat-         narios, each exhibits certain limitations that restrict their ability
+tery efficiency and safety, particularly during charge-discharge         to balance efficiency and accuracy.
+cycles and fast charging. However, some key parameters cannot
+be directly measured, as measuring them would cause damage.              1.2.1. Experimental methods
+Therefore, parameter identification assisted by battery models               These methods directly measure the electrical and thermal
+is more cost-effective.                                                  properties of the battery. Common experimental techniques in-
+     Among the various models, electrochemical models are                clude pulse testing and constant current charging. Lain et al.
+distinguished by their high accuracy, as they effectively cap-           [7] applied short current pulses to extract the dynamic response
+ture a battery’s internal physical phenomena. The pseudo-                of the battery, thus identifying parameters such as internal re-
+two-dimensional (P2D) model is widely recognized as one of               sistance and capacity. Rod-riguez-Cea et al. [8] used a con-
+the most representative electrochemical models, serving as the           stant current to charge or discharge the battery and estimated
+foundation for many other models. Building on this foundation,           parameters based on voltage changes. Experimental methods
+recent years have seen significant advancements in both model            are time-consuming and require specialized equipment. Fur-
+development and parameter identification methodologies. Nu-              thermore, the experimental process can cause irreversible ef-
+merous studies have combined the P2D model with data-driven              fects on the battery, such as capacity degradation.
+Preprint submitted to Elsevier                                                                                                    July 24, 2025
+1.2.2. Model-based methods                                                  Bayesian optimization (BO), as a data-driven optimization
+     The P2D model, grounded in porous electrode theory [9],            method, offers significant advantages in handling data-scarce
+concentrated solution theory [10], and Maxwell-Stefan multi-            and nonlinear problems. Compared to traditional machine
+component diffusion theory [11], enables physics-based opti-            learning methods, BO seamlessly integrates surrogate mod-
+mization of cell design parameters and provides critical insights       els and optimization algorithms, conducting efficient global
+into internal electrochemical phenomena. Despite its high ac-           searches that avoid local optima and result in more accurate
+curacy, practical challenges persist due to the model’s extreme         parameter identification. The surrogate model in BO maxi-
+computational complexity and heavy reliance on experimental             mizes information utilization when evaluating expensive objec-
+data. To address these limitations, researchers have pursued two        tive functions, making it especially suited for tasks with limited
+primary improvement strategies. The first involves reduced-             samples or high computational costs.
+order models (ROMs), such as the single-particle model (SPM)
+[12, 13], which simplifies electrode dynamics by represent-             1.3. Research gap and motivation
+ing each electrode as a single active particle and neglecting               Although BO shows promise for parameter identification,
+electrolyte-phase transport, thereby drastically reducing com-          its efficiency as a high-performance optimization framework
+putational costs [14]. However, SPM’s omission of electrolyte           largely depends on the quality of the surrogate model and the
+concentration polarization leads to significant voltage predic-         effectiveness of candidate sampling in rapidly identifying high-
+tion errors under high-current-rate conditions. Another ROM,            potential regions. Since BO is designed for scenarios with lim-
+the multi-scale multi-domain model [15], partitions the spatial         ited samples, constructing an accurate surrogate model from
+domain into particle, electrode, and cell-scale subdomains, ex-         sparse data remains a significant challenge. Furthermore, this
+changing averaged field quantities to reduce coupled equation           model can be highly sensitive to mis-specifications; even mi-
+counts. While computationally efficient, this approach sacri-           nor inaccuracies in model representation may introduce signif-
+fices spatial resolution, failing to resolve localized gradients        icant biases, thereby distorting the sampling of potential solu-
+such as abrupt electrolyte potential transitions.                       tions. When incorporating prior knowledge, an additional chal-
+     The second strategy focuses on advanced numerical meth-            lenge emerges—effectively transferring insights about correla-
+ods. In [16], the finite volume method combined with back-              tions within the optimization space to new tasks.
+ward Euler discretization utilizes the tridiagonal matrix algo-             At the core of these challenges is the accurate learning of
+rithm to accelerate spatiotemporal domain solutions and re-             the objective function and effectively generating candidate so-
+duce iterative complexity. In [17, 18, 19], the orthogonal col-         lutions from very few samples [25]. This scenario is com-
+location method approximates the solutions of partial differen-         monly referred to as the few-shot scenario, where the envi-
+tial equations using orthogonal polynomials, transforming them          ronment demands rapid learning and generalization from very
+into differential-algebraic equations. Despite improved compu-          few samples. Interestingly, this challenge in few-shot learn-
+tational speed, these methods remain susceptible to parameter           ing aligns well with the strengths of large language models
+sensitivity and high-dimensional nonlinear coupling [20].               (LLMs). Pre-trained on internet-scale data, modern LLMs ex-
+     In summary, although these strategies partially alleviate          hibit remarkable generalization capabilities from limited sam-
+computational burdens, ROMs still fall short in accurately pre-         ples, enabling them to excel in few-shot prediction and gener-
+dicting key internal states [14]. Moreover, numerical methods           ation [26, 27, 28, 29, 30], as well as contextual understanding
+continue to struggle with balancing parameter robustness and            [31, 32]. Their exceptional sample efficiency is partly due to
+computational efficiency, highlighting the need for hybrid ap-          the use of encoded priors [33, 34]. Recently, Liu et al. [35]
+proaches to bridge the gap between model fidelity and practical         combined LLMs with BO, a strategy particularly well-suited
+applicability.                                                          for parameter identification, which serves as a key inspiration
+                                                                        for our work.
+1.2.3. Data-driven methods
+    With the development of machine learning and deep learn-            1.4. Contributions
+ing technologies, data-driven methods have become crucial
+                                                                            Motivated by these considerations, we adapt and modify an
+tools in parameter identification. Machine learning techniques
+                                                                        LLM-enhanced Bayesian optimization (LLMBO) framework
+such as support vector machines [21], genetic algorithms (GAs)
+                                                                        [35] to enable fast parameter identification of lithium-ion bat-
+[22], and particle swarm optimization (PSO) [23] can learn bat-
+                                                                        teries. In LLMBO, the components of BO are represented in
+tery behavior patterns from large sets of experimental data, even
+                                                                        natural language, enabling efficient preheating, and leveraging
+without an explicit physical model. Deep learning techniques,
+                                                                        the extensive prior knowledge and few-shot learning capabili-
+such as convolutional neural networks [24], are capable of auto-
+                                                                        ties of LLMs to assist in identifying the optimal battery param-
+matically extracting complex features from battery data, mak-
+                                                                        eters. The main contributions are summarized as follows.
+ing them particularly suitable for handling nonlinear and high-
+dimensional problems. However, data-driven methods require                 1. We pioneer the application of the LLMBO framework
+high-quality and large quantities of data, and in scenarios with              to lithium-ion battery parameter identification, proposing
+limited samples, they may suffer from overfitting or poor gen-                an innovative solution for strongly coupled parameters in
+eralization performance. Additionally, the training process de-               the P2D model. By encoding electrochemical parameter
+mands substantial computational resources and time.
+                                                                    2
+      semantics through natural language, we develop hierar-             geometry of the battery, and are typically provided by the man-
+      chical surrogate models and design a physics-constrained           ufacturer or measured directly. In contrast, dynamic parameters
+      sampling strategy.                                                 are closely related to the internal characteristics of the lithium-
+                                                                         ion battery. Therefore, the identification of dynamic parameters
+   2. In LLMBO, LLMs are employed to warm-start BO by                    is of greater importance under real-world conditions.
+      transferring prior knowledge relevant to parameter iden-
+      tification. Consequently, this approach operates without           2.2. BO
+      the need for task-specific pre-training or the extraction of
+      structured outputs from the P2D model, thereby enhanc-                 BO is a sequential surrogate model-based approach that em-
+      ing identification efficiency.                                     ploys a surrogate model to approximate the objective function.
+                                                                         Afterward, the surrogate model is updated by an infill criterion
+   3. This study presents the first systematic analysis of per-          which is able to make use of full information provided by his-
+      formance differences among multiple LLMs in parame-                torical data. The details of BO can be found in [39, 40].
+      ter identification of lithium-ion batteries. Experimental              BO consists of two primary components: a surrogate model
+      results reveal that GPT-4o and DeepSeek-R1, owing to               and an infill criterion. The typical optimization process be-
+      their advanced contextual reasoning capabilities, outper-          gins by selecting an initial set of sample points: θ0 , θ1 , · · · , θk ,
+      form other models. These findings provide valuable in-             from the defined parameter space. These points are then eval-
+      sights for selecting appropriate LLMs in parameter iden-           uated to compute their corresponding objective function val-
+      tification tasks.                                                  ues: f (θ0 ), f (θ1 ), · · · , f (θk ). A Gaussian process (GP) is em-
+                                                                         ployed as the surrogate model, trained on the evaluated sample
+   4. Experimental results show that LLMBO outperforms the               set D = {θi , f (θi )}, to provide both the predicted mean µk and
+      traditional BO and other heuristic algorithms in terms of          the associated uncertainty estimate σk . Based on the surrogate
+      both accuracy and efficiency, demonstrating its signifi-           model, the acquisition function α(θ) is computed, and the next
+      cant advantages.                                                   sampling point is selected by maximizing this function:
+
+1.5. Organization                                                                                θk+1 = arg max α(θ).                         (1)
+                                                                                                                   θ
+     The rest of this paper is organized as follows. Section 2
+introduces some preliminaries, including the P2D model, BO,              where the true objective function value at θk+1 is then evaluated,
+and the parameter identification problem. The proposed method            and the dataset D is updated accordingly.
+is illustrated in Section 3. Section 4 details the experimental               Traditional BO, constrained by the static nature of its sur-
+study, and concluding remarks are provided in Section 5.                 rogate model, often exhibits slow convergence and struggles to
+                                                                         adapt to dynamic search requirements. To address these lim-
+                                                                         itations, we introduce LLMBO in Section 3, which integrates
+2. Preliminaries
+                                                                         LLMs to enhance BO surrogate model updates and candidate
+2.1. P2D model                                                           sampling, thereby improving convergence speed and optimiza-
+                                                                         tion accuracy in parameter identification tasks.
+    The P2D model is widely regarded as one of the most repre-
+sentative electrochemical models [36, 37]. This model assumes
+                                                                         2.3. Parameter identification problem
+that each point on the electrode contains a spherical particle
+representing the active material, resulting in a spatial dimen-              This study formulates the lithium-ion battery parameter
+sion for the electrode thickness and another spatial dimension           identification problem as an optimization task, with the core
+for the radius of each particle. This model has been extensively         objective of minimizing the discrepancy between the simulated
+studied and serves as a powerful tool for evaluating, optimiz-           voltage outputs of the P2D model and experimentally observed
+ing, and predicting battery performance. The details of the P2D          values. The problem is formulated as follows:
+model can be found in [36, 37].                                                                                n
+                                                                                                        1 X  ref     2
+    The parameters of the P2D model characterize the physical,                              min f (θ) =       Ui − Ui                         (2)
+                                                                                             θ          n i=1
+chemical, and electrochemical properties of the battery. The re-
+liability of the P2D model heavily depends on the accuracy of
+these parameters, which are inherently specific to each battery                              θ j ≤ θ j ≤ θ j , j = 1, 2, · · · , q            (3)
+design—whether in terms of geometry or material composition.
+                                                                         where θ = [θ1 , θ2 , ..., θq ]T represents the parameter vector con-
+Consequently, parameter values are not universally transferable
+                                                                         taining the battery model parameters to be identified, Uref in-
+across different battery configurations. This makes the identifi-
+                                                                         cludes the experimentally observed voltages, U represents the
+cation of an appropriate parameter set for a given battery one of
+                                                                         reference voltages generated by the P2D model, Uiref and Ui are
+the fundamental challenges in battery modeling.
+                                                                         the ith samples of the reference voltages and the measured volt-
+    The detailed parameters of the P2D model can be found in
+                                                                         ages, respectively, n is the number of samples, and θ j and θ j are
+[15, 38], which are classified into static and dynamic param-
+                                                                         the lower and upper bounds of the parameter θ j , respectively.
+eters. Static parameters are determined by the materials and
+                                                                         In the parameter identification problem of lithium-ion batteries,
+
+                                                                     3
+                                                                                                   Figure 2: Prompt for warm start.
+
+
+
+
+Figure 1: Framework of LLMBO for parameter identification of lithium-ion
+batteries.
+                                                                                               Figure 3: Prompt for surrogate modeling.
+
+
+model parameters are typically constrained by physical, chem-
+                                                                               the model to iteratively propose and evaluate promising so-
+ical, and experimental conditions. Therefore, upper and lower
+                                                                               lutions informed by historical evaluations. More specifically,
+bounds must be applied during the identification process to en-
+                                                                               this method explores how to combine contextual understand-
+sure the physical validity of the results, prevent meaningless
+                                                                               ing, few-shot learning capabilities, and the domain knowledge
+solutions, and accelerate convergence.
+                                                                               of LLMs to improve BO. As a result, LLMBO uses in-context
+     The critical challenges in lithium-ion battery parameter
+                                                                               learning to enable effective zero-shot warm starts and improves
+identification stem from the inherent strong nonlinearity and
+                                                                               both surrogate modeling and candidate sampling. The main
+multiphysics coupling effects in electrochemical models, which
+                                                                               components of LLMBO, including LLM-based warm start,
+lead to a nonconvex objective function. Moreover, the scarcity
+                                                                               LLM-enhanced surrogate modeling, and LLM-enhanced can-
+of experimental data across diverse operating conditions, com-
+                                                                               didate sampling, are illustrated next.
+bined with the high computational cost of P2D model eval-
+uations, further limits the efficiency of conventional param-
+                                                                               3.2. LLM-based warm start
+eter identification methods. The sensitivity of dynamic pa-
+rameters exacerbates these challenges. Traditional approaches                       As shown in Figure 2, LLMBO generates physically plau-
+struggle to achieve efficient exploration under limited data and               sible initial parameter sets by encoding lithium-ion battery pa-
+high computational costs due to their reliance on random sam-                  rameter characteristics into natural language prompts. For ex-
+pling or rigid surrogate models. To address these limitations,                 ample, the prompt for one critical parameter may state: “The
+the presented LLMBO framework integrates natural language                      typical range of the positive electrode active material volume
+processing-enhanced BO, combining prior knowledge-guided                       fraction (denotes as εact,p ) is 0.2 to 0.8, subject to the constraint
+initialization and context-aware dynamic sampling strategies.                  εact,p + εe,p ≤ 1 to avoid porosity conflicts, where εe,p denotes
+This approach effectively addresses the dual challenges of data                the volume fraction of the electrolyte phase in the positive elec-
+scarcity and computational cost, providing an innovative solu-                 trode.” In summary, LLMBO generates initial parameters based
+tion for parameter identification in complex physical systems.                 on these constraints:
+
+                                                                                                         θ0 ∼ PLLM (θ | S)                       (4)
+3. Propoesd method
+                                                                               where S represents domain-specific semantic constraints and
+3.1. General framework                                                         PLLM denotes the LLM-based parser responsible for analyzing
+     The framework of LLMBO for parameter identification is                    this constraint set. This way, prior knowledge is leveraged by
+illustrated in Figure 1, where LLMBO leverages prompt engi-                    the LLM to interpret parameter correlations and generate initial
+neering to optimize the parameter set in the database and iden-                samples. These generated parameters are subsequently filtered
+tify the optimal parameter vector. Specifically, the database is               through boundary conditions to ensure that the initial samples
+initially constructed using a random function. After a warm                    fall within valid intervals.
+start, LLMBO refines the parameters in the database by identi-
+fying promising sample candidates. Following simulations with                  3.3. LLM-enhanced surrogate modeling
+the P2D model, the objective function is evaluated, and the op-                    The GP kernel adopted in traditional BO often fails to
+timization loop updates the database with the promising param-                 capture the complex nonlinear couplings within the parameter
+eters based on the candidate sampling. This process continues                  space. To address this limitation, LLMBO introduces a com-
+until the stopping criterion is met, at which point the optimal                posite kernel:
+parameter vector from the database is returned.                                                            ′
+                                                                                                   ∥θ − θ ∥2
+                                                                                                             !
+                                                                                        ′                                            ′
+     This framework enables LLMs to conceptualize the com-                        k(θ, θ ) = exp −       2
+                                                                                                               +γ · LLMcoupling (θ, θ | S) . (5)
+ponents of BO through natural language processing, allowing                                           2l            |       {z           }
+                                                                                             |     {z        }         Coupling Term
+                                                                                                  Base Kernel
+
+                                                                           4
+                                                                             Algorithm 1: LLMBO
+                                                                            1 t ← 0;
+                                                                            2 D ← A database initialized by a random function and
+                                                                                the LLM-based warm start;
+                                                                            3 Evaluate the parameters in D using P2D simulations in
+                Figure 4: Prompt for candidate sampling.                        accordance with Eq. (2);
+                                                                                                          −3
+                                                                            4 while t ≤ tmax && fmin ≥ 10    do
+                                                                            5      Construct the composite kernel based on Eq. (5);
+where l denotes the kernel length and γ represents the cou-                 6      Construct the GP surrogate model;
+pling strength. The coupling term LLMcoupling integrates elec-              7
+                                                                                     ′
+                                                                                   D ← LLM-enhanced candidate sampling;
+trochemical mechanisms as defined below:                                                                        ′
+                                                                            8      Evaluate the parameters in D according to Eq. (2);
+                                                                                                                    ′
+                                  X               ∂U ∂U                     9      Update the database: D ← D ∪ D ;
+                LLMcoupling =            wi j ·      ·          (6)                t ← t + 1;
+                                  i, j
+                                                  ∂θi ∂θ j                 10
+                                                                           11 end
+where wi j quantifies physical correlations. During optimiza-              12 Output the best parameter vector in D;
+tion, the kernel length for sensitive parameters is reduced to
+capture abrupt voltage drops (as shown in Figure 3). The cou-
+pling strength at the (k + 1)th iteration (denoted as γk+1 ) adapts        on prior knowledge and subsequently updated using newly sam-
+as follows:                                                                pled parameter vectors. To account for sensitive parameters, the
+                                                                           value of σ j is typically set to a small value initially, since high
+                                                       !
+                                     fmin,k − fmin,k−1
+             γk+1 = γk · 1 + 0.1 ·                              (7)        sensitivity often leads to large fluctuations. When the search
+                                          fmin,k−1
+                                                                           tends to get trapped in a local optimum, σ j is adaptively in-
+where γk denotes the coupling strength at the kth iteration, and           creased to encourage exploration.
+ fmin,k and fmin,k−1 are the best objective function value at the
+kth and (k − 1)th iterations, respectively. As shown in Eq. (7),           3.5. Summary
+if f (θ) converges rapidly, γ increases to strengthen coupling                 The overall workflow of LLMBO for parameter identifica-
+effects; otherwise, γ decreases to prevent overfitting.                    tion is outlined in Algorithm 1.
+                                                                               First, a database (i.e., D), consisting of 60 parameter vec-
+3.4. LLM-enhanced candidate sampling                                       tors, is initialized using a random function and the LLM-based
+     As depicted in Figure 4, to balance exploration and ex-               warm start. During the warm-start phase, the LLM’s contextual
+ploitation within the parameter space to effectively manage sen-           learning ability is utilized to extract information from historical
+sitive parameters, LLMBO dynamically adapts the acquisition                data and similar problems, providing more reasonable initial
+function through contextual learning. Specifically, the expected           parameter values for the identification process rather than rely-
+improvement (EI) criterion is modified as follows:                         ing solely on random sampling. These parameters are evaluated
+                                                                           using P2D simulations according to Eq. (2).
+       EI (θ) = E max ( fmin − f (θ), 0) · WLLM (θ | D)
+      αLLM
+                                       
+                                                                (8)            Next, the main loop begins with the construction of the com-
+                                                                           posite kernel, as defined in Eq. (5), upon which the GP surro-
+where fmin denotes the objective function value of the best pa-            gate model is built. By adaptively tuning the kernel length for
+rameter in the current database (denoted as D), and WLLM is                sensitive parameters, the influence of electrochemical mecha-
+a weighting function generated by the LLM to prioritize sensi-             nisms can be adjusted to enhance the accuracy of the GP surro-
+tive parameters. Intuitively, if small variations in the parameters        gate model.
+lead to significant fluctuations in the objective function value,              Subsequently, sample candidates according to the EI crite-
+the corresponding region is considered promising and should                rion enhanced by LLM. In this manner, LLMBO selects the
+be assigned a higher weight. In view of this, WLLM is set as               most promising candidates from the parameter space based on
+follows:                                                                   the results of the previous identification round and suggestions
+                        q
+                                           (θ j − µ j )2 
+                                                                         from the LLM. These candidates are then simulated and evalu-
+                       Y       1
+            WLLM =                  exp −                   (9)       ated using the P2D model.
+                                                  2σ2j 
+                           q
+                       j=1    2πσ2j                                            Finally, the promising candidates are used to update the
+                                                                           database. The main loop is repeated until a predefined stopping
+where µ j and σ j are the the mean and standard deviation of               criterion is met. Specifically, the process terminates when the
+the jth parameter, respectively. As shown in Eq. (9), a param-             best objective function value satisfies fmin < 10−3 , or when the
+eter vector containing parameters with smaller fluctuations is             number of iterations t exceeds the maximum limit tmax = 50.
+assigned a higher weight. Note that µ j and σ j are dynamically                In summary, LLMBO continuously updates the database
+adjusted to focus sampling on high-potential regions while pre-            by optimizing parameters based on historical evaluation results
+serving global exploration. Specifically, µ j is initialized based         and ultimately outputs the best parameter vector. Throughout
+
+                                                                       5
+                                                                                            Table 1: INR·21700·M50T Battery Specifications
+                                                                                                       Parameter                     Value
+                                                                                                  Nominal Capacity                   5.0Ah
+                                                                                                 Upper cutoff voltage                 4.2V
+                                                                                                 Lower cutoff voltage                 2.5V
+                                                                                                        Length                       70mm
+                                                                                                       Diameter                      21mm
+                                                                                                  Internal Resistance               21.2mΩ
+
+
+                                                                                          Table 2: Experimental parameter settings for LLMBO
+                                                                                                      Parameter                                     Value
+                                                                                            Number of candidate solutions                             15
+                                                                                   Number of templates for generating solutions                        2
+                                                                                        Number of iterations for optimization                         50
+                                                                              Parameter for controlling exploration-exploitation trade-off           -0.2
+                                                                                              Number of initial samples                               15
+                                                                                                   Number of trials                                   15
+                                                                                                                                               GPT-3.5-Turbo/
+                                                                                           Engine used for chat-based tasks
+                                                                                                                                             DeepSeek-R1/GPT-4o
+                    Figure 5: Experimental platform.                                    Percentage of top candidates to select                        0.2
+
+
+
+this process, it dynamically adapts both the surrogate model and             De,p ) govern lithium-ion mobility, and solid phase conductivity
+candidate sampling strategy, thereby enhancing the efficiency                parameters (i.e., σ s,n and σ s,p ) determines electron transport ef-
+of parameter identification and enabling relatively accurate re-             ficiency. In summary, these parameters play a critical role in
+sults even in the early stages of identification.                            the management of lithium-ion batteries and have been widely
+                                                                             investigated in the literature [38, 41]. Note that the sensitiv-
+                                                                             ity analysis in Section 4.2.4 highlights the importance of these
+4. Experimental study
+                                                                             six parameters. Since unreasonable parameter values may lead
+4.1. Experiment setup                                                        to simulation failures, it is essential to carefully set parameter
+                                                                             ranges that have physical significance. The effective ranges are
+    The effectiveness of LLMBO is demonstrated through a se-
+                                                                             determined based on preliminary experiments and relevant lit-
+ries of experiments conducted on an INR·21700·M50T battery,
+                                                                             erature [38, 41]. As a result, the effective ranges of these six
+with specific parameters provided in Table 1. The NEWARE
+                                                                             parameters are summarized in Table 3. The following subsec-
+experimental platform, illustrated in Figure 5, was used to col-
+                                                                             tions present a detailed analysis of the experimental results.
+lect discharge voltage data under 0.5C, 1C, 2C, and 3C rates,
+which served as reference voltages for evaluation. The platform
+                                                                             4.2. Results and discussions
+consists of five components: a power supply module, lithium-
+ion batteries, a voltage measurement module, an auxiliary tem-               4.2.1. Identified results
+perature measurement module, and a host computer. The power                      In this study, we implemented three versions of LLMBO,
+supply module receives charging protocol information set by                  denoted as LLMBO-3.5, LLMBO-r1, and LLMBO-4o, utiliz-
+the host computer and delivers corresponding charge/discharge                ing GPT-3.5-Turbo, DeepSeek-R1, and GPT-4o (version 2024-
+currents to the lithium-ion battery. The voltage measurement                 08-06) as the respective inference engines. The identified re-
+module and the auxiliary temperature measurement module                      sults of LLMBO-3.5, LLMBO-r1, and LLMBO-4o are de-
+collect data on the battery’s voltage and temperature dynam-                 scribed in Table 3. We employed the parameters identified by
+ics, respectively. In all discharge experiments, the initial state           LLMBO-4o to simulate the P2D model and compared the re-
+of charge (SOC) of the battery was set to 100%, and the dis-                 sulting voltages with reference voltages under various current
+charge was terminated at a cutoff voltage of 2.5 V. All tests were           rates, as illustrated in Figures 6 and 7. The results demonstrate a
+conducted under room temperature conditions, with the ambi-                  strong agreement between the simulated and reference voltages
+ent temperature maintained at approximately 298.15 K using an                across different constant current rates, including 0.5C, 1C, 2C,
+air-conditioned environment.                                                 and 3C. It is interesting to find that the relative error becomes
+    The P2D model was implemented using the Python Battery                   noticeable at the end of discharge. Possible reasons for this phe-
+Mathematical Modeling (PyBaMM) software package. Ad-                         nomenon may include battery degradation and unknown distur-
+ditionally, LLMBO was implemented using Python version                       bances. The battery used in the experiments may have expe-
+3.10.20 on a laptop equipped with an Intel(R) Core(TM) i7-                   rienced capacity degradation due to aging effects. Since the
+12700 CPU @ 2.30 GHz and 16 GB of RAM. The parameter                         P2D model cannot capture degradation behavior without incor-
+settings of LLMBO are summarized in Table 2. In this study,                  porating a thermal model [42], the loss of accuracy in capacity-
+six key dynamic parameters were identified. Specifically, active             related parameters may contribute to the observed prediction
+material volume fractions (i.e., εact,n and εact,p ) directly impact         errors. Despite this impairment, the mean relative error remains
+electrode structural stability, diffusion coefficients (i.e., De,n and
+                                                                         6
+                                               Table 3: The identified results of LLMBO and peer algorithms.
+        Parameters         Effective range         LLMBO-3.5             LLMBO-r1      LLMBO-4o             BO            PSO             GA
+           εact,p             [0.2,0.8]              6.64E-1              6.79E-1       6.87E-1          8.00E-1        7.20E-1        7.29E-1
+           εact,n             [0.2,0.8]              7.05E-1              7.14E-1       7.11E-1          8.00E-1        7.65E-1        7.16E-1
+           De,n          [1.0E-16,1.0E-12]          4.40E-14              5.71E-14      8.90E-14         1.00E-14       2.59E-14       4.72E-14
+           De,p          [1.0E-16,1.0E-12]          4.96E-14              2.63E-14      8.56E-15         1.00E-14       4.41E-15       5.79E-15
+           σ s,n             [100,300]              2.38E+2               1.25E+2       2.22E+2          1.50E+2        2.34E+2        1.66E+2
+           σ s,p              [0.2,0.8]              5.45E-1              4.68E-1       5.28E-1          3.00E-1        5.79E-1        3.29E-1
+
+
+
+
+  (a) Voltage comparison under 0.5C.    (b) Relative error under 0.5C.             (a) Voltage comparison under 2C.       (b) Relative error under 2C.
+
+
+
+
+  (c) Voltage comparison under 1C.       (d) Relative error under 1C.              (c) Voltage comparison under 3C.       (d) Relative error under 3C.
+
+
+        Figure 6: Simulation validation results under 0.5C and 1C.                        Figure 7: Simulation validation results under 2C and 3C.
+
+
+
+below 1.15%, indicating high accuracy in parameter identifica-                   ing historical information and prior knowledge, LLMBO is able
+tion.                                                                            to identify high-potential regions early in the process, thereby
+                                                                                 reducing the number of ineffective evaluations and enhancing
+4.2.2. Performance comparison                                                    overall identification efficiency.
+     To validate the effectiveness of LLMBO, we compared it                           While traditional BO constructs a surrogate model using
+with existing parameter identification algorithms, including BO                  GP and employs a fixed acquisition function to achieve rela-
+[38], GA [22], and PSO [23]. We chose PSO and GA as base-                        tively good sample efficiency, its lack of dynamic adjustments
+line methods because they are well-established benchmark al-                     and contextual adaptability makes it less effective in early-stage
+gorithms in battery parameter identification, with their perfor-                 exploration. As a result, BO exhibits slower convergence and
+mance extensively validated in the literature. All algorithms                    lower final accuracy compared to LLMBO.
+used identical values for shared hyperparameters, including the                       Although PSO also delivers solid identification perfor-
+maximum number of iterations, stopping criterion, and other                      mance by relying on swarm intelligence for cooperative search,
+relevant configurations, to guarantee a fair comparison. No-                     it tends to get trapped in local optima when dealing with non-
+tably, during the 3C experiments, the peer algorithms, including                 linear optimization problems. Additionally, PSO’s performance
+BO, struggle to converge, requiring multiple trials to achieve                   is highly sensitive to parameter settings, such as inertia weight
+satisfactory results. In contrast, LLMBO efficiently achieves                    and social parameters, which reduces its robustness and global
+better identification performance, benefiting from zero-shot                     search capability compared to LLMBO. Furthermore, GA’s de-
+warm start and the LLM’s dynamic adjustment of the acqui-                        pendency on manual parameter tuning for crossover probabil-
+sition function. Figure 8 evaluates the accuracy of the algo-                    ity and mutation intensity introduces additional optimization
+rithms using error metrics, specifically root mean square error                  uncertainty, making it less adaptive compared to the gradient-
+(RMSE) and mean absolute error (MAE), to facilitate a quanti-                    aware mechanisms in LLMBO.
+tative comparison. Figure 9 provides a comparative analysis of                        LLMBO-4o and LLMBO-r1, leveraging their multilevel
+the computational time required by each algorithm during the                     contextual reasoning capabilities and dynamic semantic model-
+identification process.                                                          ing mechanisms, demonstrate exceptional advantages in com-
+     As shown in Figure 8, LLMBO-3.5, LLMBO-r1, and                              plex optimization tasks. They achieve the highest accuracy and
+LLMBO-4o exhibit superior identification performance and                         fastest convergence speed while effectively reducing redundant
+significantly accelerate convergence. By effectively leverag-                    exploration through physics-guided initialization strategies, re-
+
+                                                                             7
+                                                                                       Figure 10: LLMBO[No context]: Prompt for the discriminative surrogate
+                                                                                       model with parts of the optimization problem description removed. Note
+                                                                                       that in this setting, no metadata about the underlying datasets is provided.
+                 (a) RMSEs of LLMBO and peer algorithms                                Strikethrough indicates the component that is removed.
+
+
+
+
+                                                                                       Figure 11: LLAMBO[No instructions]: Prompt for the candidate sampling with
+                                                                                       additional instructions removed. Strikethrough indicates the component that is
+                                                                                       removed.
+                  (b) MAEs of LLMBO and peer algorithms
+
+                                                                                           • LLMBO [No context]: This variant assesses the im-
+      Figure 8: Identification accuracy of LLMBO and peer algorithms.
+                                                                                             pact of the optimization problem description on perfor-
+                                                                                             mance. Specifically, it omits metadata about the underly-
+                                                                                             ing dataset from the prompt (see Figure 10).
+
+                                                                                           • LLMBO [No instructions]: In this setup, we excluded ad-
+                                                                                             ditional non-format-related instructions from the prompt.
+                                                                                             This includes removing guidelines in the candidate sam-
+                                                                                             pling regarding the type of points to sample. As a result,
+                                                                                             the retained instructions are purely to ensure compliance
+                                                                                             with the required format for regular processing (see Fig-
+                                                                                             ure 11).
+
+                                                                                       The experimental results in Figure 12 demonstrate that the
+                                                                                       standard LLMBO configuration outperforms the other variants,
+                                                                                       highlighting the importance of each prompt component in en-
+Figure 9: Computational time (s) of different algorithms for parameter identifi-       hancing overall performance. Additionally, we observed that
+cation.                                                                                our ablation settings achieve competitive optimization perfor-
+                                                                                       mance compared to the baseline, with LLMBO [No context]
+                                                                                       being particularly notable. It exhibits similar optimization be-
+sulting in more than a threefold improvement in overall effi-
+                                                                                       havior even without any metadata about the underlying task. On
+ciency compared to conventional methods. This positions GPT-
+                                                                                       one hand, this underscores the critical role of metadata about
+4o and DeepSeek-R1 as optimal choices for parameter identi-
+                                                                                       the dataset in guiding the optimization process. On the other
+fication in advanced electrochemical systems. Despite offering
+                                                                                       hand, the robust performance of LLMBO [No context] despite
+the fastest single-inference speed, GPT-3.5-Turbo struggles to
+                                                                                       the lack of metadata indicates the model’s effectiveness beyond
+capture nonlinear electrochemical interactions due to its limited
+                                                                                       relying on data memorization or leakage, as it operates without
+model capacity and context window, often resulting in conver-
+                                                                                       access to specific dataset information.
+gence to local optima. The findings highlight that the depth
+                                                                                           Furthermore, the inferior performance of LLMBO [No in-
+of contextual understanding, dynamic adaptability, and task-
+                                                                                       structions] emphasizes the importance of detailed task instruc-
+specific compatibility of LLMs are critical determinants of their
+                                                                                       tions in improving the quality and efficiency of the candidate
+performance.
+                                                                                       sampling process, ultimately contributing to overall optimiza-
+                                                                                       tion effectiveness.
+4.2.3. Ablation study
+    Our prompt design consists of three fundamental compo-                             4.2.4. Further Discussions
+nents: (1) a description of the optimization problem, (2) the op-
+                                                                                           • To further analyze the impact of prompt design in the
+timization history, and (3) explicit task instructions. To evaluate
+                                                                                              warm-start stage, we implemented a new variant, termed
+the impact of each component on performance, we conducted
+                                                                                              LLMBO-enhance1. In this variant, critical information,
+an ablation study with the following configurations:
+
+                                                                                   8
+                  Table 4: Identification accuracy of LLMBO-3.5, AO, BO, PSO, and GA, where the number of optimization iterations is set to {25, 50, 75}
+                                                   LLMBO-3.5                                                             AO                                                                      BO
+ Optimization iterations        0.5C            1C           2C           3C            0.5C                1C                    2C                     3C                 0.5C            1C          2C            3C
+                           RMSE MAE        RMSE MAE RMSE MAE         RMSE MAE      RMSE MAE        RMSE           MAE RMSE              MAE     RMSE           MAE     RMSE MAE        RMSE MAE RMSE MAE         RMSE MAE
+           25              0.0312 0.0354   0.056 0.070 0.074 0.078   0.112 0.087   0.0477 0.0393   0.0784        0.0694 0.1227         0.0749   0.3461        0.2941   0.0432 0.0354   0.108 0.091 0.131 0.112   0.149 0.123
+           50              0.0249 0.0297   0.049 0.059 0.063 0.064   0.094 0.075   0.0397 0.0328   0.0653        0.0578 0.1022         0.0625   0.2884        0.2451   0.0309 0.0351   0.064 0.069 0.107 0.099   0.135 0.110
+           75              0.0205 0.0246   0.043 0.055 0.055 0.059   0.089 0.071   0.0358 0.0295   0.0588        0.0520 0.0920         0.0563   0.2595        0.2205   0.0248 0.0307   0.087 0.072 0.110 0.091   0.128 0.104
+                                                     PSO                                                               GA
+ Optimization iterations        0.5C            1C           2C           3C            0.5C                1C                    2C                     3C
+                           RMSE MAE        RMSE MAE RMSE MAE         RMSE MAE      RMSE MAE        RMSE          MAE      RMSE         MAE      RMSE          MAE
+           25              0.0607 0.0679   0.113 0.096 0.138 0.117   0.155 0.129   0.0678 0.0761   0.121         0.103    0.145        0.124    0.162         0.133
+           50              0.0442 0.0516   0.098 0.083 0.122 0.104   0.140 0.116   0.0516 0.0589   0.106         0.091    0.130        0.112    0.147         0.123
+           75              0.0335 0.0401   0.091 0.076 0.115 0.096   0.133 0.109   0.0387 0.0452   0.099         0.084    0.123        0.103    0.139         0.117
+
+
+
+
+                                                                                                             Table 5: Running time of LLMBO-3.5, AO, BO, PSO, and GA, where the
+                                                                                                             number of optimization iterations is set to {25, 50, 75}
+                                                                                                                     Optimization Iterations                    LLMBO-3.5          AO         BO       PSO         GA
+                                                                                                                               25                                 435 s           480 s      792 s    2958 s      1764 s
+                                                                                                                               50                                 701 s           960 s      1981 s   5765 s      3102 s
+                                                                                                                               75                                 1099 s          1440 s     2461 s   10325 s     4931 s
+
+
+
+
+                           (a) RMSEs of different variants of LLMBO
+
+
+
+
+                                                                                                                                        (a) RMSEs of LLMBO-enhance1 and LLMBO-3.5
+
+
+
+
+                           (b) MAEs of different variants of LLMBO
+
+           Figure 12: Identification accuracy of LLMBO and the variants.
+
+
+
+
+                                                                                                                                        (b) MAEs of LLMBO-enhance1 and LLMBO-3.5
+
+                                                                                                                   Figure 14: Identification accuracy of LLMBO-enhance1 and LLMBO-3.5.
+
+Figure 13: LLAMBO-enhance1: Prompt with additional critical information
+for warm start.                                                                                                               Coupling). It can be seen from Figure 15 that BO-
+                                                                                                                              Coupling achieves lower prediction errors, with the final
+           such as cell chemistry and form factors, was incorpo-                                                              RMSE and MAE values markedly reduced compared to
+           rated into the prompt as key inputs, as illustrated in                                                             the traditional BO. This advantage stems from the inher-
+           Figure 13. The results in Figure 14 demonstrate that                                                               ent strong nonlinear coupling characteristics of electro-
+           LLMBO-enhance1 consistently outperforms the original                                                               chemical model parameters. Conventional kernels rely
+           LLMBO-3.5 across all C-rates in terms of both RMSE                                                                 solely on Euclidean distance to measure similarity, which
+           and MAE. Additionally, LLMBO-enhance1 is more ef-                                                                  fail to capture physical interaction relationships. In con-
+           ficient than LLMBO-3.5. For instance, under the 1C                                                                 trast, the gradient coupling term introduced in the com-
+           rate condition, it completes in 598.6 seconds, compared                                                            posite kernel dynamically adjusts the definition of pa-
+           to 701 seconds required by LLMBO-3.5. The results                                                                  rameter similarity, with weights determined by the sen-
+           demonstrate that incorporating additional critical infor-                                                          sitivity of parameters to model responses. This mecha-
+           mation into the prompt can further improve both the ac-                                                            nism enhances the optimization efficiency of the surro-
+           curacy and efficiency of LLMBO.                                                                                    gate model. In summary, the results demonstrate that
+                                                                                                                              the composite kernel significantly enhances optimization
+      • To validate the effectiveness of the composite kernel, we                                                             performance through gradient coupling mechanisms.
+        compared the performance of the traditional BO with
+        BO incorporating the composite kernel (denoted as BO-                                                            • To further validate the efficacy of LLMBO, we intro-
+                                                                                                                           duced a state-of-the-art metaheuristic, i.e., the artificial
+                                                                                                      9
+             (a) RMSEs of BO and BO-Coupling.                                          (a) RMSEs of LLMBO-3.5 and AO
+
+
+
+
+              (b) MAEs of BO and BO-Coupling.                                           (b) MAEs of LLMBO-3.5 and AO
+
+   Figure 15: Identification accuracy of BO and BO-Coupling.                 Figure 16: Identification accuracy of LLMBO-3.5 and AO.
+
+
+  Owl (AO) algorithm [43], as an additional competitor.                     identification.
+  Given its demonstrated effectiveness across a range of
+                                                                         • To validate the impact of battery variations, specifically
+  engineering optimization tasks, AO serves as a represen-
+                                                                           differences in aging stage, on parameter identification,
+  tative advanced optimizer for a systematic comparison
+                                                                           we conducted experiments on three INR·21700·M50T
+  with LLMBO. Experimental results in Figure 16 indicate
+                                                                           batteries at different aging stages (i.e., after 0, 140, and
+  that AO performs inferiorly to LLMBO in both accuracy
+                                                                           260 charge-discharge cycles). The proposed LLMBO
+  and stability. In contrast, LLMBO consistently achieves
+                                                                           was compared with peer algorithms. Experimental re-
+  lower RMSE and MAE values, highlighting its superior
+                                                                           sults demonstrate that LLMBO consistently achieves su-
+  generalization capability in battery parameter identifica-
+                                                                           perior parameter identification accuracy across all ag-
+  tion tasks.
+                                                                           ing levels (see Figure 18). These findings highlight
+• To mitigate potential biases arising from a single hyper-                LLMBO’s strong adaptability to battery state variations,
+  parameter configuration, we expanded the experimental                    making it a reliable modeling solution under complex op-
+  design by evaluating three additional settings beyond the                erational conditions.
+  default case. Specifically, the number of optimization it-
+  erations was set to 25, 50, and 75 to assess performance
+  under varying computational budgets. To ensure a fair               5. Conclusions
+  comparison, all methods were implemented using identi-
+  cal values for shared hyperparameters. As shown in Ta-                   In this paper, we make the first attempt to combine LLMs
+  ble 4, LLMBO consistently achieves better results across            with BO for parameter identification of the P2D model. Specif-
+  all iteration settings. Moreover, the time costs reported in        ically, we design tailored prompts to enhance each component
+  Table 5 indicate that LLMBO requires less computational             of BO and propose three strategies: LLM-based warm start,
+  effort compared to peer algorithms.                                 LLM-enhanced surrogate modeling, and LLM-enhanced candi-
+                                                                      date sampling. By leveraging the synergistic optimization capa-
+• To quantify the influence of key parameters in the                  bilities of LLMs and BO, the proposed LLMBO achieves faster
+  lithium-ion battery model for the given cell, we con-               convergence, higher accuracy, and superior sample efficiency in
+  ducted a global sensitivity analysis using the Morris               lithium-ion battery parameter identification. Experimental re-
+  method [44]. This approach quantifies parameter in-                 sults demonstrate that LLMBO is more efficient than traditional
+  fluence using the µ∗ metric, which represents the av-               BO and more stable than other heuristic algorithms, thereby
+  erage magnitude of elementary effects on output re-                 providing a new research direction for parameter identification
+  sponses—higher µ∗ values indicate greater parameter                 in complex physical systems. Furthermore, we systematically
+  sensitivity. As visualized in Figure 17, for the given cell,        analyze the performance differences among multiple LLMs in
+  the six selected parameters exhibit higher µ∗ values than           the parameter identification task. The results reveal that GPT-
+  the alternatives. These mechanistically grounded targets            4o and DeepSeek-R1, owing to their advanced contextual rea-
+  provide critical prioritization for efficient battery model         soning capabilities, outperform other models. Notably, with
+                                                                 10
+                                                Figure 17: Morries Sensitivity indices for key parameters
+
+
+                                                                                        through voltage gradients, and coupling strength to cap-
+                                                                                        ture voltage transient features (Figure 3).
+                                                                                   3. Dynamically adjust parameter search ranges by prioritiz-
+                                                                                      ing exploration of high-potential regions based on sensi-
+                                                                                      tivity analysis while maintaining global random sampling
+                                                                                      to balance exploration and exploitation (Figure 4).
+                                                                                It should be noted that the prompts presented in the article rep-
+            (a) RMSEs of LLMBO-3.5, BO, AO, PSO, and GA                         resent only the key components and do not include input/output
+                                                                                formats or implementation details. The system innovatively
+                                                                                encodes electrochemical mechanisms into the prompt design,
+                                                                                with physical consistency validated through multi-rate voltage
+                                                                                curves, thereby pioneering new approaches for lithium-ion bat-
+                                                                                tery parameter identification.
+
+                                                                                Nomenclature
+
+
+            (b) MAEs of LLMBO-3.5, BO, AO, PSO, and GA
+                                                                                   θ                        parameter vector consisting of battery
+Figure 18: Identification accuracy of LLMBO-3.5, BO, AO, PSO, and GA for                                    model parameters
+batteries at different aging stages.
+                                                                                   θk                       kth candidate parameter vector
+the rapid advancement of LLMs, their optimization capabilities                     f (θ), f (θk )           objective function values of θ and θk ,
+have also significantly improved. In the future, this approach                                              respectively
+can be extended to higher-dimensional optimization tasks with
+even more complex search spaces.                                                   θ j, θ j                 lower and upper bounds of the jth pa-
+                                                                                                            rameter θ j , respectively
+COMPLETE PROMPTS
+    Here’s the translation of key prompts for each BO compo-                       Uref                     vector of experimentally observed
+nent, maintaining technical accuracy while ensuring clarity for                                             voltages
+electrochemical applications:                                                      U                        vector of reference voltages generated
+   1. Integrate electrochemical constraints and material prop-                                              by the P2D model
+      erties to generate physically feasible initial parameter
+                                                                                   Ui , Uiref               ith samples of the measured voltages
+      sets (Figure 2).
+                                                                                                            and the reference voltages, respec-
+   2. Construct composite kernel functions incorporating                                                    tively
+      porous electrode theory, correlating parameter coupling
+                                                                           11
+                                                                                        a gbls booster multi-task model, Journal of Energy Storage 75 (2024)
+  q                      number of parameters                                           109741.
+                                                                                    [2] D. Larcher, J.-M. Tarascon, Towards greener and more sustainable batter-
+  n                      number of samples                                              ies for electrical energy storage, Nature Chemistry 7 (1) (2015) 19–29.
+                                                                                    [3] S. Zhang, X. Zhang, A comparative study of different online model pa-
+                                                                                        rameters identification methods for lithium-ion battery, Science China
+  εact,p                 positive electrode active material vol-
+                                                                                        Technological Sciences 64 (10) (2021) 2312–2327.
+                         ume fraction                                               [4] L. Chen, W. Shen, Y. Zhou, X. Mou, L. Lei, Learning-based sparse spa-
+                                                                                        tiotemporal modeling for distributed thermal processes of lithium-ion bat-
+  εact,n                 negative electrode active material vol-                        teries, Journal of Energy Storage 69 (2023) 107834.
+                         ume fraction                                               [5] J. Newman, K. E. Thomas, H. Hafezi, D. R. Wheeler, Modeling of
+                                                                                        lithium-ion batteries, Journal of Power Sources 119 (2003) 838–843.
+  εe,p                   volume fraction of the electrolyte                         [6] L. A. Román-Ramı́rez, J. Marco, Design of experiments applied to
+                                                                                        lithium-ion batteries: A literature review, Applied Energy 320 (2022)
+                         phase in the positive electrode
+                                                                                        119305.
+                                                                                    [7] M. J. Lain, E. Kendrick, Understanding the limitations of lithium ion bat-
+  PLLM                   LLM-based parser responsible for an-                           teries at high rates, Journal of Power Sources 493 (2021).
+                         alyzing a constraint set                                   [8] A. I. Rodriguez-Cea, D. Morinigo-Sotelo, F. V. Tinaut, A procedure for
+                                                                                        evaluating the soh of li-ion batteries from data during the constant voltage
+  S                      domain-specific semantic constraints                           charge phase and the use of an ecm with internal resistance, Journal of
+                                                                                        Energy Storage 108 (2025) 115074.
+  k(θ, θ′ )              composite kernel function of θ and θ′                      [9] J. Newman, W. Tiedemann, Porous-electrode theory with battery applica-
+                                                                                        tions, AIChE Journal 21 (1) (1975) 25–41.
+  LLMcoupling            coupling term in the composite kernel                     [10] J. Newman, N. P. Balsara, Electrochemical Systems, John Wiley & Sons,
+                         function                                                       2021.
+                                                                                   [11] R. Krishna, J. A. Wesselingh, The maxwell-stefan approach to mass trans-
+                                                                                        fer, Chemical Engineering Science 52 (6) (1997) 861–911.
+  l                      kernel length in the composite kernel                     [12] D. Zhang, B. N. Popov, R. E. White, Modeling lithium intercalation of a
+                         function                                                       single spinel particle under potentiodynamic control, Journal of the Elec-
+                                                                                        trochemical Society 147 (3) (2000) 831.
+  γ                      coupling strength in the composite                        [13] M. Guo, G. Sikha, R. E. White, Single-particle model for a lithium-ion
+                         kernel function                                                cell: Thermal behavior, Journal of The Electrochemical Society 158 (2)
+                                                                                        (2010) A122.
+  wi j                   quantification of physical correlations                   [14] S. K. Rahimian, S. Rayman, R. E. White, Extension of physics-based
+                                                                                        single particle model for higher charge–discharge rates, Journal of Power
+                         in the coupling term                                           Sources 224 (2013) 180–194.
+                                                                                   [15] G.-H. Kim, K. Smith, K.-J. Lee, S. Santhanagopalan, A. Pesaran, Multi-
+   fmin,k                best objective function value at the kth                       domain modeling of lithium-ion batteries encompassing multi-physics
+                         iteration                                                      in varied length scales, Journal of the Electrochemical Society 158 (8)
+                                                                                        (2011) A955.
+  D                      database of parameter vectors                             [16] M. Torchio, L. Magni, R. B. Gopaluni, R. D. Braatz, D. M. Raimondo,
+                                                                                        Lionsimba: a matlab framework based on a finite volume model suitable
+   fmin                  best objective function value in the                           for li-ion battery design, simulation, and control, Journal of The Electro-
+                         database D                                                     chemical Society 163 (7) (2016) A1192.
+                                                                                   [17] L. Cai, R. E. White, Reduction of model order based on proper orthogonal
+                                                                                        decomposition for lithium-ion battery simulations, Journal of the Electro-
+  αLLM
+   EI (θ)                LLM-enhanced expected improve-
+                                                                                        chemical Society 156 (3) (2008) A154.
+                         ment value of θ                                           [18] P. W. Northrop, V. Ramadesigan, S. De, V. R. Subramanian, Coordinate
+                                                                                        transformation, orthogonal collocation, model reformulation and simu-
+  WLLM                   weighting function generated by the                            lation of electrochemical-thermal behavior of lithium-ion battery stacks,
+                         LLM to prioritize sensitive parameters                         Journal of The Electrochemical Society 158 (12) (2011) A1461.
+                                                                                   [19] A. M. Bizeray, S. Zhao, S. R. Duncan, D. A. Howey, Lithium-ion bat-
+  D′                     database of new sampling parameter                             tery thermal-electrochemical model-based state estimation using orthog-
+                                                                                        onal collocation and a modified extended kalman filter, Journal of Power
+                         vectors
+                                                                                        Sources 296 (2015) 400–412.
+                                                                                   [20] G.-H. Kim, K. Smith, J. Lawrence-Simon, C. Yang, Efficient and extensi-
+  tmax                   maximum iteration number                                       ble quasi-explicit modular nonlinear multiscale battery model: Gh-msmd,
+                                                                                        Journal of The Electrochemical Society 164 (6) (2017) A1076.
+  De,n                   negative electrode diffusivity                            [21] J. Li, Y. Peng, Q. Wang, H. Liu, Status and prospects of research on
+                                                                                        lithium-ion battery parameter identification, Batteries 10 (6) (2024) 194.
+  De,p                   positive electrode diffusivity                            [22] J. Li, L. Zou, F. Tian, X. Dong, Z. Zou, H. Yang, Parameter identifi-
+                                                                                        cation of lithium-ion batteries model to predict discharge behaviors us-
+  σ s,n                  negative electrode conductivity                                ing heuristic algorithm, Journal of The Electrochemical Society 163 (8)
+                                                                                        (2016) A1646.
+  σ s,p                  positive electrode conductivity                           [23] M. A. Rahman, S. Anwar, A. Izadian, Electrochemical model based
+                                                                                        fault diagnosis of lithium ion battery, Dissertations & Theses Gradworks
+                                                                                        (2016).
+                                                                                   [24] H. Chun, J. Kim, S. Han, Parameter identification of an electrochemi-
+References                                                                              cal lithium-ion battery model with convolutional neural network, IFAC-
+                                                                                        PapersOnLine 52 (4) (2019) 129–134.
+[1] P. Yang, H. Yang, X. Meng, C. Song, T. He, J. Cai, Y. Xie, K. Xu, Joint        [25] Y. Wang, Q. Yao, J. T. Kwok, L. M. Ni, Generalizing from a few ex-
+    evaluation and prediction of soh and rul for lithium batteries based on
+
+                                                                              12
+     amples: A survey on few-shot learning, ACM computing surveys (csur)
+     53 (3) (2020) 1–34.
+[26] T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal,
+     A. Neelakantan, P. Shyam, G. Sastry, A. Askell, et al., Language models
+     are few-shot learners, Advances in Neural Information Processing Sys-
+     tems 33 (2020) 1877–1901.
+[27] S. Holt, M. R. Luyten, M. van der Schaar, L2mac: Large language
+     model automatic computer for extensive code generation, arXiv preprint
+     arXiv:2310.02003 (2023).
+[28] N. Seedat, N. Huynh, B. Van Breugel, M. Van Der Schaar, Curated llm:
+     Synergy of llms and data curation for tabular augmentation in low-data
+     regimes, arXiv preprint arXiv:2312.12112 (2023).
+[29] G. Penedo, Q. Malartic, D. Hesslow, R. Cojocaru, A. Cappelli, H. Alobei-
+     dli, B. Pannier, E. Almazrouei, J. Launay, The refinedweb dataset for fal-
+     con llm: outperforming curated corpora with web data, and web data only,
+     arXiv preprint arXiv:2306.01116 (2023).
+[30] A. Chowdhery, S. Narang, J. Devlin, M. Bosma, G. Mishra, A. Roberts,
+     P. Barham, H. W. Chung, C. Sutton, S. Gehrmann, et al., Palm: Scal-
+     ing language modeling with pathways, Journal of Machine Learning Re-
+     search 24 (240) (2023) 1–113.
+[31] J. Wei, X. Wang, D. Schuurmans, M. Bosma, F. Xia, E. Chi, Q. V. Le,
+     D. Zhou, et al., Chain-of-thought prompting elicits reasoning in large lan-
+     guage models, Advances in Neural Information Processing Systems 35
+     (2022) 24824–24837.
+[32] J. Wei, Y. Tay, R. Bommasani, C. Raffel, B. Zoph, S. Borgeaud, D. Yo-
+     gatama, M. Bosma, D. Zhou, D. Metzler, et al., Emergent abilities of large
+     language models, arXiv preprint arXiv:2206.07682 (2022).
+[33] V. Sanh, A. Webson, C. Raffel, S. H. Bach, L. Sutawika, Z. Alyafeai,
+     A. Chaffin, A. Stiegler, T. L. Scao, A. Raja, et al., Multitask
+     prompted training enables zero-shot task generalization, arXiv preprint
+     arXiv:2110.08207 (2021).
+[34] L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. Wainwright, P. Mishkin,
+     C. Zhang, S. Agarwal, K. Slama, A. Ray, et al., Training language mod-
+     els to follow instructions with human feedback, Advances in Neural In-
+     formation Processing Systems 35 (2022) 27730–27744.
+[35] T. Liu, N. Astorga, N. Seedat, M. van der Schaar, Large language mod-
+     els to enhance bayesian optimization, arXiv preprint arXiv:2402.03921
+     (2024).
+[36] M. Doyle, T. F. Fuller, J. Newman, Modeling of galvanostatic charge and
+     discharge of the lithium/polymer/insertion cell, Journal of the Electro-
+     chemical society 140 (6) (1993) 1526.
+[37] A. Jokar, B. Rajabloo, M. Désilets, M. Lacroix, Review of simpli-
+     fied pseudo-two-dimensional models of lithium-ion batteries, Journal of
+     Power Sources 327 (2016) 44–55.
+[38] Zhou, Yu et. al, A Surrogate-Assisted Teaching-Learning-Based Opti-
+     mization for Parameter Identification of the Battery Model, IEEE Trans-
+     actions on Industrial Informatics 17 (9) (2021) 5909–5918. doi:10.
+     1109/TII.2020.3038949.
+[39] B. Shahriari, K. Swersky, Z. Wang, R. P. Adams, N. De Freitas, Taking the
+     human out of the loop: A review of bayesian optimization, Proceedings
+     of the IEEE 104 (1) (2015) 148–175.
+[40] B.-C. Wang, Y.-B. He, J. Liu, B. Luo, Fast parameter identification of
+     lithium-ion batteries via classification model-assisted bayesian optimiza-
+     tion, Energy 288 (2024) 129667.
+[41] C.-H. Chen, F. B. Planella, K. O’regan, D. Gastol, W. D. Widanage,
+     E. Kendrick, Development of experimental techniques for parameteriza-
+     tion of multi-scale lithium-ion battery models, Journal of The Electro-
+     chemical Society 167 (8) (2020) 080534.
+[42] T. M. Bandhauer, S. Garimella, T. F. Fuller, A critical review of ther-
+     mal issues in lithium-ion batteries, Journal of the Electrochemical Society
+     158 (3) (2011) R1.
+[43] Abualigah, Laith et. al, Aquila optimizer: a novel meta-heuristic op-
+     timization algorithm, Computers & Industrial Engineering 157 (2021)
+     107250.
+[44] King, David Michael and Perera, BJC, Morris method of sensitivity anal-
+     ysis applied to assess the importance of input variables on urban water
+     supply yield–A case study, Journal of hydrology 477 (2013) 17–32.
+
+
+
+
+                                                                                   13
+

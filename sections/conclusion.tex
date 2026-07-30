@@ -1,22 +1,26 @@
 % ============================================================================
-% Section VI: Conclusion
+% Section VII: Conclusion
 % ============================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper presented LLMBO-MO, a large language model-augmented
-multi-objective Bayesian optimization framework for battery fast-charging
-protocol design. The framework uses the LLM at two guarded touchpoints:
-warmstart generation and iteration-level point/region guidance. The optimizer
-keeps the final decision inside a conventional BO loop through Riesz/Tchebycheff
-scalarization, GP modeling, EI acquisition, risk penalties, and simulator
-feedback. Experiments on SPMe-based simulators show that LLMBO-MO improves
-hypervolume over ParEGO by 9.2\% on a Chen2020 case and by 17.8\% across
-five Ecker2015 seeds, with reduced seed-to-seed variation. An ablation
-study confirms that both warmstart and iteration-level guidance contribute
-positively, and their combination achieves the highest mean hypervolume.
+This paper addressed sample-limited multiobjective fast-charging design with
+LLMBO-MO, a framework that uses language-model output as a guarded preference
+prior rather than as measured objective data. A constraint-screened warm-start
+portfolio improves the initial design, and an early posterior-covariance region
+lift biases acquisition without altering GP training targets or predictive
+variance. Under matched 56-simulation budgets, LLMBO-MO improves final
+hypervolume over ParEGO by 9.2\% in the retained Chen2020 case and by 17.8\%
+across five Ecker2015 seeds. The ablation archive further shows positive mean
+contributions from both LLM touchpoints, with their combination attaining the
+highest mean hypervolume.
 
-Future work will add stronger statistical validation across more cell models,
-study locally hosted LLM backends to reduce runtime overhead, and extend the
-framework to variable-stage protocols with mixed discrete-continuous decision
-spaces.
+The current evidence remains bounded by two simulated parameterizations, small
+seed counts, a semi-empirical degradation indicator, and the absence of matched
+qEHVI/qNEHVI and physical-cell results. The next step is to replay selected
+Pareto protocols on the laboratory platform documented in
+Fig.~\ref{fig:experiment_platform}, quantify measurement noise and cell-to-cell
+variation, and evaluate stronger direct-hypervolume baselines under identical
+initial databases. Extending the framework to variable-stage and mixed
+discrete--continuous protocols, as well as locally hosted LLM backends, is also
+of practical interest.

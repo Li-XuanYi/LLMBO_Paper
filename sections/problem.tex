@@ -1,11 +1,11 @@
 % ============================================================================
-% Section II: Problem Formulation
+% Section III: Problem Formulation
 % ============================================================================
 \section{Problem Formulation}
 \label{sec:problem}
 
 % 2.1 Multi-Objective Optimization Problem
-\subsection{Charging Protocol Design as CMOP}
+\subsection{Constrained Multiobjective Charging Objective}
 
 The design variable is a multi-stage constant-current charging protocol
 $\btheta$. The optimization problem is formulated as a constrained
@@ -16,8 +16,9 @@ multi-objective optimization problem:
 \label{eq:cmop}
 \end{equation}
 where $t_c$ is charging time, $\Delta T_p$ is the peak temperature rise above
-ambient, and $Q_s$ is the capacity fade percentage. All three objectives are
-minimized, and the nondominated set forms the Pareto front.
+the initial temperature, and $Q_s$ is a protocol-level degradation indicator.
+All three objectives are minimized. The corresponding nondominated protocols
+form the Pareto set, whose image in objective space is the Pareto front.
 
 % 2.2 Decision Variables
 \subsection{Decision Variables and Constraints}
@@ -32,7 +33,7 @@ SOC widths of the first two stages. The third width is determined by the
 remaining SOC window. The bounds used in this work are listed in
 Table~\ref{tab:variables}.
 
-\begin{table}[htbp]
+\begin{table}[!t]
 \caption{Decision Variables and Bounds}
 \label{tab:variables}
 \centering
@@ -68,5 +69,5 @@ V_{\mathrm{peak}}(\btheta) &\leq V_{\max},\\
 T_{\mathrm{peak}}(\btheta) &\leq T_{\max},\\
 0 \leq \mathrm{SOC}(t) &\leq 0.80 .
 \end{align}
-Protocols that violate hard operational constraints receive penalty objective
-values and are not allowed to dominate feasible protocols.
+Protocols that violate hard operational constraints receive dominated sentinel
+values and are excluded from the feasible Pareto set.
