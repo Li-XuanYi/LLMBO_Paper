@@ -58,24 +58,24 @@
 % Optional LLM branch
 \node[advise, minimum width=2.75cm] (pref) at (4.85,3.55)
     {\textbf{LLM preference}};
-\node[advise] (guard) at (7.90,3.55) {\textbf{Guard}};
+\node[advise] (guard) at (7.90,3.55) {\textbf{Checks}};
 \node[advise] (lift) at (10.65,3.55) {\textbf{Mean shift}};
 
 \draw[advice] (pref) -- (guard);
 \draw[advice] (guard) -- (lift);
 \draw[advice] (lift.south) -- ($(ei.north)+(0.72,0)$);
 \draw[fallback] (guard.south) -- node[left, font=\sffamily\scriptsize,
-    text=black!60] {invalid} ($(ei.north)+(-0.72,0)$);
+    text=black!60] {rejected} ($(ei.north)+(-0.72,0)$);
 
 \node[font=\sffamily\scriptsize, text=orange!82!black]
-    at (9.82,2.45) {valid};
+    at (9.82,2.45) {accepted};
 
 \end{tikzpicture}%
 }
-\caption{Guarded acquisition step. Each iteration scalarizes the observed
+\caption{Screened acquisition step. Each iteration scalarizes the observed
 objectives, fits the GP, maximizes expected improvement, and evaluates the
-selected protocol. During the guidance window, a valid LLM preference shifts
-only the acquisition-time posterior mean; invalid or absent guidance follows
+selected protocol. During the guidance window, an accepted LLM preference shifts
+only the acquisition-time posterior mean; rejected or absent guidance follows
 the dotted path to standard EI.}
 \label{fig:guarded_region_lift}
 \end{figure*}

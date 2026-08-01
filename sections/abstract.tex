@@ -3,27 +3,24 @@
 % ============================================================================
 \begin{abstract}
 Fast-charging protocol design is an expensive constrained multiobjective
-problem that must balance charging time, thermal stress, and a degradation
-indicator. Conventional Bayesian optimization (BO) is sample efficient, but
-its cold-start decisions depend on few task-specific observations and generic
-statistical priors. This paper presents LLMBO-MO, a multiobjective BO framework
-that treats large-language-model (LLM) output as a fallible preference prior
-rather than as an objective observation or a final decision. The LLM first
-supports a diverse, constraint-screened warm start and then supplies
-weight-conditioned point or region preferences during early optimization.
-Simulator evaluations alone update the Gaussian-process surrogate, while a
-posterior-covariance mean lift gives valid guidance bounded influence at
-acquisition time; missing or invalid guidance reverts to standard expected
-improvement. Augmented Tchebycheff scalarization distributes the search across
-the three objectives. Under matched 56-evaluation budgets on coupled
-electrochemical--thermal simulators with a protocol-level degradation proxy,
-LLMBO-MO improves final hypervolume over ParEGO by 9.2\% in a representative
-Chen2020 case and by 17.8\% on average across five Ecker2015 seeds. In the
-latter comparison, the hypervolume standard deviation decreases from 0.0116 to
-0.0024. Ablations show positive mean contributions from both LLM touchpoints,
-with their combination attaining the highest mean hypervolume. The evidence is
-simulation-based and supports guarded LLM guidance as a promising route to
-more sample-efficient Pareto search.
+problem involving charging time, peak temperature rise, and a degradation
+proxy. This paper presents LLMBO-MO, a multiobjective Bayesian optimization
+framework that uses large-language-model (LLM) output as an advisory
+preference while preserving numerical control of the optimization loop. The
+LLM proposes a diverse, protocol-domain-screened warm start and
+weight-conditioned regions during an early guidance window. Accepted regions
+can provide acquisition restarts and a bounded posterior-covariance adjustment
+to the acquisition mean. Only electrochemical--thermal simulator outputs train
+the Gaussian-process surrogate, and rejected guidance recovers ordinary
+expected improvement exactly. Under matched budgets of 56 simulator
+evaluations, five-seed experiments on the Chen2020 and Ecker2015
+parameterizations yield mean final-hypervolume improvements of 0.84\% and
+2.18\% over ParEGO, with paired wins in three and four of five seeds,
+respectively. A component study further shows that the screened warm start
+provides the more consistent individual gain, while bounded regional guidance
+can complement it. The results demonstrate a conservative interface for using
+language-model guidance in data-scarce battery protocol optimization without
+treating generated content as physical evidence.
 \end{abstract}
 
 \begin{IEEEkeywords}

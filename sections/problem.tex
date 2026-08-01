@@ -1,73 +1,76 @@
 % ============================================================================
-% Section III: Problem Formulation
+% Section III: Fast-Charging Optimization Problem
 % ============================================================================
-\section{Problem Formulation}
+\section{Fast-Charging Optimization Problem}
 \label{sec:problem}
 
-% 2.1 Multi-Objective Optimization Problem
-\subsection{Constrained Multiobjective Charging Objective}
+The design loop maps a candidate charging protocol to a current profile,
+simulates the resulting battery trajectory, and returns objective and
+constraint values to a constrained Pareto search. Figure~\ref{fig:charging_problem}
+summarizes this separation between protocol representation, physical
+evaluation, and optimization feedback.
+\input{figures/fig_charging_design_problem}
 
-The design variable is a multi-stage constant-current charging protocol
-$\btheta$. The optimization problem is formulated as a constrained
-multi-objective optimization problem:
+\subsection{SOC-Domain Multistage Protocol Representation}
+
+Following established multistage constant-current formulations
+for fast-charging design~\cite{ref14,ref13}, a protocol is represented by its
+current levels and its SOC allocation rather than by stage durations. The SOC
+representation makes switching boundaries explicit, while each duration
+remains a dependent quantity determined by transferred charge and current.
+For an indexed $K$-stage representation over $[s_0,s_f]$, let
+$\Delta s_k$ be the SOC span of stage $k$. The independent coordinates,
+dependent terminal span, and total charging time are written compactly as
+\[
+\begin{aligned}
+\btheta
+&=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top,\\
+\Delta s_K
+&=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k,\qquad
+t_c(\btheta)=\kappa_t Q_{\mathrm{eff}}
+\sum_{k=1}^{K}\frac{\Delta s_k}{I_k^{\mathrm{cell}}}.
+\end{aligned}
+\]
+Here $Q_{\mathrm{eff}}$ is the effective cell capacity,
+$I_k^{\mathrm{cell}}=\phi_{\mathrm{cell}}(I_k)$ is the deterministic mapping
+from a protocol coordinate to physical cell current, and $\kappa_t$ is the
+charge-to-time unit conversion. The map $\phi_{\mathrm{cell}}$ accounts for
+the current convention of each cell parameterization and is fixed before
+optimization.
+
+Let $\Theta_{\mathrm{proto}}$ contain the box-feasible current and independent
+SOC-span coordinates for which
+$\Delta s_K\geq\Delta s_K^{\min}$. The dependent-span identity completes the
+prescribed SOC interval, while this lower bound excludes degenerate terminal
+stages. This indexed representation applies to any selected finite stage
+count; the optimization method does not rely on a particular number of
+segments. A stricter preferred span $\Delta s_K^{\mathrm{soft}}$ is used only
+to rank LLM warm-start candidates and is not an additional simulator
+constraint.
+
+\subsection{Objective and Constraint Formulation}
+
+For a protocol $\btheta$, the simulator returns charging time, peak temperature
+rise, and a protocol-level degradation proxy. The constrained multiobjective
+problem is
 \begin{equation}
-\min_{\btheta} f(\btheta)=
-\{t_c(\btheta),\Delta T_p(\btheta),Q_s(\btheta)\},
+\begin{aligned}
+\min_{\btheta\in\Theta_{\mathrm{proto}}}\quad
+&\mathbf f(\btheta)=
+\begin{bmatrix}
+t_c(\btheta)\\
+\Delta T_p(\btheta)\\
+D_{\mathrm{chg}}(\btheta)
+\end{bmatrix},\\
+\mathrm{s.t.}\quad
+&V_{\mathrm{peak}}(\btheta)\le V_{\max},\\
+&T_{\mathrm{peak}}(\btheta)\le T_{\max}.
+\end{aligned}
 \label{eq:cmop}
 \end{equation}
-where $t_c$ is charging time, $\Delta T_p$ is the peak temperature rise above
-the initial temperature, and $Q_s$ is a protocol-level degradation indicator.
-All three objectives are minimized. The corresponding nondominated protocols
-form the Pareto set, whose image in objective space is the Pareto front.
-
-% 2.2 Decision Variables
-\subsection{Decision Variables and Constraints}
-
-A three-stage constant-current protocol is adopted. The decision vector is
-\begin{equation}
-\btheta=[I_1,I_2,I_3,\Delta s_1,\Delta s_2]^\top ,
-\label{eq:theta}
-\end{equation}
-where $I_1,I_2,I_3$ are the stage currents and $\Delta s_1,\Delta s_2$ are the
-SOC widths of the first two stages. The third width is determined by the
-remaining SOC window. The bounds used in this work are listed in
-Table~\ref{tab:variables}.
-
-\begin{table}[!t]
-\caption{Decision Variables and Bounds}
-\label{tab:variables}
-\centering
-\begin{tabular}{lccc}
-\toprule
-Variable & Symbol & Bounds & Unit \\
-\midrule
-Stage-1 current & $I_1$ & $[2.0,6.0]$ & A \\
-Stage-2 current & $I_2$ & $[2.0,5.0]$ & A \\
-Stage-3 current & $I_3$ & $[2.0,3.0]$ & A \\
-Stage-1 SOC width & $\Delta s_1$ & $[0.10,0.40]$ & -- \\
-Stage-2 SOC width & $\Delta s_2$ & $[0.10,0.30]$ & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The main geometric constraint is
-\begin{equation}
-\Delta s_1+\Delta s_2 \leq 0.70,
-\label{eq:dsoc}
-\end{equation}
-which ensures that a nontrivial third stage remains. During LLM candidate
-generation, a softer safety margin $\Delta s_1+\Delta s_2 \leq 0.65$ is used to
-discourage protocols near the hard boundary.
-
-% 2.3 Operational Constraints
-\subsection{Operational Constraints}
-
-During simulation, each protocol must satisfy voltage, temperature, and SOC
-limits:
-\begin{align}
-V_{\mathrm{peak}}(\btheta) &\leq V_{\max},\\
-T_{\mathrm{peak}}(\btheta) &\leq T_{\max},\\
-0 \leq \mathrm{SOC}(t) &\leq 0.80 .
-\end{align}
-Protocols that violate hard operational constraints receive dominated sentinel
-values and are excluded from the feasible Pareto set.
+All three objectives are minimized. The protocol domain encodes current bounds
+and completion of the prescribed SOC interval, while the simulator checks the
+path-dependent voltage and temperature limits $V_{\max}$ and $T_{\max}$ fixed
+for the chosen cell model. A protocol that violates either limit or fails to
+complete the interval is marked infeasible and excluded from the evaluated
+Pareto set.

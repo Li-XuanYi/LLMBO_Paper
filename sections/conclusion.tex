@@ -1,26 +1,26 @@
 % ============================================================================
-% Section VII: Conclusion
+% Section VI: Conclusion
 % ============================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper addressed sample-limited multiobjective fast-charging design with
-LLMBO-MO, a framework that uses language-model output as a guarded preference
-prior rather than as measured objective data. A constraint-screened warm-start
-portfolio improves the initial design, and an early posterior-covariance region
-lift biases acquisition without altering GP training targets or predictive
-variance. Under matched 56-simulation budgets, LLMBO-MO improves final
-hypervolume over ParEGO by 9.2\% in the retained Chen2020 case and by 17.8\%
-across five Ecker2015 seeds. The ablation archive further shows positive mean
-contributions from both LLM touchpoints, with their combination attaining the
-highest mean hypervolume.
+This paper presented LLMBO-MO, which uses LLM output as a screened preference
+rather than measured objective data. Its two touchpoints construct a screened
+warm-start portfolio and provide early weight-conditioned regional guidance,
+while the simulator, GP, and EI retain authority over the evaluated database.
+Accepted preferences provide external acquisition restarts and a bounded
+posterior-covariance adjustment, with explicit recovery to plain EI.
 
-The current evidence remains bounded by two simulated parameterizations, small
-seed counts, a semi-empirical degradation indicator, and the absence of matched
-qEHVI/qNEHVI and physical-cell results. The next step is to replay selected
-Pareto protocols on the laboratory platform documented in
-Fig.~\ref{fig:experiment_platform}, quantify measurement noise and cell-to-cell
-variation, and evaluate stronger direct-hypervolume baselines under identical
-initial databases. Extending the framework to variable-stage and mixed
-discrete--continuous protocols, as well as locally hosted LLM backends, is also
-of practical interest.
+With 56 simulator evaluations per run and seeds 8409--8413, LLMBO-MO attains
+higher mean final hypervolume than ParEGO on both tested parameterizations:
+0.3885 versus 0.3853 for Chen2020 and 0.5660 versus 0.5540 for Ecker2015.
+The corresponding paired win counts are 3/5 and 4/5. The component study
+identifies the protocol-domain-screened warm start as the more consistent
+individual contributor and shows that bounded regional guidance can provide
+an additional, but seed-dependent, improvement.
+
+The present evidence is simulation based and uses a trajectory-averaged
+degradation proxy. Future work will extend the comparison to direct
+hypervolume BO, examine model discrepancy, and replay selected Pareto
+protocols on the platform in Fig.~\ref{fig:experiment_platform} under
+independently defined protection limits.

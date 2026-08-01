@@ -8,71 +8,70 @@ Lithium-ion batteries are central to electric vehicles and other high-power
 energy-storage systems because of their high energy density and long cycle
 life~\cite{ref1}. Fast charging improves vehicle availability, but increasing
 the charge rate can intensify heat generation, lithium plating, and
-solid-electrolyte-interphase growth~\cite{ref2,refYang}. Charging-protocol
-design is therefore not a single speed-maximization task: charging time,
-thermal stress, and degradation must be balanced under voltage, temperature,
-and state-of-charge (SOC) constraints.
+solid-electrolyte-interphase growth~\cite{ref2,refYang}. Protocol design must
+therefore balance charging time, peak temperature rise, and a degradation
+proxy while respecting voltage, temperature, and
+state-of-charge (SOC) limits.
 
 The central computational difficulty is the scarcity of informative protocol
 evaluations. Physical cycling tests are slow and costly, and even reduced-order
-electrochemical--thermal simulations limit the number of protocols that can be
-assessed in one design campaign. Bayesian optimization (BO) is well suited to
-this regime because it uses a probabilistic surrogate and an acquisition rule
-to allocate expensive evaluations~\cite{ref3}. Closed-loop cell studies and
-simulation-based charging design have demonstrated substantial reductions in
-the required search budget~\cite{ref11,ref12,ref14}. Multiobjective extensions
-further expose the trade-off surface instead of collapsing user preferences
-into one permanently fixed objective~\cite{ref13}.
+electrochemical--thermal simulation limits how many schedules can be assessed
+in one design campaign. Bayesian optimization (BO) is well suited to this
+regime because it uses a probabilistic surrogate and an acquisition rule to
+allocate expensive evaluations~\cite{ref3}. Closed-loop cell studies and
+simulation-based charging design have demonstrated useful performance under
+restricted evaluation budgets~\cite{ref11,ref12,ref14}. Multiobjective
+extensions expose the trade-off surface instead of permanently collapsing user
+preferences into one objective~\cite{ref13}.
 
-A remaining difficulty is BO's cold start. Before enough task-specific
-observations have accumulated, the surrogate and acquisition function are
-strongly shaped by a small initial design and generic statistical priors.
-Structured battery knowledge can improve this regime, as illustrated by recent
-model-prior-guided charging optimization~\cite{refPrBO}, but constructing a
-reliable prior model for every cell and operating condition is itself
-demanding. LLM-assisted BO offers a complementary interface: recent methods use
-large language models (LLMs) for warm starting, region preference, or
-low-fidelity prediction~\cite{ref10,ref16,refLABO}. For safety-constrained
-battery design, however, an LLM response is neither a calibrated measurement
-nor a guarantee of feasibility. The technical challenge is thus to use its
-contextual guidance without allowing unverified text-derived values to corrupt
-the surrogate or bypass numerical constraint handling.
+A persistent challenge is BO's cold start. Before task-specific observations
+accumulate, a small initial design and a generic statistical prior strongly
+shape the surrogate and acquisition function. Model-prior-guided charging
+optimization can improve this regime~\cite{refPrBO}, but constructing a
+calibrated prior for every cell and operating condition is demanding.
+LLM-assisted BO offers a complementary interface: recent methods use large
+language models (LLMs) for initialization, region preference, or low-fidelity
+prediction~\cite{ref10,ref16,refLABO}. In constrained battery design, however,
+an LLM response is neither a measurement nor proof of feasibility. The key
+question is therefore not whether an LLM can propose a protocol, but how its
+contextual preference can be used without transferring numerical authority
+away from the simulator and optimizer.
 
-This paper addresses that challenge with LLMBO-MO, a guarded LLM-augmented
-multiobjective BO framework for three-stage fast-charging protocol design. Its
-core principle is to treat LLM output as a fallible preference prior. At
-initialization, repaired and screened LLM proposals contribute to a diverse
-warm-start portfolio. During an early guidance window, weight-conditioned point
-or region preferences induce a posterior-covariance mean lift used only for
-acquisition. Only simulator outputs enter the Gaussian-process (GP) training
-database; malformed, infeasible, or unusable guidance has zero influence and
-the optimizer reverts to ordinary expected improvement (EI). Augmented
-Tchebycheff scalarization with Riesz-energy weight vectors distributes the
-search across the three objectives.
+LLMBO-MO answers this question through a deliberately asymmetric interface.
+At initialization, repaired and protocol-domain-screened LLM proposals
+contribute to a diverse warm-start portfolio. During an early guidance window,
+weight-conditioned point or region preferences can supply acquisition
+restarts and, after covariance and magnitude checks, a bounded adjustment to
+the acquisition mean. Only simulator outputs enter the Gaussian-process (GP)
+training database. Unusable guidance has zero numerical effect, and the
+optimizer recovers ordinary expected improvement (EI). Augmented
+Tchebycheff scalarization distributes the search across charging time, peak
+temperature rise, and a protocol-level degradation proxy.
 
 The main contributions are as follows:
 \begin{enumerate}
-\item A guarded two-touchpoint architecture is formulated for constrained
-battery MOBO. The LLM advises initialization and early regional search, while
-simulator observations, the GP surrogate, and EI retain authority over every
-evaluated protocol.
+\item A two-touchpoint architecture is formulated for constrained battery
+multiobjective BO. It separates language-model preferences from simulator
+observations and retains numerical authority over protocol validity,
+surrogate fitting, and the evaluated Pareto set.
 
-\item A battery-aware warm-start portfolio and a weight-conditioned
-posterior-covariance region lift are integrated with explicit parsing,
-feasibility repair, bounded coupling, and reversion to plain EI. This design
-prevents unevaluated LLM outputs from becoming surrogate targets.
+\item A diversity-aware warm-start objective and a weight-conditioned regional
+preference operator are integrated with an explicit, clipped
+posterior-covariance coupling. The formulation bounds the influence of
+text-derived guidance and reduces exactly to standard EI whenever validation
+fails.
 
-\item The framework is evaluated under matched 56-simulation budgets on two
-SPMe parameterizations. It improves final hypervolume over ParEGO by 9.2\% in
-a representative Chen2020 case and by 17.8\% over five Ecker2015 seeds;
-four-group ablations isolate the mean contribution of both LLM touchpoints.
+\item The complete configuration is evaluated against ParEGO under matched
+56-simulation budgets and seeds 8409--8413 on two SPMe parameterizations.
+Common within-benchmark hypervolume definitions and a five-seed component
+study quantify both configuration-level performance and the relative
+contributions of warm starting and regional guidance.
 \end{enumerate}
 
 The remainder of the paper is organized as follows.
-Section~\ref{sec:related_work} positions the work against battery fast-charging
-optimization, expensive MOBO, and LLM-assisted BO.
-Section~\ref{sec:problem} formulates the constrained protocol-design problem,
-and Section~\ref{sec:model} describes the common simulation model.
-Section~\ref{sec:method} presents LLMBO-MO.
-Section~\ref{sec:experiments} reports the evaluation, ablations, and scope
-limitations, and Section~\ref{sec:conclusion} concludes the paper.
+Section~\ref{sec:related_work} reviews battery charging optimization, expensive
+multiobjective optimization, and LLM-assisted BO.
+Section~\ref{sec:problem} defines the protocol, simulator, objectives, and
+constraints. Section~\ref{sec:method} presents LLMBO-MO.
+Section~\ref{sec:experiments} reports the numerical evaluation, component
+study, and limitations, and Section~\ref{sec:conclusion} concludes the paper.

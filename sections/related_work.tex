@@ -12,15 +12,20 @@ prediction with BO in physical-cell experiments~\cite{ref11}. Jiang and
 co-workers studied minimum-time charging, acquisition choices, protocol
 dimensionality, and operational constraints~\cite{ref12,ref14}, while Wang and
 Jiang used Chebyshev decomposition for constrained multiobjective charging
-design~\cite{ref13}. More recent work combines BO with mesh-adaptive search for
-faster convergence~\cite{refDong}, uses early-life prediction with noisy
-expected hypervolume improvement for multiple charging objectives~\cite{refZhu},
-or constructs a semi-empirical aging-model prior~\cite{refPrBO}. These methods
-establish sample-efficient charging optimization, but they either learn only
-from task-specific numerical evaluations or require an explicitly specified
-predictive prior. LLMBO-MO instead converts textual domain context into guarded
-warm-start and regional preferences while retaining simulator evaluation as
-the sole source of objective data.
+design~\cite{ref13}. These studies establish the relevance of sequential
+surrogate optimization for expensive charging design and motivate the
+three-objective formulation considered here.
+
+Recent work accelerates this process through several sources of structure:
+mesh-adaptive search~\cite{refDong}, online digital-twin
+models~\cite{refDigitalTwin}, and parallel satisficing Thompson
+sampling~\cite{refBLASTS}. Other studies use early-life prediction with noisy
+expected hypervolume improvement~\cite{refZhu}, a semi-empirical aging-model
+prior~\cite{refPrBO}, or section-wise electrochemical constraints with
+physical-cell validation~\cite{refYoon}. These approaches derive guidance from
+numerical models, related-task data, or evaluated cells. LLMBO-MO instead uses
+textual context for screened initialization and regional preference while
+retaining simulator evaluation as the sole source of objective data.
 
 \subsection{Expensive Multiobjective Optimization}
 
@@ -33,10 +38,8 @@ its noise-aware qNEHVI extension~\cite{refQEHVI,refQNEHVI}. Surrogate-assisted
 evolutionary algorithms such as DISK and PIMD instead use Kriging predictions
 with distribution- or infill-based selection~\cite{refDISK,refPIMD}; their
 implementations are available in PlatEMO~\cite{refPlatEMO}. The present method
-uses a ParEGO-style decomposition so that each iteration needs one scalar GP,
-which provides a controlled setting for isolating the effect of LLM guidance.
-The absence of an archived qEHVI/qNEHVI comparison is reported explicitly in
-Section~\ref{sec:experiments}.
+uses a ParEGO-style decomposition so that each iteration needs one scalar GP
+and the fixed-budget comparison retains a common numerical backbone.
 
 \subsection{LLM-Assisted Bayesian Optimization}
 
@@ -48,6 +51,7 @@ view, combining inexpensive LLM predictions with real-fidelity observations
 through discrepancy modeling and a gating rule~\cite{refLABO}. LLMBO-MO is
 closest to the preference-guided line but differs in the authority assigned to
 language-model output: it neither inserts LLM predictions as objective values
-nor lets the LLM choose the final evaluation. Its contribution is a
-battery-specific, constraint-screened interface that bounds LLM influence to
-initial portfolio construction and an early acquisition-time mean lift.
+nor lets the LLM choose the final evaluation. It adapts this
+preference-guided pattern to a battery-specific, protocol-domain-screened
+interface with initial portfolio construction, regional acquisition restarts,
+and a bounded early acquisition-time mean adjustment.
