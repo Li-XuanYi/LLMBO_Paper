@@ -33,12 +33,9 @@ prior~\cite{refPrBO}, or section-wise electrochemical constraints validated on
 physical cells~\cite{refYoon}.
 A unifying characteristic of these accelerators is that their guidance derives
 from numerical models, related-task data, or physical measurements.
-None exploit the broad but imprecise domain knowledge encoded in large language
-models (LLMs), nor do they provide a mechanism for incorporating textual advice
-whose influence is bounded and recoverable.
-LLMBO-MO addresses this gap: it uses natural-language task descriptions to
-supply a screened warm-start and bounded regional preferences, while the
-simulator remains the sole source of evaluated objective values.
+LLMBO-MO complements this line by translating natural-language domain priors
+into a screened warm-start and bounded regional preferences, while the
+simulator remains the source of evaluated objective values.
 
 \subsection{Expensive Multiobjective Optimization}
 
@@ -56,8 +53,9 @@ function.
 Differentiable expected hypervolume improvement (qEHVI) and its noise-aware
 variant (qNEHVI) enable gradient-based candidate search over the full Pareto
 frontier~\cite{refQEHVI,refQNEHVI}.
-Surrogate-assisted evolutionary algorithms such as DISK and PIMD use Kriging
-predictions with distribution- or infill-based selection~\cite{refDISK,refPIMD};
+Population-based alternatives include NSGA-II~\cite{ref5} and
+surrogate-assisted evolutionary algorithms such as DISK and PIMD, which use
+Kriging predictions with distribution- or infill-based selection~\cite{refDISK,refPIMD};
 implementations are available in PlatEMO~\cite{refPlatEMO}.
 
 LLMBO-MO adopts a ParEGO-style decomposition backbone.
@@ -100,11 +98,9 @@ difficult to characterize in constrained battery design.
 
 LLMBO-MO differs from all three in the authority it assigns to language-model
 output.
-It does not use LLM predictions as surrogate observations (unlike LLAMBO and
-LABO) and does not allow LLM preferences to permanently alter the surrogate
-(unlike the preference-guided framework).
-Instead, it restricts LLM influence to two bounded, temporary touchpoints---a
-screened warm-start and an early-window regional guidance operator---each of
-which reduces exactly to its standard BO counterpart when validation fails.
-This design ensures that the LLM can improve over standard BO but can never
-make it worse, a property not provided by any prior LLM--BO method.
+Its screened warm-start and early-window regional guidance leave simulator
+evaluations as the GP training targets and preserve the fitted posterior
+covariance.
+The validation gates recover standard BO when an advisory signal is rejected,
+while an explicit pointwise cap bounds the numerical influence of accepted
+regional guidance.

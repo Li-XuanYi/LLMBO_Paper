@@ -40,11 +40,11 @@ charging time are
 \Delta s_K
 &=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k,\\[2pt]
 t_c(\btheta)&=\kappa_t\,Q_{\mathrm{eff}}
-\sum_{k=1}^{K}\frac{\Delta s_k}{I_k^{\mathrm{cell}}},
+\sum_{k=1}^{K}\frac{\Delta s_k}{I_k^{\mathrm{cell}}}.
 \end{aligned}
 \label{eq:protocol}
 \end{equation}
-where $Q_{\mathrm{eff}}$ is the effective cell capacity,
+In Eq.~\eqref{eq:protocol}, $Q_{\mathrm{eff}}$ is the effective cell capacity,
 $I_k^{\mathrm{cell}}=\phi_{\mathrm{cell}}(I_k)$ maps a protocol-level current
 coordinate to the physical cell current via a fixed, cell-specific convention,
 and $\kappa_t$ converts charge to time units.
@@ -64,7 +64,7 @@ Following~\cite{ref14,ref13}, $K=3$ is used in all experiments.
 
 Three competing quantities are minimized.
 \textbf{Charging time} $t_c(\btheta)$ is computed analytically from the
-protocol coordinates via~\eqref{eq:protocol}.
+protocol coordinates via Eq.~\eqref{eq:protocol}.
 \textbf{Peak temperature rise} $\Delta T_p(\btheta)$ is the maximum cell
 temperature during the charge minus the initial temperature, obtained from the
 coupled SPMe--thermal simulation (Section~\ref{sec:model}).
@@ -91,7 +91,7 @@ D_{\mathrm{chg}}(\btheta)
 \end{aligned}
 \label{eq:cmop}
 \end{equation}
-The protocol domain $\Theta_{\mathrm{proto}}$ enforces current bounds and
+In Eq.~\eqref{eq:cmop}, the protocol domain $\Theta_{\mathrm{proto}}$ enforces current bounds and
 completion of $[s_0,s_f]$.
 The simulator checks the path-dependent voltage and temperature limits
 $V_{\max}$ and $T_{\max}$, which are fixed for each cell parameterization.

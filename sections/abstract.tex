@@ -7,27 +7,25 @@ charging time, peak temperature rise, and a degradation proxy under tightly
 limited evaluation budgets, because each candidate protocol must be assessed
 through costly electrochemical--thermal simulation.
 Bayesian optimization (BO) is well suited to this sample-scarce regime, but
-its cold-start phase---where only a few initial observations shape the
-surrogate---can waste precious evaluations on unpromising regions.
-Large language models (LLMs) encode broad domain knowledge that could inform
-early search decisions, yet their outputs are neither physical measurements
-nor feasibility guarantees, making direct reliance on LLM proposals risky in
-safety-constrained battery design.
-Our key insight is to treat the LLM as an advisory preference source while
-retaining the simulator as the sole arbiter of physical evidence.
+its early efficiency depends strongly on informative initialization and
+acquisition guidance.
+Large language models (LLMs) offer domain-informed priors for early search,
+provided that their guidance is integrated through a simulator-grounded
+interface.
 We propose LLMBO-MO, a multiobjective BO framework with two advisory
 touchpoints: a protocol-domain-screened warm-start that supplies diverse
-initial candidates, and bounded regional guidance whose influence reverts
-exactly to standard expected improvement when the LLM advice is invalid.
-Only simulator-evaluated protocols train the Gaussian-process surrogate.
+initial candidates, and early regional guidance with validation gates and an
+explicit pointwise shift cap.
+Simulator-evaluated protocols alone update the Gaussian-process surrogate.
 Under a matched budget of 56 simulator evaluations and five fixed seeds,
-LLMBO-MO yields consistent hypervolume improvement over ParEGO on two SPMe
-parameterizations, with a component study revealing that screened
-warm-starting provides the dominant gain while regional guidance offers a
-complementary benefit.
-The results demonstrate a conservative, risk-bounded interface for
-integrating language-model guidance into data-scarce battery optimization
-without treating generated text as physical evidence.
+LLMBO-MO attains higher mean final hypervolume than ParEGO on two SPMe
+parameterizations, with a 1.7\% mean improvement on Chen2020 (up to 5.1\% in a
+paired seed) and a 17.8\% mean improvement on Ecker2015.
+A component study identifies the screened warm-start as the primary performance
+driver, while a ten-seed prompt-design ablation provides independent
+statistical support for LLM-derived initialization ($p < 0.01$).
+The results establish a validation-gated, simulation-grounded interface for
+integrating language-model guidance into data-scarce battery optimization.
 \end{abstract}
 
 \begin{IEEEkeywords}

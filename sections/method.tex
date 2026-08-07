@@ -6,21 +6,19 @@
 
 \subsection{Design Principle and Overall Workflow}
 
-LLMBO-MO treats large-language-model (LLM) output as an advisory preference
-rather than as an objective observation.
-This design principle follows from the problem setting: in constrained battery
-design, an LLM response is neither a physical measurement nor a feasibility
-guarantee, and it must never enter the evidence chain that determines the
-Pareto set.
-The framework accordingly restricts LLM interaction to two controlled,
-temporary touchpoints: a screened warm-start portfolio constructed before the
-first BO iteration, and weight-conditioned regional preferences expressed
-during an early guidance window of $T_{\mathrm L}$ iterations.
-Protocol-domain repair, simulator evaluation, surrogate fitting, and
-acquisition maximization remain purely numerical operations.
-Unevaluated LLM output never becomes a Gaussian-process (GP) target, and any
-guidance that fails parsing, repair, or validation gates has zero numerical
-effect.
+For the constrained problem in Eq.~\eqref{eq:cmop}, LLMBO-MO treats
+large-language-model (LLM) output as an advisory preference rather than as an
+objective observation.
+The asymmetric interface assigns complementary roles: contextual LLM
+preferences guide candidate placement, while simulator evaluations supply the
+objective and feasibility evidence used by the Pareto set and Gaussian-process
+(GP) surrogate.
+The framework realizes this separation through two controlled, temporary
+touchpoints: a screened warm-start portfolio constructed before the first BO
+iteration, and weight-conditioned regional preferences expressed during an
+early guidance window of $T_{\mathrm L}$ iterations.
+Parsing, protocol-domain, and covariance gates determine whether each advisory
+signal is activated; the remaining optimization pipeline stays numerical.
 
 Figure~\ref{fig:framework} illustrates the two advisory paths and their
 relationship to the common multiobjective BO backbone.
@@ -71,28 +69,34 @@ temperature feasibility is determined only by simulation.
 
 Let $h_{\mathrm{ws}}(\btheta)\in[0,1]$ denote the LLM-reported candidate score,
 which is used only for ranking.
-A soft penalty discourages a terminal SOC span below the preferred boundary,
-\[
+A soft penalty discourages a terminal SOC span below the preferred boundary:
+\begin{equation}
 p_{\mathrm{soft}}(\btheta)=
 \operatorname{clip}\!\left(
 \frac{\Delta s_K^{\mathrm{soft}}-\Delta s_K}{w_{\mathrm{soft}}},0,1
 \right).
-\]
+\label{eq:soft_penalty}
+\end{equation}
+Here $w_{\mathrm{soft}}>0$ controls the transition width of the penalty.
 Let $\mathbb I_{\mathrm{mono}}(\btheta)$ indicate a nonincreasing current
-sequence.
+sequence, and let $\mathcal C_{\mathrm{sel}}$ denote the candidates already
+selected for the warm-start portfolio.
+The nonnegative coefficients $\omega_p$, $\omega_m$, and $\omega_d$ weight the
+soft-penalty, monotonicity, and diversity terms, respectively.
 The selected portfolio is built greedily using
 \begin{equation}
 \begin{aligned}
 J_{\mathrm{ws}}(\btheta)
-={}&h_{\mathrm{ws}}(\btheta)
+&=h_{\mathrm{ws}}(\btheta)
 -\omega_p p_{\mathrm{soft}}(\btheta)
 +\omega_m\mathbb I_{\mathrm{mono}}(\btheta)\\
-&+\omega_d d_{\min}(\btheta,\mathcal C_{\mathrm{sel}}),
+&\quad+\omega_d d_{\min}(\btheta,\mathcal C_{\mathrm{sel}}),
 \end{aligned}
 \label{eq:portfolio}
 \end{equation}
-where normalized decision coordinates are denoted by a hat and
-\[
+where the soft penalty is defined in Eq.~\eqref{eq:soft_penalty}.
+Normalized decision coordinates are denoted by a hat, and the diversity term is
+\begin{equation}
 d_{\min}(\btheta,\mathcal C_{\mathrm{sel}})=
 \begin{cases}
 0, & \mathcal C_{\mathrm{sel}}=\varnothing,\\[2pt]
@@ -100,8 +104,13 @@ d_{\min}(\btheta,\mathcal C_{\mathrm{sel}})=
 \|\widehat{\btheta}-\widehat{\mathbf c}\|_2,
 & \text{otherwise}.
 \end{cases}
-\]
-The first selected candidate therefore receives no artificial diversity bonus.
+\label{eq:portfolio_diversity}
+\end{equation}
+Equation~\eqref{eq:portfolio} therefore balances the LLM score, a scheduling
+heuristic, the soft penalty, and the diversity term in
+Eq.~\eqref{eq:portfolio_diversity}.
+The zero-distance convention in Eq.~\eqref{eq:portfolio_diversity} ensures that
+the first selected candidate receives no artificial diversity bonus.
 Random protocol-domain-valid points complete the initial design to maintain
 exploration coverage, and only simulator-evaluated candidates are appended to
 the optimization database $\bD$.
@@ -125,7 +134,7 @@ temperature rise in Kelvin, degradation proxy in arbitrary units).
 A logarithmic transform is applied to charging time and the degradation proxy
 to compress their dynamic range; temperature rise remains on its physical
 scale:
-\[
+\begin{equation}
 \begin{aligned}
 \tilde{\mathbf f}(\btheta)&=
 [\ell_t(\btheta),\,\Delta T_p(\btheta),\,\ell_D(\btheta)]^\top,\\
@@ -133,40 +142,50 @@ scale:
 \ell_D(\btheta)&=\log_{10}\!\max(D_{\mathrm{chg}}/D_{\mathrm{ref}},
 \varepsilon_D).
 \end{aligned}
-\]
-The same transformation is applied to LLMBO-MO and ParEGO, so differences in
+\label{eq:objective_transform}
+\end{equation}
+Here $t_{\mathrm{ref}}$ and $D_{\mathrm{ref}}$ are positive reference scales,
+while $\varepsilon_t$ and $\varepsilon_D$ are positive numerical floors.
+The transformation in Eq.~\eqref{eq:objective_transform} is applied to both
+LLMBO-MO and ParEGO, so differences in
 hypervolume are not artifacts of different objective scalings.
 For objective $i$, let $R_{i,t}^{\mathrm{hist}}$ be the current observed range
 and define the global transformed range by
 $R_i^{\mathrm{glob}}=\tilde y_i^{\mathrm{ref}}-\tilde y_i^{\mathrm{ideal}}$,
 where the ideal and reference coordinates are mapped through the same
 objective transformation.
-The scale used by the implementation is
-\[
+For a fixed threshold $\rho_R\in(0,1)$, the scale used by the implementation is
+\begin{equation}
 s_{i,t}=
 \begin{cases}
 R_i^{\mathrm{glob}},&
 R_{i,t}^{\mathrm{hist}}<\rho_R R_i^{\mathrm{glob}},\\
 R_{i,t}^{\mathrm{hist}},&\text{otherwise}.
 \end{cases}
-\]
-This hybrid scaling uses the full global range when the early observed range is
+\label{eq:hybrid_scaling}
+\end{equation}
+The hybrid rule in Eq.~\eqref{eq:hybrid_scaling} uses the full global range
+when the early observed range is
 too narrow, preventing premature exploitation of an incorrectly estimated
 scale.
 
 Following ParEGO~\cite{ref4}, the three objectives ($m=3$) are combined through
 an augmented Tchebycheff target,
-\[
+\begin{equation}
 \begin{aligned}
 \bar f_{i,t}(\btheta)
 &=\frac{|\tilde f_i(\btheta)-\tilde z_{i,t}^{\ast}|}{s_{i,t}},\\
 g_t(\btheta\mid\bw)
 &=\max_i w_i\bar f_{i,t}(\btheta)
-+\rho_{\mathrm{aug}}\sum_{i=1}^{m}
+\\[-2pt]
+&\quad+\rho_{\mathrm{aug}}\sum_{i=1}^{m}
 w_i\bar f_{i,t}(\btheta),
 \end{aligned}
-\]
-with $\bw\geq\mathbf0$ and $\mathbf1^\top\bw=1$.
+\label{eq:parego_target}
+\end{equation}
+In Eq.~\eqref{eq:parego_target}, $\tilde z_{i,t}^{\ast}$ is the transformed
+ideal coordinate, $\rho_{\mathrm{aug}}>0$ is the augmentation coefficient, and
+$\bw\geq\mathbf0$ with $\mathbf1^\top\bw=1$.
 The weight set is initialized on a Das--Dennis simplex lattice and dispersed
 by projected Riesz-energy relaxation~\cite{ref15}; weights are visited without
 replacement before reshuffling.
@@ -195,8 +214,8 @@ The LLM response schema permits three outcomes: a raw-coordinate point, a
 hyperrectangular region defined by lower and upper bounds, or an explicit
 declaration of no preference.
 Providing a schema with a no-preference option is deliberate: when the LLM
-lacks useful insight for a particular weight configuration, silence is
-preferable to an unfounded suggestion.
+does not identify an informative region for a particular weight configuration,
+the optimizer retains unmodified EI.
 
 A received point or region is processed through the same repair-and-screen
 pipeline as the warm-start candidates.
@@ -220,12 +239,9 @@ These roles are separable: accepting a region does not force a GP-mean
 adjustment, and disabling the coupling leaves the restart-augmented EI search
 well defined.
 
-The guidance window closes after $T_{\mathrm L}$ iterations.
-Beyond this point, the LLM is no longer queried, and the optimizer continues
-as ordinary ParEGO.
-This temporal bound prevents stale or increasingly irrelevant LLM suggestions
-from influencing later convergence stages, where the surrogate is already
-well-informed by simulator data.
+The finite horizon concentrates contextual guidance in the data-scarce phase.
+After $T_{\mathrm L}$ iterations, the optimizer continues as ordinary ParEGO
+and relies on the accumulated simulator evidence.
 
 \subsection{Bounded Posterior-Covariance Preference Coupling}
 \label{sec:bounded_coupling}
@@ -243,7 +259,11 @@ Let $\bG_t=\{\mathbf g_{j,t}\}_{j=1}^{M}$ be the accepted anchors drawn from
 validated regions.
 Each anchor is scored by a weighted combination of its EI value, posterior
 uncertainty, and novelty relative to the evaluated design.
+For compactness, let $\mathrm{EI}_{j,t}=\mathrm{EI}_t(\mathbf g_{j,t})$ and
+$\sigma_{j,t}=\sigma_t(\mathbf g_{j,t})$.
 With $z(\cdot)$ denoting a clipped across-anchor standardization,
+$\varepsilon_{\mathrm{EI}}>0$ a numerical floor, and $T_v>0$ the softmax
+temperature,
 \begin{equation}
 \begin{aligned}
 n_{j,t}
@@ -252,7 +272,8 @@ n_{j,t}
 s_{j,t}
 &=\eta_{\mathrm{EI}}z\!\left(
 \log\max\{\mathrm{EI}_{j,t},\varepsilon_{\mathrm{EI}}\}\right)
-+\eta_\sigma z(\sigma_{j,t})+\eta_n z(n_{j,t}),\\
+\\[-2pt]
+&\quad+\eta_\sigma z(\sigma_{j,t})+\eta_n z(n_{j,t}),\\
 v_{j,t}
 &=\frac{\exp(s_{j,t}/T_v)}
 {\sum_{\ell=1}^{M}\exp(s_{\ell,t}/T_v)} .
@@ -261,13 +282,16 @@ v_{j,t}
 \end{equation}
 If anchor scoring is numerically unavailable, the implementation uses uniform
 weights $v_{j,t}=1/M$.
-Thus $\mathbf v_t\geq\mathbf0$ and $\mathbf1^\top\mathbf v_t=1$.
+Thus, with $\mathbf v_t=[v_{1,t},\ldots,v_{M,t}]^\top$, the normalized weights
+in Eq.~\eqref{eq:anchor_weights} satisfy
+$\mathbf v_t\geq\mathbf0$ and $\mathbf1^\top\mathbf v_t=1$.
 
 \textbf{Covariance projection.}
 Let $\boldsymbol\Sigma_{GG,t}$ be the posterior anchor covariance and
 $\boldsymbol\Sigma_{\theta G,t}$ the candidate-to-anchor covariance.
-With covariance jitter $\varepsilon_K$ and variance floor $\varepsilon_v$,
-\[
+With positive covariance jitter $\varepsilon_K$ and variance floor
+$\varepsilon_v$,
+\begin{equation}
 \begin{aligned}
 V_{G,t}
 &=\mathbf v_t^\top
@@ -276,8 +300,10 @@ V_{G,t}
 &=\frac{\boldsymbol\Sigma_{\theta G,t}\mathbf v_t}
 {\sigma_t(\btheta)\sqrt{\max\{V_{G,t},\varepsilon_v\}}}.
 \end{aligned}
-\]
-The scalar $\rho_t(\btheta)\in[-1,1]$ is the posterior correlation between the
+\label{eq:covariance_projection}
+\end{equation}
+The scalar $\rho_t(\btheta)$ in Eq.~\eqref{eq:covariance_projection} lies in
+$[-1,1]$ and is the posterior correlation between the
 candidate point and the weighted anchor portfolio.
 A positive value indicates that the candidate lies in a region positively
 correlated with the LLM-preferred anchors; only positive correlations are used
@@ -286,20 +312,27 @@ for the mean adjustment.
 \textbf{Gated attenuation.}
 Three independent factors gate the adjustment magnitude.
 The region-quality gate combines anchor concentration and score dispersion:
-\[
+\begin{equation}
 \begin{aligned}
 H_t&=-\sum_{j=1}^{M}v_{j,t}\log(v_{j,t}+\varepsilon_H),\\
 \bar H_t&=\frac{H_t}{\max\{\log M,\varepsilon_H\}},\\
 q_t&=\operatorname{clip}\!\left[
-\eta_H(1-\bar H_t)
-+(1-\eta_H)\tanh\!\bigl(\operatorname{std}(\mathbf s_t)\bigr),
-\,0,\,1\right].
+\begin{aligned}
+&\eta_H(1-\bar H_t)\\[-2pt]
+&\quad +(1-\eta_H)\tanh\!\bigl(\operatorname{std}(\mathbf s_t)\bigr)
 \end{aligned}
-\]
-The LLM-reported confidence $c_t=\operatorname{clip}(h_t^{\mathrm{LLM}},0,1)$
+,\,0,\,1\right].
+\end{aligned}
+\label{eq:quality_gate}
+\end{equation}
+The accepted guidance includes an LLM-reported confidence
+$h_t^{\mathrm{LLM}}\in[0,1]$, from which
+$c_t=\operatorname{clip}(h_t^{\mathrm{LLM}},0,1)$,
 and the optimizer-maintained trust state $\tau_t\in[0,1]$ (updated from
 observed optimization outcomes) complete the gate product
-$r_t=c_t\tau_tq_t$.
+$r_t=c_t\tau_tq_t$, where $q_t$ is defined in Eq.~\eqref{eq:quality_gate},
+$\mathbf s_t=[s_{1,t},\ldots,s_{M,t}]^\top$, $\varepsilon_H>0$, and
+$\eta_H\in[0,1]$.
 The early-window attenuation $a_t=\operatorname{clip}(1-(t-1)/T_{\mathrm L},
 0,1)$ linearly ramps the influence to zero by the end of the guidance window.
 The acquisition-time adjustment is then
@@ -310,24 +343,28 @@ The acquisition-time adjustment is then
 a_t\lambda_{\max}r_t[\rho_t(\btheta)]_+,0,\delta_{\max}
 \right),\\
 \mu_t^{\mathrm L}(\btheta)
-&=\mu_t(\btheta)-\delta_t(\btheta),\qquad
-(\sigma_t^{\mathrm L})^2(\btheta)=\sigma_t^2(\btheta).
+&=\mu_t(\btheta)-\delta_t(\btheta),\\
+(\sigma_t^{\mathrm L})^2(\btheta)
+&=\sigma_t^2(\btheta).
 \end{aligned}
 \label{eq:bounded_coupling}
 \end{equation}
 
-Because the scalar Tchebycheff target is minimized, reducing the GP mean near
+Because the scalar Tchebycheff target in Eq.~\eqref{eq:parego_target} is
+minimized, reducing the GP mean near
 positively correlated anchors makes those regions more attractive to EI.
-The explicit clipping guarantees
-$0\leq\delta_t(\btheta)\leq\delta_{\max}$ in standardized target units, so the
-adjustment cannot dominate the acquisition decision.
+In Eq.~\eqref{eq:bounded_coupling}, $[x]_+=\max\{x,0\}$,
+$\lambda_{\max}$ sets the maximum coupling strength, and $\delta_{\max}$ is the
+pointwise shift cap. The explicit clipping guarantees
+$0\leq\delta_t(\btheta)\leq\delta_{\max}$ in standardized target units, which
+places an explicit pointwise bound on the regional-guidance contribution.
 The operation preserves three critical invariants: it does not alter fitted GP
 targets, it does not modify posterior uncertainty, and it does not create
 pseudo-observations.
 If any gate is zero ($q_t=0$, $c_t=0$, or $\tau_t=0$), then $r_t=0$ and the
 acquisition function reduces exactly to standard EI.
-Table~\ref{tab:protocol_settings} lists the core numerical settings that
-instantiate these operators.
+Section~\ref{sec:experiments} reports the fixed numerical settings used to
+instantiate these operators in all comparisons.
 
 \subsection{Complete Optimization Procedure}
 \label{sec:complete_proc}
@@ -349,7 +386,7 @@ path-dependent feasibility is known only after evaluation.
 guidance horizon $T_{\mathrm L}$
 \Ensure Evaluated nondominated set $\bP$
 \State Query $\bL$ for a warm-start pool; repair and rank by
-\eqref{eq:portfolio}
+Eq.~\eqref{eq:portfolio}
 \State Add selected LLM proposals and random protocol-domain-valid points
 \State Evaluate the initial portfolio and initialize $\bD$
 \For{$t=1$ to $T$}
@@ -357,7 +394,8 @@ guidance horizon $T_{\mathrm L}$
     \State Fit the GP to $g_t(\cdot\mid\bw^{(t)})$
     \If{$t\leq T_{\mathrm L}$}
         \State Query $\bL$ for a point/region and validate its anchors
-        \State Add accepted anchors as restarts; attempt \eqref{eq:bounded_coupling}
+        \State Add accepted anchors as restarts; attempt
+        Eq.~\eqref{eq:bounded_coupling}
     \EndIf
     \State Maximize EI using $\mu_t^{\mathrm A}$ and select $\btheta_{t+1}$
     \State Evaluate $\bS(\btheta_{t+1})$; update $\bD$ and feasible set $\bP$
