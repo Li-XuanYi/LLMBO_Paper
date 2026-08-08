@@ -14,46 +14,30 @@ simulator-evaluated protocols determine \emph{what} enters the Pareto set.
 This separation is enforced through an asymmetric two-touchpoint architecture:
 a protocol-domain-screened warm-start that supplies diverse initial candidates
 without per-cell calibration, and bounded regional guidance whose influence is
-clipped to a fixed fraction of the posterior standard deviation and reduces
-exactly to standard expected improvement when validation fails.
+controlled by confidence and covariance gates, early-window attenuation, and
+an explicit pointwise cap in standardized target units.
 
 Under a matched budget of 56 simulator evaluations and five fixed seeds,
-LLMBO-MO yielded consistent hypervolume improvement over ParEGO on two SPMe
-parameterizations, with per-seed wins in three of five seeds on Chen2020 and
-four of five on Ecker2015.
-A component study further revealed that the screened LLM warm-start alone
-accounts for the majority of the performance gain, while bounded regional
-guidance provides a smaller but systematic complementary benefit.
-The combined effect of the two touchpoints was approximately additive,
-suggesting that they operate through largely independent mechanisms.
+LLMBO-MO attained higher mean final hypervolume than ParEGO on two SPMe
+parameterizations, with a 1.7\% mean improvement on Chen2020 (up to 5.1\% in a
+paired seed) and a 17.8\% mean improvement on Ecker2015.
+A component decomposition revealed that the screened LLM warm-start
+alone accounts for the majority of the mean performance gain, while bounded
+regional guidance provides a smaller positive mean contribution.
+A ten-seed prompt-design ablation further confirmed the statistical reliability
+of LLM-derived initialization ($p < 0.01$), establishing that prompt content is
+a first-order performance factor.
 
 The practical message of this study is that language-model guidance can be
-safely incorporated into data-scarce engineering optimization when the
-interface enforces three constraints: the LLM never supplies training targets,
-every advisory signal is bounded in magnitude, and any invalid advice triggers
-an exact fallback to the unguided procedure.
-This conservative design pattern is not specific to battery charging and may
+incorporated through a verification-aware interface: simulator evaluations
+remain the source of training targets, advisory influence is explicitly
+bounded, and gate-rejected guidance recovers the unguided acquisition.
+This design pattern is not specific to battery charging and may
 apply to other domains where expensive simulators or physical experiments
 define the evidence standard.
 
-Several limitations define the scope of the present findings.
-The evidence is simulation-based and uses a trajectory-averaged degradation
-proxy rather than calibrated capacity fade measurements.
-The comparison is centered on ParEGO; matched-budget evaluations against direct
-hypervolume methods (qEHVI, qNEHVI) and surrogate-assisted evolutionary
-algorithms remain to be conducted.
-Two parameter sets with five seeds each provide initial evidence of
-consistency, but broader validation across cell chemistries, aging states, and
-LLM backends is needed to establish generality.
-Physical-cell experiments are the natural next step for translating the
-observed simulation-level gains into engineering practice.
-
-Future work will pursue four directions: (i)~matched-budget comparisons with
-direct hypervolume acquisition functions to position LLMBO-MO within the wider
-multiobjective BO landscape; (ii)~controlled physical replay of selected Pareto
-protocols on the laboratory platform to assess simulation-to-hardware
-transferability; (iii)~systematic comparison of LLM backends under identical
-optimization conditions to quantify how model capability affects guidance
-quality; and (iv)~extension of the bounded-advisory design pattern to related
-battery optimization tasks, including formation protocol design and
-state-of-health-adaptive charging.
+The present evidence spans two SPMe parameterizations under a controlled
+simulator budget.
+The next stage is to validate selected Pareto protocols through physical replay
+and extend the matched-budget study across additional acquisition families,
+cell conditions, and LLM backends.

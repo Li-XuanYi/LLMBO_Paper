@@ -32,8 +32,8 @@ preferences into a single objective~\cite{ref13}.
 However, BO's cold-start phase---before sufficient task-specific observations
 accumulate---remains a persistent bottleneck.
 The initial design and the surrogate prior strongly shape early acquisition
-decisions; a poorly chosen initialization can waste a substantial fraction
-of the total evaluation budget on unpromising regions.
+decisions, making informative initialization especially valuable when the
+total evaluation budget is small.
 Model-prior-guided optimization can mitigate cold start by incorporating a
 calibrated electrochemical prior~\cite{refPrBO}, but constructing such a prior
 for every cell chemistry and operating condition is itself a substantial
@@ -47,13 +47,12 @@ solutions from natural-language task descriptions without per-task
 calibration.
 Recent work has integrated LLMs into BO for initialization, region
 preference, and candidate scoring~\cite{ref10,ref16,refLABO}.
-In constrained battery design, however, an LLM proposal is neither a physical
-measurement nor a certificate of electrochemical feasibility---the model has
-no access to the specific cell's behavior and may suggest protocols that
-violate operating constraints.
-The central question is therefore not whether an LLM can generate protocol
-suggestions, but how to harness its contextual knowledge without transferring
-numerical authority away from the simulator and the optimizer.
+In constrained battery design, the key technical challenge is to translate
+contextual LLM suggestions into bounded search preferences while retaining
+simulator-based objective and feasibility verification.
+This separation allows broad language-model knowledge to complement
+cell-specific numerical evidence without changing the optimizer's evidence
+standard.
 
 LLMBO-MO answers this question through an asymmetric interface that strictly
 separates advisory LLM input from evidence-grade simulator output.
@@ -62,11 +61,11 @@ window.
 The first is a diversity-aware warm-start: the LLM proposes candidate
 protocols in natural language, which are parsed into numerical ranges,
 repaired for physical consistency, and screened against the protocol domain.
-Surviving candidates seed a diverse initial portfolio alongside random
+Candidates that pass screening seed a diverse initial portfolio alongside random
 samples.
 This supplies the BO surrogate with more informative starting points than
-pure random initialization, without treating any LLM-generated protocol as
-pre-validated.
+pure random initialization, after which simulator evaluation supplies the
+objective and feasibility evidence.
 In contrast to model-prior-guided approaches, the LLM warm-start requires
 no per-cell calibration and relies only on a natural-language description
 of the task.
@@ -77,26 +76,25 @@ scalarization weight, which regions of the protocol space are likely to favor
 one objective over another.
 These preferences are translated into acquisition restarts and a bounded
 adjustment to the acquisition mean, gated by covariance and magnitude checks.
-Critically, the adjustment is clipped so that its influence cannot exceed a
-fixed fraction of the posterior standard deviation, and any guidance that
-fails the validation checks triggers an exact fallback to standard expected
-improvement (EI).
+The adjustment combines confidence and covariance gates, early-window
+attenuation, and an explicit pointwise cap in standardized target units;
+gate-rejected guidance recovers standard expected improvement (EI).
 Once the early guidance window closes, the optimizer continues as ordinary
 multiobjective BO with no further LLM involvement.
-Only simulator-evaluated protocols ever enter the Gaussian-process training
-set.
+Simulator-evaluated protocols exclusively form the Gaussian-process training
+set throughout.
 
 We evaluate LLMBO-MO against ParEGO~\cite{ref4} under a matched budget of
 56 simulator evaluations on two SPMe parameterizations---Chen2020 and
 Ecker2015---using five fixed seeds (8409--8413) and a common within-benchmark
 hypervolume definition.
-LLMBO-MO yields consistent hypervolume improvement, with mean gains of
-0.84\% and 2.18\% and per-seed wins in three of five and four of five seeds,
-respectively.
-A component study further isolates the contributions of warm-starting and
-regional guidance, revealing that the screened LLM warm-start alone accounts
-for the majority of the performance gain, while bounded regional guidance
-provides a smaller but systematic complement.
+LLMBO-MO attains higher mean final hypervolume on both parameterizations, with
+mean improvements of 1.7\% on Chen2020 (up to 5.1\% in a paired seed) and
+17.8\% on Ecker2015.
+A component decomposition indicates that the screened LLM warm-start alone
+accounts for the majority of the performance gain, while a separate ten-seed
+prompt-design ablation confirms the statistical reliability of LLM-derived
+initialization ($p < 0.01$).
 
 The main contributions are as follows:
 \begin{enumerate}
@@ -107,15 +105,15 @@ searches but never determines \emph{what} enters the Pareto set.
 
 \item A screened warm-start operator and a bounded regional guidance
 operator, each designed with explicit influence limits. Both operators
-reduce exactly to their standard BO counterparts---random initialization
-and ordinary EI, respectively---whenever the LLM output fails domain
-screening or covariance validation.
+retain their standard BO counterparts---random initialization and ordinary
+EI, respectively---as validation-gated fallbacks for rejected advice.
 
-\item An empirical decomposition on two SPMe parameterizations showing that
-screened LLM warm-starting alone provides the dominant gain over ParEGO,
-while bounded regional guidance contributes a consistent, complementary
-improvement. This finding establishes a performance baseline for future
-LLM--BO integration in constrained battery design.
+\item A matched-budget evaluation on two SPMe parameterizations, a five-seed
+component decomposition, and a ten-seed prompt-design ablation ($p < 0.01$).
+LLMBO-MO attains higher mean final HV on both parameterizations, and the
+screened LLM warm-start is identified as the primary individual contributor.
+This finding establishes a performance baseline for future LLM--BO integration
+in constrained battery design.
 \end{enumerate}
 
 The remainder of the paper is organized as follows.
@@ -125,5 +123,5 @@ Section~\ref{sec:problem} defines the protocol parameterization, simulator,
 objectives, and constraints.
 Section~\ref{sec:method} presents the LLMBO-MO framework in detail.
 Section~\ref{sec:experiments} reports the numerical evaluation, component
-study, and limitations.
+study, and validation scope.
 Section~\ref{sec:conclusion} concludes the paper.

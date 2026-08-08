@@ -13,19 +13,22 @@ full porous-electrode model~\cite{ref6}; the implementation uses
 PyBaMM~\cite{ref7}.
 
 The standard lumped thermal balance and the reported temperature objective are
-\[
+\begin{equation}
 \begin{aligned}
 C_{\mathrm{th}}\frac{\mathrm dT}{\mathrm dt}
 &=\dot Q_{\mathrm{gen}}-hA(T-T_{\mathrm{amb}}),\\
 \Delta T_p(\btheta)
-&=\max_t T(t)-T_{\mathrm{init}},
+&=\max_t T(t)-T_{\mathrm{init}}.
 \end{aligned}
-\]
-where $C_{\mathrm{th}}$ is the effective thermal capacitance,
-$\dot Q_{\mathrm{gen}}$ collects electrochemical, ohmic, and reversible heat,
-and $hA$ is the lumped heat-transfer coefficient. Because the model is
-spatially lumped, $\Delta T_p$ measures peak cell-level temperature rise; it
-does not resolve thermomechanical loading or local temperature gradients.
+\label{eq:thermal_model}
+\end{equation}
+In Eq.~\eqref{eq:thermal_model}, $C_{\mathrm{th}}$ denotes the effective thermal
+capacitance, $\dot Q_{\mathrm{gen}}$ collects electrochemical, ohmic, and
+reversible heat, and $hA$ is the lumped heat-transfer coefficient.
+The quantities $T_{\mathrm{amb}}$ and $T_{\mathrm{init}}$ denote the ambient and
+initial cell temperatures, respectively. Because the model is
+spatially lumped, $\Delta T_p$ provides a cell-level peak-temperature metric;
+local temperature gradients lie outside the selected model resolution.
 
 The Chen2020 parameter set is used for the LG INR21700-M50 case~\cite{ref8}.
 The Ecker2015 parameter set provides a second cell parameterization~\cite{ref9}.
@@ -37,9 +40,9 @@ initializes the next.
 \subsection{Protocol-Level Degradation Proxy}
 \label{sec:aging}
 
-A single protocol simulation does not resolve long-horizon capacity fade.
-Accordingly, the third objective is an empirical degradation proxy, rather than a
-prediction of capacity lost during one charge. Let $\bar s$, $\bar T$, and
+For fixed-budget protocol screening, the third objective is an empirical
+degradation-severity proxy rather than an estimate of long-horizon capacity
+fade. Let $\bar s$, $\bar T$, and
 $\bar I$ denote the time averages of SOC, temperature, and current over the
 completed charge, with $\bar s$ represented in the simulator's percentage-SOC
 convention. The implementation evaluates
@@ -54,7 +57,7 @@ D_{\mathrm{chg}}(\btheta)
 \end{aligned}
 \label{eq:aging}
 \end{equation}
-Here $a_s$, $b_s$, $\beta_I$, $E_a$, $R$, $q_a$, $\gamma$, and $\kappa_D$
+In Eq.~\eqref{eq:aging}, $a_s$, $b_s$, $\beta_I$, $E_a$, $R$, $q_a$, $\gamma$, and $\kappa_D$
 are fixed proxy coefficients and are identical for all optimizers; none is
 re-estimated from the optimization results. This control-oriented algebraic
 construction is related to the severity-factor family of semi-empirical aging
@@ -63,10 +66,9 @@ models~\cite{refSuri}.
 The scale factor $\kappa_D$ preserves the implemented objective scale. We
 report $D_{\mathrm{chg}}$ in arbitrary proxy units (a.u.), not as percentage
 capacity loss. Smaller values indicate less severe average operating
-conditions under this common proxy. Because the proxy uses trajectory
-averages, it does not separately resolve short high-SOC, high-current, or
-high-temperature excursions; this limitation is considered when interpreting
-the Pareto set.
+conditions under this common proxy. The trajectory-averaged construction is
+used consistently for every optimizer, providing a common severity measure for
+Pareto comparison.
 
 Together, the protocol realization and coupled simulator map
 $\btheta$ to $\mathbf f(\btheta)$ and a feasibility flag. Bayesian optimization
