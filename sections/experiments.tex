@@ -166,31 +166,33 @@ All four variants were executed in one matched five-seed batch using the
 deepseek-v3 backend.
 
 \begin{table}[t]
-\caption{Five-Seed Chen2020 Component Study at 56 Evaluations. Mean $\Delta$,
-best $\Delta$, and wins are paired against Plain BO.}
+\caption{Five-Seed Chen2020 Component Study at 56 Evaluations. Mean $\Delta$
+and best $\Delta$ are paired per-seed gains over Plain BO.}
 \label{tab:component}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{1.6pt}
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Variant & Final HV $\uparrow$ & Mean $\Delta$ & Best $\Delta$ & Wins \\
+Variant & Final HV $\uparrow$ & Mean $\Delta$ & Best $\Delta$ \\
 \midrule
-Plain BO & 0.3836 $\pm$ 0.0113 & -- & -- & -- \\
-Warm Start & \textbf{0.3902} $\pm$ 0.0087 & \textbf{+1.72\%} & +3.47\% & 4/5 \\
-Regional Guidance & 0.3862 $\pm$ 0.0125 & +0.67\% & +4.81\% & 4/5 \\
-Complete LLMBO-MO & 0.3900 $\pm$ \textbf{0.0067} & +1.66\% & \textbf{+5.08\%} & 3/5 \\
+Plain BO & 0.3836 $\pm$ 0.0113 & -- & -- \\
+Warm Start & \textbf{0.3902} $\pm$ 0.0087 & \textbf{+1.72\%} & +3.47\% \\
+Regional Guidance & 0.3862 $\pm$ 0.0125 & +0.67\% & +4.81\% \\
+Complete LLMBO-MO & 0.3900 $\pm$ \textbf{0.0067} & +1.66\% & \textbf{+5.08\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Table~\ref{tab:component} reports the mean and sample standard deviation over
-five paired seeds. Warm Start attains the highest mean HV and wins four of five
-paired comparisons. Complete LLMBO-MO has the lowest dispersion and the
-strongest paired-seed gain, improving HV by 5.08\% on seed 8413, although its
-mean gain is 1.66\% with three of five wins. Regional Guidance produces a
-smaller mean gain but wins four of five comparisons. The variation across seeds
-does not support an additive interpretation of the two components.
+five paired seeds. Warm Start attains the highest mean HV (0.3902) with a mean
+per-seed gain of $+1.72\%$. Complete LLMBO-MO exhibits the lowest dispersion
+($\pm 0.0067$) and the strongest single-seed gain, improving HV by $5.08\%$ on
+seed 8413, although its mean gain ($+1.66\%$) is comparable to that of Warm
+Start. Regional Guidance yields the smallest mean gain ($+0.67\%$) yet its best
+per-seed gain reaches $+4.81\%$. The sizable gap between mean and best gains
+across all variants indicates substantial seed-to-seed variability, so the
+observations do not support an additive interpretation of the two components.
 
 Figure~\ref{fig:component_diagnostics} complements the endpoint summary with
 the full budget trajectory and the final mean gain over Baseline.
