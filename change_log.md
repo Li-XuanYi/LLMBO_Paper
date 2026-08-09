@@ -1,5 +1,45 @@
 # Revision Change Log
 
+## Author-supplied figure set restored
+
+- Superseded the earlier diagram redraws and restored the exact original
+  problem-formulation artwork and Draw.io workflow used by the author.
+- Restored the tracked objective-preprocessing PDF instead of the regenerated
+  visual variant.
+- Reintroduced the original Ecker2015 cross-family panel and Chen2020 component
+  diagnostic panels. Their captions now distinguish contextual/primary-batch
+  records from the audited matched-budget tables.
+- Kept the original platform, Pareto, and charging-trajectory assets unchanged;
+  only LaTeX placement, scaling, and captions were adjusted.
+- Rebalanced the final reference page with IEEE's reference trigger; the
+  restored-image manuscript compiles to 10 pages.
+
+## Reference-aligned structure and figure-layout reconstruction
+
+- Merged Related Work into the Introduction and reorganized it around the
+  charging-evaluation bottleneck, BO cold start, LLM--BO authority risk, the two
+  controlled touchpoints, audited results, and three contributions.
+- Split the electrochemical, thermal, and degradation-proxy material into an
+  independent Section III and made the arbitrary-unit proxy boundary explicit.
+- Reorganized the method into design principle, overall framework, four main
+  steps, and the complete procedure while preserving the bounded coupling and
+  algorithm interfaces.
+- Rebuilt the experimental section as setup, qualitative protocol behavior,
+  principal comparison, and further analysis, with four compact booktabs
+  tables and archive-specific qualifications.
+- Replaced the problem and framework diagrams with compact horizontal
+  two-column TikZ figures; retained the platform as a one-column top figure and
+  regenerated the objective-preprocessing plot from the archived CSV.
+- Removed redundant or nontraceable performance, endpoint/cross-family, and
+  component-diagnostic plots from the compilation entry without deleting the
+  assets.
+- Restored all principal claims to the audited Chen2020 and Ecker2015 values,
+  removed cross-scale Ecker wording, and synchronized Abstract, Introduction,
+  Experiments, and Conclusion.
+- Removed forced page breaks and float-top overrides, enabled final-column
+  balancing, and reduced the compiled paper from 13 to 10 naturally paginated
+  pages.
+
 ## Current five-seed and formula-closure pass
 
 - Revalidated the Chen2020 principal result over seeds 8409--8413 under the
@@ -166,3 +206,16 @@
   standard GP and EI machinery is now concise background.
 - Verified visually that the consolidated parameter table precedes the Pareto
   figure and that the platform photograph remains in the experimental setup.
+
+## Table and narrative simplification
+
+- Recast Tables I--IV with comparison-purpose captions and concise headers;
+  removed the Wins columns and seed identifiers from the compiled manuscript.
+- Preserved the audited means, sample deviations, improvements, and prompt
+  p-value in the tables while changing surrounding prose to trend-level claims.
+- Compressed the Abstract, Introduction, Method overview, Simulation Setup,
+  Results discussion, and Conclusion to remove call, seed, and batch-log detail.
+- Retained every author-supplied figure asset unchanged and simplified only the
+  explanatory captions for the auxiliary Ecker and component panels.
+- Recompiled the 10-page IEEE manuscript without box, citation, reference, or
+  label diagnostics and balanced the final reference columns.

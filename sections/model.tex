@@ -1,18 +1,35 @@
 % ============================================================================
-% Continuation of Section III: simulation model and degradation proxy
+% Section III: Electrochemical--thermal model and degradation proxy
 % ============================================================================
-\subsection{Electrochemical--Thermal Simulation Model}
+\section{Electrochemical--Thermal Simulation and Degradation Proxy}
+\label{sec:model_section}
 \label{sec:model}
 
-Each protocol is evaluated by the same numerical model, so differences among
-optimizers do not arise from different objective evaluators. The simulator
-combines a Single Particle Model with electrolyte dynamics (SPMe) and a
-spatially lumped thermal balance. The SPMe retains solid-phase diffusion,
-electrolyte transport, and interfacial reaction kinetics at lower cost than a
-full porous-electrode model~\cite{ref6}; the implementation uses
-PyBaMM~\cite{ref7}.
+Every candidate protocol is evaluated by the same coupled numerical model.
+This common evaluator maps the protocol vector $\btheta$ to the three
+objectives in Eq.~\eqref{eq:cmop} and to a feasibility flag; the optimizer does
+not access its internal states when selecting the next protocol.
 
-The standard lumped thermal balance and the reported temperature objective are
+\subsection{Electrochemical Model}
+
+The electrochemical evaluator is a Single Particle Model with electrolyte
+dynamics (SPMe). It retains solid-phase diffusion, electrolyte transport, and
+interfacial reaction kinetics at lower cost than a full porous-electrode
+model~\cite{ref6}. Successive constant-current stages are simulated
+sequentially, so the terminal electrochemical state of one stage initializes
+the next. The implementation uses PyBaMM~\cite{ref7} and applies the same
+solver configuration to every optimization variant.
+
+The default studies use the Chen2020 parameter set for the LG INR21700-M50
+cell~\cite{ref8}; cross-parameterization evaluation uses Ecker2015~\cite{ref9}.
+Cell-specific capacity, voltage limits, and operating bounds are fixed within
+each matched comparison. The electrochemical model supplies the voltage trace,
+heat-generation terms, and completion status required by the thermal and
+constraint calculations.
+
+\subsection{Thermal Model}
+
+The thermal evaluator uses a spatially lumped energy balance,
 \begin{equation}
 \begin{aligned}
 C_{\mathrm{th}}\frac{\mathrm dT}{\mathrm dt}
@@ -22,30 +39,22 @@ C_{\mathrm{th}}\frac{\mathrm dT}{\mathrm dt}
 \end{aligned}
 \label{eq:thermal_model}
 \end{equation}
-In Eq.~\eqref{eq:thermal_model}, $C_{\mathrm{th}}$ denotes the effective thermal
-capacitance, $\dot Q_{\mathrm{gen}}$ collects electrochemical, ohmic, and
-reversible heat, and $hA$ is the lumped heat-transfer coefficient.
-The quantities $T_{\mathrm{amb}}$ and $T_{\mathrm{init}}$ denote the ambient and
-initial cell temperatures, respectively. Because the model is
-spatially lumped, $\Delta T_p$ provides a cell-level peak-temperature metric;
-local temperature gradients lie outside the selected model resolution.
-
-The Chen2020 parameter set is used for the LG INR21700-M50 case~\cite{ref8}.
-The Ecker2015 parameter set provides a second cell parameterization~\cite{ref9}.
-Cell-specific capacity, voltage, and temperature limits are applied, while the
-optimization logic remains unchanged. Successive protocol stages are simulated
-sequentially, and the terminal electrochemical and thermal state of one stage
-initializes the next.
+Here $C_{\mathrm{th}}$ is the effective thermal capacitance,
+$\dot Q_{\mathrm{gen}}$ collects electrochemical, ohmic, and reversible heat,
+and $hA$ is the lumped heat-transfer coefficient. The quantities
+$T_{\mathrm{amb}}$ and $T_{\mathrm{init}}$ denote the ambient and initial cell
+temperatures. Because the model is spatially lumped, $\Delta T_p$ is a
+cell-level peak-temperature-rise metric; local temperature gradients are
+outside the selected model resolution.
 
 \subsection{Protocol-Level Degradation Proxy}
 \label{sec:aging}
 
-For fixed-budget protocol screening, the third objective is an empirical
-degradation-severity proxy rather than an estimate of long-horizon capacity
-fade. Let $\bar s$, $\bar T$, and
-$\bar I$ denote the time averages of SOC, temperature, and current over the
-completed charge, with $\bar s$ represented in the simulator's percentage-SOC
-convention. The implementation evaluates
+The third objective is a control-oriented severity proxy, not a calibrated
+estimate of long-horizon capacity fade. Let $\bar s$, $\bar T$, and $\bar I$
+denote time-averaged SOC, temperature, and current over a completed charge,
+with $\bar s$ represented in the simulator's percentage-SOC convention. The
+implementation evaluates
 \begin{equation}
 \begin{aligned}
 \chi(\bar s,\bar T,\bar I)
@@ -57,20 +66,13 @@ D_{\mathrm{chg}}(\btheta)
 \end{aligned}
 \label{eq:aging}
 \end{equation}
-In Eq.~\eqref{eq:aging}, $a_s$, $b_s$, $\beta_I$, $E_a$, $R$, $q_a$, $\gamma$, and $\kappa_D$
-are fixed proxy coefficients and are identical for all optimizers; none is
-re-estimated from the optimization results. This control-oriented algebraic
-construction is related to the severity-factor family of semi-empirical aging
-models~\cite{refSuri}.
+The coefficients $a_s$, $b_s$, $\beta_I$, $E_a$, $R$, $q_a$, $\gamma$, and
+$\kappa_D$ are fixed for all optimizers and are not re-estimated from the
+reported optimization results. This algebraic construction is related to the
+severity-factor family of semi-empirical aging models~\cite{refSuri}.
 
-The scale factor $\kappa_D$ preserves the implemented objective scale. We
-report $D_{\mathrm{chg}}$ in arbitrary proxy units (a.u.), not as percentage
-capacity loss. Smaller values indicate less severe average operating
-conditions under this common proxy. The trajectory-averaged construction is
-used consistently for every optimizer, providing a common severity measure for
-Pareto comparison.
-
-Together, the protocol realization and coupled simulator map
-$\btheta$ to $\mathbf f(\btheta)$ and a feasibility flag. Bayesian optimization
-treats this mapping as an expensive black box and does not access the internal
-electrochemical states when selecting the next protocol.
+We report $D_{\mathrm{chg}}$ in arbitrary proxy units (a.u.). A smaller value
+indicates less severe trajectory-averaged operating conditions under this
+common proxy; it does not represent percentage capacity loss, remaining useful
+life, or an independently calibrated lifetime prediction. This boundary is
+maintained throughout the objective plots, result tables, and conclusions.

@@ -1,10 +1,10 @@
 % ============================================================================
 % Section IV: LLM-Augmented Multiobjective Bayesian Optimization
 % ============================================================================
-\section{LLM-Augmented Multiobjective Bayesian Optimization}
+\section{Proposed LLMBO-MO}
 \label{sec:method}
 
-\subsection{Design Principle and Overall Workflow}
+\subsection{Motivation and Design Principle}
 
 For the constrained problem in Eq.~\eqref{eq:cmop}, LLMBO-MO treats
 large-language-model (LLM) output as an advisory preference rather than as an
@@ -19,25 +19,27 @@ iteration, and weight-conditioned regional preferences expressed during an
 early guidance window of $T_{\mathrm L}$ iterations.
 Parsing, protocol-domain, and covariance gates determine whether each advisory
 signal is activated; the remaining optimization pipeline stays numerical.
+This separation addresses the central engineering risk: contextual knowledge
+may guide a search, but it cannot certify an objective value, feasibility, or
+Pareto membership.
+
+\subsection{Overall Framework}
 
 Figure~\ref{fig:framework} illustrates the two advisory paths and their
-relationship to the common multiobjective BO backbone.
-At iteration $t$, a trade-off weight $\bw^{(t)}$ defines a scalar subproblem.
-Feasible historical observations are transformed and re-scalarized, the GP is
-fitted, and expected improvement (EI) selects the next simulator evaluation.
+relationship to the common multiobjective BO backbone. The warm-start path
+shapes the initial portfolio, while the early-guidance path supplies validated
+preferences to the acquisition stage. In both cases, the simulator remains the
+sole source of objective and feasibility evidence.
 \input{figures/fig_llambo_mo_framework}
 
-The remainder of this section is organized as follows.
-Section~\ref{sec:warm_start} describes the screened LLM warm-start.
-Section~\ref{sec:parego_backbone} details the objective transformation and
-ParEGO decomposition backbone shared by LLMBO-MO and the baseline.
-Section~\ref{sec:region_pref} presents the weight-conditioned region preference
-interface.
-Section~\ref{sec:bounded_coupling} derives the bounded posterior-covariance
-coupling that translates regional preferences into a clipped acquisition bias.
-Section~\ref{sec:complete_proc} summarizes the complete procedure.
+The two advisory paths are temporary and recover the ordinary numerical search
+whenever guidance is unavailable or rejected. This separation allows
+contextual knowledge to influence candidate placement without changing the
+evidence used to fit the GP or construct the Pareto set.
 
-\subsection{Protocol-Domain-Screened LLM Warm Start}
+\subsection{Main Steps}
+
+\subsubsection{Protocol-Domain-Screened LLM Warm Start}
 \label{sec:warm_start}
 
 A central challenge in BO is the cold start: before task-specific observations
@@ -118,13 +120,13 @@ the optimization database $\bD$.
 This warm-start design has two properties that distinguish it from both random
 initialization and model-prior methods.
 First, it requires no per-cell calibration: the same natural-language prompt
-template is used across parameterizations, with only the variable bounds and
+template is used across experiments, with only the variable bounds and
 cell context updated.
 Second, protocol-domain screening guarantees that every LLM-sourced initial
 point satisfies the same box and SOC-completion constraints as the random
 points, ensuring a fair initialization comparison.
 
-\subsection{Objective Transformation and ParEGO Backbone}
+\subsubsection{Objective Transformation and ParEGO Backbone}
 \label{sec:parego_backbone}
 
 LLMBO-MO shares its scalarization and surrogate backbone with
@@ -197,7 +199,7 @@ The fitted posterior mean $\mu_t$, standard deviation $\sigma_t$, and
 covariance are the only statistical quantities used by the acquisition
 function.
 
-\subsection{Weight-Conditioned LLM Region Preference}
+\subsubsection{Weight-Conditioned LLM Region Preference}
 \label{sec:region_pref}
 
 The second LLM touchpoint operates during an early guidance window of
@@ -243,7 +245,7 @@ The finite horizon concentrates contextual guidance in the data-scarce phase.
 After $T_{\mathrm L}$ iterations, the optimizer continues as ordinary ParEGO
 and relies on the accumulated simulator evidence.
 
-\subsection{Bounded Posterior-Covariance Preference Coupling}
+\subsubsection{Bounded Posterior-Covariance Preference Coupling}
 \label{sec:bounded_coupling}
 
 When an accepted region passes all validation checks, its anchors may be used
@@ -369,13 +371,10 @@ instantiate these operators in all comparisons.
 \subsection{Complete Optimization Procedure}
 \label{sec:complete_proc}
 
-Let $\mu_t^{\mathrm A}$ equal $\mu_t^{\mathrm L}$ when every coupling check
-passes and $\mu_t$ otherwise.
-Standard minimization EI is evaluated using this active mean.
-The candidate pool combines the incumbent, Gaussian and uniform samples,
-multi-start L-BFGS-B solutions, and accepted regional restarts.
-Candidates are repaired to $\Theta_{\mathrm{proto}}$ before simulation;
-path-dependent feasibility is known only after evaluation.
+Algorithm~\ref{alg:llmbo} summarizes the complete procedure. Accepted guidance
+modifies only the acquisition stage; otherwise the method recovers the
+standard GP mean and ordinary EI. Every selected candidate is repaired to the
+protocol domain and its operational feasibility is determined by simulation.
 
 \begin{algorithm}[!t]
 \caption{LLMBO-MO}

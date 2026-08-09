@@ -1,88 +1,52 @@
 # Manuscript Revision Audit
 
-## Scope
+## Final compiled structure
 
-This audit covers the current LaTeX manuscript in
-`D:/Users/aa133/Desktop/Paper`. It distinguishes presentation changes from
-changes that would alter the archived optimization experiment.
-
-## Current structure
-
-1. Introduction
-2. Related Work
-3. Fast-Charging Problem and Evaluation Model
-4. Proposed LLMBO-MO Framework
-   - framework overview;
-   - protocol-domain-screened warm start;
-   - objective transformation and ParEGO backbone;
-   - weight-conditioned regional preference;
-   - bounded posterior-covariance coupling;
-   - complete procedure.
+1. Introduction (including related work)
+2. Fast-Charging Optimization Problem
+3. Electrochemical--Thermal Simulation and Degradation Proxy
+4. Proposed LLMBO-MO
 5. Numerical Validation and Discussion
-   - setup and comparison protocol;
-   - main fixed-budget results;
-   - Pareto and trajectory interpretation;
-   - component study;
-   - limitations.
 6. Conclusion
 
-This order keeps the problem, simulator, numerical optimizer, LLM advisory
-interface, and evidence in a reviewer-readable causal sequence.
+The manuscript now follows the reference paper's problem--model--method--results
+sequence while retaining the IEEE Transactions two-column style.
 
-## Formula and terminology audit
+## Evidence audit
 
-| Item | Current treatment | Status |
-|---|---|---|
-| Charging protocol | Generic \(K\)-stage notation; no instance-specific stage count in Table I | Pass |
-| Third objective | `degradation proxy` in arbitrary units | Pass |
-| Temperature objective | `peak temperature rise` | Pass |
-| LLM output | screened preference/advisory information, not observed objective data | Pass |
-| Feasibility | protocol-domain checks before simulation and operational checks after simulation | Pass |
-| Routine formulas | concise and mostly unnumbered | Pass |
-| Main innovation | one numbered bounded posterior-covariance mean adjustment | Pass |
-| Component-only operator | confined to the component study and identified by \(B_\delta\) | Pass |
-| Hyperparameters | core values centralized in Table I | Pass |
-| HV | common ideal/reference box within each parameterization | Pass |
+- Chen2020: `0.3853 +/- 0.0094` to `0.3885 +/- 0.0088`, `+0.84%`, 3/5 paired wins.
+- Ecker2015: `0.5540 +/- 0.0121` to `0.5660 +/- 0.0104`, `+2.18%`, 4/5 paired wins.
+- These execution details remain in this internal audit only. The compiled paper removes seed identifiers, Wins, and batch-log terminology.
+- Table II preserves the audited means, sample deviations, and improvements; the surrounding prose reports only the direction and modest scale of the effects.
+- Table IV preserves the prompt result and Holm-adjusted `p = 0.0059`; its study-specific budget and independent-run count appear only in the note.
+- The component and preprocessing analyses are interpreted as separate controlled comparisons without archive-style narration.
+- The degradation objective is reported only in arbitrary proxy units; no measured capacity-fade, lifetime, hardware-safety, or cell-to-cell-generalization conclusion is made.
 
-The exact global-range fallback, anchor weighting, entropy/dispersion quality
-gate, confidence and trust terms, covariance jitter, variance floor, temporal
-attenuation, and shift clipping are all defined before use.
+## Figure, table, and pagination audit
 
-## Evidence and attribution
+- Fig. 1 retains the original author-supplied problem-formulation artwork; only its LaTeX float wrapper is controlled.
+- Fig. 2 retains the original author-supplied Draw.io workflow PDF without graphical modification.
+- Fig. 3 remains a one-column top figure in Simulation Setup and states that no measurement enters the reported results.
+- Fig. 4 retains the two-panel qualitative Pareto/trajectory interpretation and states its pooled visualization scope.
+- The original Ecker2015 auxiliary panel is retained with a one-sentence caption that identifies its independent protocol and points to Table II for the principal comparison.
+- The original Chen2020 component diagnostic panels are retained with a concise descriptive caption.
+- The original objective-preprocessing PDF is restored unchanged.
+- Tables I--IV contain settings, principal results, component results, and prompt results. Their captions describe the comparison purpose rather than execution details.
+- The final PDF is 10 pages with natural body floats and balanced final reference columns.
 
-- Chen2020 and Ecker2015 both use seeds 8409--8413.
-- Every run uses six initialization evaluations and 50 BO evaluations.
-- Table II reports sample means and sample standard deviations over the five
-  seeds.
-- The principal comparison concerns complete configurations. It does not claim
-  that the observed difference is caused by the regional operator alone.
-- The component study provides bounded, seed-dependent evidence and is not
-  described as uniform synergy.
-- The laboratory platform establishes the intended replay interface; all
-  reported quantitative evidence remains simulation based.
+## Build and visual QA
 
-## Figure and table audit
-
-- Fig. 1 presents a generic fast-charging optimization formulation.
-- Fig. 2 restores the supplied workflow and distinguishes screened
-  initialization from early advisory guidance.
-- Fig. 3 appears near the start of the experimental section and has an
-  explicitly simulation-only caption.
-- Table I contains the fixed budget and core settings without exposing a long
-  list of simulator constants.
-- Table II is adjacent to the principal numerical interpretation.
-- Fig. 4 opens the Pareto/trajectory interpretation page.
-- Table III replaces the visually redundant ablation box plot.
+- `latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex`: pass.
+- Undefined citation/reference, multiply defined label, overfull box, and underfull box scan: pass.
+- Stale-value scan for `+17.8%`, `0.4760`, and `0.5605`: pass.
+- Compiled-source scan for Wins, paired wins, seed identifiers, and batch-log terminology: pass.
+- Git status and SHA-256 inspection of every included raster/PDF figure asset: no figure asset was modified.
+- All ten rendered pages were inspected for hierarchy, clipping, float order, figure legibility, and last-page balance.
 
 ## Remaining evidence gaps requiring new experiments
 
-The following cannot be repaired by wording or layout:
-
-1. a matched qEHVI/qNEHVI comparison;
-2. an identical-initial-database study that isolates acquisition guidance;
-3. a simultaneously executed component study from one code snapshot;
-4. a calibrated lifetime model or measured capacity-fade endpoint;
-5. controlled physical replay with independently defined protection limits.
-
-The manuscript states these limits and avoids claims that require those
-additional experiments.
+1. matched qEHVI/qNEHVI comparisons;
+2. an identical-initial-database acquisition-guidance study;
+3. a simultaneously executed four-arm component study;
+4. a calibrated lifetime or measured capacity-fade endpoint;
+5. physical replay under independently approved protection limits.

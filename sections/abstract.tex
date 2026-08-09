@@ -2,30 +2,19 @@
 % Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-Fast-charging protocol design for lithium-ion batteries requires balancing
-charging time, peak temperature rise, and a degradation proxy under tightly
-limited evaluation budgets, because each candidate protocol must be assessed
-through costly electrochemical--thermal simulation.
-Bayesian optimization (BO) is well suited to this sample-scarce regime, but
-its early efficiency depends strongly on informative initialization and
-acquisition guidance.
-Large language models (LLMs) offer domain-informed priors for early search,
-provided that their guidance is integrated through a simulator-grounded
-interface.
-We propose LLMBO-MO, a multiobjective BO framework with two advisory
-touchpoints: a protocol-domain-screened warm-start that supplies diverse
-initial candidates, and early regional guidance with validation gates and an
-explicit pointwise shift cap.
-Simulator-evaluated protocols alone update the Gaussian-process surrogate.
-Under a matched budget of 56 simulator evaluations and five fixed seeds,
-LLMBO-MO attains higher mean final hypervolume than ParEGO on two SPMe
-parameterizations, with a 1.7\% mean improvement on Chen2020 (up to 5.1\% in a
-paired seed) and a 17.8\% mean improvement on Ecker2015.
-A component study identifies the screened warm-start as the primary performance
-driver, while a ten-seed prompt-design ablation provides independent
-statistical support for LLM-derived initialization ($p < 0.01$).
-The results establish a validation-gated, simulation-grounded interface for
-integrating language-model guidance into data-scarce battery optimization.
+Fast-charging protocol design for lithium-ion batteries must balance charging
+time, temperature rise, and degradation severity under a limited evaluation
+budget. Bayesian optimization (BO) is well suited to this setting, but its
+early search is sensitive to initialization and to guidance introduced before
+sufficient task-specific evidence is available. We propose LLMBO-MO, a
+multiobjective BO framework that uses large-language-model (LLM) knowledge as
+bounded search advice while reserving objective and feasibility evaluation for
+the battery simulator. A screened warm start and an early preference interface
+guide candidate placement without replacing the numerical optimization path.
+Experiments on two battery parameterizations show modest improvements in final
+hypervolume, while component and prompt analyses support the value of informed
+initialization. These results demonstrate a verification-aware way to combine
+contextual LLM knowledge with data-scarce battery optimization.
 \end{abstract}
 
 \begin{IEEEkeywords}

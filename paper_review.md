@@ -1,56 +1,55 @@
-# Adversarial Paper Self-Review
+# Final Adversarial Paper Self-Review
 
-Status meanings:
-
-- **Pass:** supported and clearly stated.
-- **Pass with limitation:** defensible, but scope must remain explicit.
-- **Needs new experiment:** wording cannot remove the evidence gap.
+Status meanings: **Pass** means the item is supported and clearly stated;
+**pass with limitation** means the manuscript is defensible only with the stated
+scope; **needs new experiment** means wording cannot close the evidence gap.
 
 ## 1. Contribution and method
 
-| Reviewer question | Status | Current assessment |
+| Reviewer question | Status | Final assessment |
 |---|---|---|
-| Is the novelty clear? | Pass | The contribution is a two-touchpoint interface that separates LLM preference from simulator evidence, plus a bounded covariance-shaped acquisition operator. |
-| Is the formal method distinguishable from the ablation? | Pass | Only the correlation-clipped operator is formalized in the main method. The uniform-anchor, mean-absolute-shift-budget form is described only in the component study. |
-| Are the core equations closed? | Pass | Anchor weights, novelty, global-range fallback, covariance jitter, quality gate, trust/confidence product, attenuation, and shift bound are defined. |
-| Are routine formulas overexposed? | Pass | Standard thermal, GP-kernel, and EI relations are concise or unnumbered; numerical values are centralized in Table I. |
-| Is every method claim supported? | Pass with limitation | The operator is mathematically bounded, but the principal comparison evaluates the complete configuration rather than isolating coupling causality. |
+| Is the novelty explicit? | Pass | LLMBO-MO separates advisory LLM preferences from simulator evidence through a screened warm start and a bounded, temporary acquisition-side interface. |
+| Are the method inputs, outputs, checks, and fallbacks defined? | Pass | Protocol repair, domain screening, region validation, finite-horizon attenuation, shift clipping, and ordinary-EI recovery are stated before Algorithm 1. |
+| Is the formal claim stronger than the evidence? | Pass with limitation | The coupling is mathematically bounded, but the principal experiment compares complete configurations rather than isolating coupling causality. |
 
 ## 2. Writing and structure
 
-| Reviewer question | Status | Current assessment |
+| Reviewer question | Status | Final assessment |
 |---|---|---|
-| Does the paper have one coherent story? | Pass | The narrative centers on preserving numerical authority while using LLM advice at initialization and early acquisition. |
-| Are terms consistent? | Pass | “Protocol-domain-screened,” “degradation proxy,” “regional guidance,” and “bounded adjustment” are used consistently. |
-| Is the section order reviewer friendly? | Pass | Problem → model → method overview → warm start → BO backbone → regional coupling → experiments → results → interpretation → component study. |
-| Are figures and tables placed with their discussion? | Pass | The platform appears after the Section V setup; Tables I–II follow in source order; Fig. 4 opens the interpretation page rather than the references. |
-| Does the conclusion answer the paper’s question? | Pass | It reports both five-seed outcomes, identifies the more consistent component, and states the simulation boundary. |
+| Does the paper follow one reviewer-facing story? | Pass | The six-section sequence is motivation and prior work, formulation, simulator/proxy, method, validation/discussion, and conclusion. |
+| Is prior work integrated rather than detached? | Pass | Related work is merged into the Introduction and organized around BO cold start, charging accelerators, LLM--BO authority, and the remaining gap. |
+| Does each results paragraph separate observation from interpretation? | Pass | The prose reports trends and limitations, while exact values and study-specific qualifications are confined to Tables I--IV and short notes. |
 
 ## 3. Experimental evidence
 
-| Reviewer question | Status | Current assessment |
+| Reviewer question | Status | Final assessment |
 |---|---|---|
-| Are the principal results multi-seed? | Pass | Chen2020 and Ecker2015 both use seeds 8409–8413 with 56 simulator calls. |
-| Are HV values comparable? | Pass | Both methods use a common transformed objective map and benchmark-specific ideal/reference box within each parameterization. |
-| Are gains meaningful? | Pass with limitation | Mean gains are modest: +0.84% (3/5 wins) and +2.18% (4/5 wins). No significance claim is made. |
-| Are strong current baselines included? | Needs new experiment | ParEGO is matched; qEHVI/qNEHVI are cited but not run under the same budget. |
-| Does the comparison isolate acquisition coupling? | Needs new experiment | LLMBO-MO uses 3 screened LLM + 3 random initial points, while ParEGO uses 6 random points. |
-| Is the ablation synchronized? | Needs new experiment | The complete arm is a matched-budget five-seed follow-up rather than one simultaneously executed four-arm batch. |
-| Is hardware performance established? | Needs new experiment | No platform measurement enters the quantitative evaluation. |
+| Are the principal results internally consistent? | Pass | Table II matches the evidence matrix for both cell models; the Abstract, Introduction, Results, and Conclusion use only the supported trend-level interpretation. |
+| Are small-sample results overstated? | Pass | The main comparison is explicitly descriptive, and the prompt-study significance detail appears only in Table IV and its note. |
+| Are HV scales compared correctly? | Pass | Comparisons are within each cell parameterization; absolute Chen2020 and Ecker2015 HV values are not compared across rows. |
+| Are strong alternative acquisitions matched? | Needs new experiment | qEHVI/qNEHVI are cited but not run under the same budget and initialization database. |
 
-## 4. Submission-risk summary
+## 4. Figures and page layout
 
-The current manuscript is internally consistent and bases both principal
-comparisons on seeds 8409--8413 with a common within-benchmark HV scale. The
-remaining review risks are empirical rather than editorial:
+| Reviewer question | Status | Final assessment |
+|---|---|---|
+| Are the author-supplied conceptual figures preserved? | Pass | Fig. 1 uses the original problem-formulation artwork and Fig. 2 uses the original Draw.io workflow PDF without redrawing either image. |
+| Are experimental visuals placed in their narrative role? | Pass | The platform, Ecker auxiliary panel, Pareto/trajectory pair, component diagnostics, and preprocessing figure are all retained from the original manuscript and placed after their first citation. |
+| Are independent figures separated from primary evidence? | Pass | The Ecker panel is identified as an auxiliary comparison under an independent protocol, and the component figure is interpreted qualitatively alongside the table. |
+| Is pagination natural? | Pass | The final IEEE two-column paper is 10 pages, contains no forced body-section breaks, and uses balanced reference columns on the last page. |
 
-1. modest effect size with five seeds;
-2. no matched qEHVI/qNEHVI result;
-3. different initialization composition between LLMBO-MO and ParEGO;
-4. a component study assembled from a primary batch and matched follow-up;
-5. a trajectory-averaged degradation proxy rather than calibrated capacity
-   fade;
-6. no physical-cell validation.
+## 5. Scope and reproducibility
 
-These limitations are stated without weakening the main methodological
-contribution.
+| Reviewer question | Status | Final assessment |
+|---|---|---|
+| Is the third objective described honestly? | Pass | The degradation quantity is an arbitrary-unit, trajectory-averaged proxy, not measured capacity loss or lifetime. |
+| Does the platform imply hardware validation? | Pass | Its caption and setup text state that no platform measurement enters the paper. |
+| Are unresolved validation gaps visible? | Pass | Identical-initial-database comparisons, synchronized component runs, matched qEHVI/qNEHVI, calibrated aging, and physical replay are listed as future experiments. |
+
+## Final disposition
+
+The revised manuscript is structurally and numerically consistent with the
+current evidence matrix. Remaining risks are empirical rather than editorial:
+modest effects, unmatched acquisition baselines, nonidentical initialization
+mechanisms, separately controlled component comparisons, an uncalibrated
+degradation proxy, and no physical-cell validation.

@@ -4,40 +4,22 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper addressed the challenge of integrating large-language-model (LLM)
-knowledge into multiobjective Bayesian optimization for battery fast-charging
-design, where evaluation budgets are tightly limited by the cost of
-electrochemical--thermal simulation.
-We proposed LLMBO-MO, a framework built on the insight that LLM-derived
-preferences can guide \emph{where} the optimizer searches, provided that only
-simulator-evaluated protocols determine \emph{what} enters the Pareto set.
-This separation is enforced through an asymmetric two-touchpoint architecture:
-a protocol-domain-screened warm-start that supplies diverse initial candidates
-without per-cell calibration, and bounded regional guidance whose influence is
-controlled by confidence and covariance gates, early-window attenuation, and
-an explicit pointwise cap in standardized target units.
+This paper presented LLMBO-MO for incorporating contextual LLM knowledge into
+expensive multiobjective battery optimization without weakening the numerical
+evidence path. Its key principle is an asymmetric interface: screened LLM
+preferences guide initialization and early candidate placement, whereas only
+simulator-evaluated protocols update the GP surrogate and Pareto set. Bounded
+guidance and numerical fallbacks preserve the authority of the underlying BO
+procedure.
 
-Under a matched budget of 56 simulator evaluations and five fixed seeds,
-LLMBO-MO attained higher mean final hypervolume than ParEGO on two SPMe
-parameterizations, with a 1.7\% mean improvement on Chen2020 (up to 5.1\% in a
-paired seed) and a 17.8\% mean improvement on Ecker2015.
-A component decomposition revealed that the screened LLM warm-start
-alone accounts for the majority of the mean performance gain, while bounded
-regional guidance provides a smaller positive mean contribution.
-A ten-seed prompt-design ablation further confirmed the statistical reliability
-of LLM-derived initialization ($p < 0.01$), establishing that prompt content is
-a first-order performance factor.
+Experiments on two battery parameterizations show modest improvements in final
+hypervolume. The accompanying analyses identify informed initialization as the
+main individual contributor and show that prompt and objective preprocessing
+choices influence optimization behavior. Together, these results support the
+use of LLM knowledge as controlled search guidance rather than as numerical
+evidence.
 
-The practical message of this study is that language-model guidance can be
-incorporated through a verification-aware interface: simulator evaluations
-remain the source of training targets, advisory influence is explicitly
-bounded, and gate-rejected guidance recovers the unguided acquisition.
-This design pattern is not specific to battery charging and may
-apply to other domains where expensive simulators or physical experiments
-define the evidence standard.
-
-The present evidence spans two SPMe parameterizations under a controlled
-simulator budget.
-The next stage is to validate selected Pareto protocols through physical replay
-and extend the matched-budget study across additional acquisition families,
-cell conditions, and LLM backends.
+The present study remains simulation based and uses a trajectory-averaged
+degradation proxy in arbitrary units. Calibrated lifetime assessment, broader
+acquisition comparisons, and physical replay therefore remain important
+directions for future validation.

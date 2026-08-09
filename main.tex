@@ -16,7 +16,6 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{graphicx}
-\usepackage{svg}
 \usepackage{microtype}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,backgrounds,calc,fit,positioning,shapes.geometric}
@@ -26,6 +25,8 @@
 \usepackage{multirow}
 \usepackage{array}
 \usepackage{url}
+\usepackage{balance}
+\vfuzz=1pt
 \usepackage[hidelinks,bookmarksnumbered]{hyperref}
 
 % Search paths for split content
@@ -45,6 +46,7 @@
 \newcommand{\R}{\mathbb{R}}
 
 \begin{document}
+\raggedbottom
 
 % ---- Title block -----------------------------------------------------------
 \title{
@@ -75,14 +77,14 @@ This work was supported in part by ...}
 
 % ---- Body ------------------------------------------------------------------
 \input{sections/introduction}   % Sec. I
-\input{sections/related_work}   % Sec. II
-\input{sections/problem}        % Sec. III
-\input{sections/model}          % continuation of Sec. III
+\input{sections/problem}        % Sec. II
+\input{sections/model}          % Sec. III
 \input{sections/method}         % Sec. IV
 \input{sections/experiments}    % Sec. V
 \input{sections/conclusion}     % Sec. VI
 
 % ---- References ------------------------------------------------------------
+\balance
 \input{sections/references}
 
 \end{document}
