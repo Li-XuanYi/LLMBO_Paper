@@ -22,7 +22,7 @@ Unevaluated LLM output never becomes a Gaussian-process (GP) target, and any
 guidance that fails parsing, repair, or validation gates has zero numerical
 effect.
 
-Figure~\ref{fig:framework} illustrates the two advisory paths and their
+\autoref{fig:framework} illustrates the two advisory paths and their
 relationship to the common multiobjective BO backbone.
 At iteration $t$, a trade-off weight $\bw^{(t)}$ defines a scalar subproblem.
 Feasible historical observations are transformed and re-scalarized, the GP is
@@ -331,7 +331,7 @@ posterior mean used by EI is unchanged.
 Accepted regional restarts may still expand the numerical candidate pool, so
 this equality is a coupling fallback rather than a guarantee that the complete
 optimization trajectory matches unguided BO.
-Table~\ref{tab:protocol_settings} lists the core numerical settings that
+\autoref{tab:protocol_settings} lists the core numerical settings that
 instantiate these operators.
 
 \subsection{Complete Optimization Procedure}

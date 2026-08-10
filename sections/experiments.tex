@@ -99,7 +99,7 @@ PIMD & \ChenPIMDMean\,$\pm$\,\ChenPIMDStd & \ChenPIMDGain \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:chen_results} shows that LLMBO-MO obtains the highest observed
+\autoref{tab:chen_results} shows that LLMBO-MO obtains the highest observed
 mean HV in the retained Chen2020 set.
 Its mean is \ChenParEGOGain\ above ParEGO and
 \ChenNSGAGain--\ChenPIMDGain\ above the evolutionary or transfer baselines.
@@ -117,7 +117,7 @@ The LLMBO-MO and ParEGO center lines are representative seed-8409 trajectories;
 their shaded proxy envelopes are derived from five auxiliary archived traces.
 The NSGA-II, DISK, and PIMD lines are five-run means and their bands show one
 standard deviation.  The formal five-seed final statistics are reported in
-Table~\ref{tab:chen_results}.}
+\autoref{tab:chen_results}.}
 \label{fig:chen_hv_5way}
 \end{figure*}
 
@@ -127,7 +127,7 @@ The representative seed-8409 case in Fig.~\ref{fig:chen_hv_5way} ends at
 This case illustrates how the screened initialization and early candidate-pool
 expansion can place the search in a favorable part of the protocol space.
 It is not substituted for the five-seed statistics in
-Table~\ref{tab:chen_results}.
+\autoref{tab:chen_results}.
 
 \subsection{Performance Across Battery Parameterizations}
 
@@ -162,7 +162,7 @@ LLMBO-MO & \textbf{\EckerMidLLMBO} &
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:ecker_hv} shows a larger separation under Ecker2015.
+\autoref{fig:ecker_hv} shows a larger separation under Ecker2015.
 At evaluation 30, LLMBO-MO reaches an HV of \EckerMidLLMBO, compared with
 \EckerMidParEGO\ for ParEGO, corresponding to a \EckerMidGain\ intermediate-
 budget advantage.
@@ -181,7 +181,7 @@ protocols rather than a single schedule, because users may assign different
 importance to charging time, temperature rise, and degradation.
 Here, an ``optimal charging protocol'' means a feasible Pareto-nondominated
 entry in the current archive.
-Figure~\ref{fig:optimal_protocols} reports the archive size after each
+\autoref{fig:optimal_protocols} reports the archive size after each
 algorithmic iteration, averaged over five retained runs; the shaded bands show
 the archived across-run dispersion.
 
@@ -207,7 +207,7 @@ Fig.~\ref{fig:optimal_protocols} is a per-iteration archive-growth diagnostic,
 not a claim about sample efficiency under an identical number of simulator
 calls.
 It is independent of the 56-evaluation HV comparison in
-Fig.~\ref{fig:chen_hv_5way} and Table~\ref{tab:chen_results}.
+Fig.~\ref{fig:chen_hv_5way} and \autoref{tab:chen_results}.
 
 \subsection{Objective-Preprocessing Sensitivity}
 
@@ -291,7 +291,7 @@ directly to the 56-evaluation main comparison.
 
 The Chen2020 component archive separates the screened warm start from regional
 guidance under the 56-evaluation cap.
-The values in Table~\ref{tab:ablation} are descriptive because the retained
+The values in \autoref{tab:ablation} are descriptive because the retained
 regional variants contain an external-restart difference and the historical
 archive does not preserve a complete source hash.
 
@@ -335,7 +335,7 @@ contributor but does not support an additive or systematic regional benefit.
 \caption{Chen2020 protocol interpretation. \emph{Left:} feasible evaluated
 LLMBO-MO protocols pooled across five archived runs; A--E are globally
 nondominated representatives and correspond exactly to
-Table~\ref{tab:representative_protocols}. \emph{Right:} independent simulated
+\autoref{tab:representative_protocols}. \emph{Right:} independent simulated
 current, voltage, temperature, and SOC trajectory examples for selected
 LLMBO-MO, warm-start, and ParEGO protocols.}
 \label{fig:pareto_profiles}
@@ -365,14 +365,14 @@ three SOC spans.  Each row is a simulator-evaluated, feasible, globally
 nondominated database record, and the spans sum to 0.8.}
 \end{table*}
 
-Figure~\ref{fig:pareto_profiles} links the objective-space envelope to
+\autoref{fig:pareto_profiles} links the objective-space envelope to
 time-domain behavior.
 The marked protocols are selected deterministically from the global
 nondominated pool: the three objectives are normalized, the front is ordered
 by charging time, and A--E are chosen at cumulative front-arc fractions 0,
 0.25, 0.50, 0.75, and 1.
 Their parameters and objectives are reported in
-Table~\ref{tab:representative_protocols}; no marked point minimizes all three
+\autoref{tab:representative_protocols}; no marked point minimizes all three
 objectives.
 The selected LLMBO-MO schedule reaches the target SOC earlier than the two
 illustrative alternatives at the cost of a larger temperature excursion.
