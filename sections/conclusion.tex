@@ -4,56 +4,42 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper addressed the challenge of integrating large-language-model (LLM)
-knowledge into multiobjective Bayesian optimization for battery fast-charging
-design, where evaluation budgets are tightly limited by the cost of
-electrochemical--thermal simulation.
-We proposed LLMBO-MO, a framework built on the insight that LLM-derived
-preferences can guide \emph{where} the optimizer searches, provided that only
-simulator-evaluated protocols determine \emph{what} enters the Pareto set.
-This separation is enforced through an asymmetric two-touchpoint architecture:
-a protocol-domain-screened warm-start that supplies diverse initial candidates
-without per-cell calibration, and bounded regional guidance whose influence is
-clipped to a fixed fraction of the posterior standard deviation and reduces
-exactly to standard expected improvement when validation fails.
+This paper introduced LLMBO-MO for simulation-limited multiobjective battery
+fast-charging design.
+Its central idea is to separate advisory language-model knowledge from
+evidence-grade numerical evaluation: the LLM proposes and prioritizes search
+locations, while the simulator remains the sole objective oracle and only
+evaluated protocols train the GP surrogate.
+The resulting framework combines a protocol-domain-screened warm start with
+temporary weight-conditioned candidate-pool guidance and an optional bounded
+posterior-mean coupling.
 
-Under a matched budget of 56 simulator evaluations and five fixed seeds,
-LLMBO-MO yielded consistent hypervolume improvement over ParEGO on two SPMe
-parameterizations, with per-seed wins in three of five seeds on Chen2020 and
-four of five on Ecker2015.
-A component study further revealed that the screened LLM warm-start alone
-accounts for the majority of the performance gain, while bounded regional
-guidance provides a smaller but systematic complementary benefit.
-The combined effect of the two touchpoints was approximately additive,
-suggesting that they operate through largely independent mechanisms.
+Across five archived Chen2020 seeds, LLMBO-MO achieves a mean HV of
+\ChenLLMBOMean, compared with \ChenParEGOMean\ for ParEGO, and exceeds the
+three retained evolutionary or transfer baselines by
+\ChenNSGAGain--\ChenPIMDGain.
+On Ecker2015, the observed advantage is \EckerMidGain\ at evaluation 30 and
+\EckerFinalGain\ at the final budget.
+The objective-preprocessing study shows that min--max and Z-score scaling are
+both stable in the retained setting, whereas omitting scale balancing increases
+dispersion.
+The separate iteration-indexed diagnostic also maintains
+\OptimalLLMBOFinal\ feasible nondominated protocols after 50 iterations,
+compared with \OptimalParEGOFinal\ for ParEGO; this archive-size result is not
+treated as an equal-simulator-budget sample-efficiency claim.
+The ten-seed prompt study provides the strongest controlled language-component
+evidence, with an HV increase of \PromptHVGain\ over random initialization
+after multiplicity correction.
+The component study indicates that screened warm starting is the more stable
+contributor; the retained data do not establish an independent systematic
+benefit from regional coupling.
 
-The practical message of this study is that language-model guidance can be
-safely incorporated into data-scarce engineering optimization when the
-interface enforces three constraints: the LLM never supplies training targets,
-every advisory signal is bounded in magnitude, and any invalid advice triggers
-an exact fallback to the unguided procedure.
-This conservative design pattern is not specific to battery charging and may
-apply to other domains where expensive simulators or physical experiments
-define the evidence standard.
-
-Several limitations define the scope of the present findings.
-The evidence is simulation-based and uses a trajectory-averaged degradation
-proxy rather than calibrated capacity fade measurements.
-The comparison is centered on ParEGO; matched-budget evaluations against direct
-hypervolume methods (qEHVI, qNEHVI) and surrogate-assisted evolutionary
-algorithms remain to be conducted.
-Two parameter sets with five seeds each provide initial evidence of
-consistency, but broader validation across cell chemistries, aging states, and
-LLM backends is needed to establish generality.
-Physical-cell experiments are the natural next step for translating the
-observed simulation-level gains into engineering practice.
-
-Future work will pursue four directions: (i)~matched-budget comparisons with
-direct hypervolume acquisition functions to position LLMBO-MO within the wider
-multiobjective BO landscape; (ii)~controlled physical replay of selected Pareto
-protocols on the laboratory platform to assess simulation-to-hardware
-transferability; (iii)~systematic comparison of LLM backends under identical
-optimization conditions to quantify how model capability affects guidance
-quality; and (iv)~extension of the bounded-advisory design pattern to related
-battery optimization tasks, including formation protocol design and
-state-of-health-adaptive charging.
+The current conclusions are limited to SPMe simulation, two parameterizations,
+an uncalibrated degradation proxy, and partially mixed historical archives.
+Matched qEHVI/qNEHVI comparisons, synchronized multi-seed runs under one code
+snapshot, controlled LLM-backend studies, and physical-cell replay are needed
+before claiming state-of-the-art performance, battery transfer, or measured
+lifetime improvement.
+These extensions will determine whether the bounded-advisory interface can
+retain its early-search benefit under stronger numerical baselines and
+experimentally validated degradation endpoints.

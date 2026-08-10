@@ -233,8 +233,8 @@ well-informed by simulator data.
 When an accepted region passes all validation checks, its anchors may be used
 to construct a bounded adjustment to the acquisition mean.
 The design objective is to make regions preferred by the LLM marginally more
-attractive to EI, without ever letting the adjustment magnitude exceed a fixed
-fraction of the posterior standard deviation.
+attractive to EI while explicitly limiting the adjustment in standardized
+scalar-target units.
 The coupling proceeds in three stages: anchor scoring, covariance projection,
 and gated attenuation.
 
@@ -297,9 +297,11 @@ q_t&=\operatorname{clip}\!\left[
 \end{aligned}
 \]
 The LLM-reported confidence $c_t=\operatorname{clip}(h_t^{\mathrm{LLM}},0,1)$
-and the optimizer-maintained trust state $\tau_t\in[0,1]$ (updated from
-observed optimization outcomes) complete the gate product
+and a bounded trust factor $\tau_t\in[0,1]$ complete the gate product
 $r_t=c_t\tau_tq_t$.
+The evaluated main mode holds this factor fixed and skips posterior-mean
+coupling; adaptive trust updates are an optional implementation mode rather
+than a property assumed by the principal results.
 The early-window attenuation $a_t=\operatorname{clip}(1-(t-1)/T_{\mathrm L},
 0,1)$ linearly ramps the influence to zero by the end of the guidance window.
 The acquisition-time adjustment is then
@@ -320,12 +322,15 @@ Because the scalar Tchebycheff target is minimized, reducing the GP mean near
 positively correlated anchors makes those regions more attractive to EI.
 The explicit clipping guarantees
 $0\leq\delta_t(\btheta)\leq\delta_{\max}$ in standardized target units, so the
-adjustment cannot dominate the acquisition decision.
+adjustment magnitude is explicitly controlled.
 The operation preserves three critical invariants: it does not alter fitted GP
 targets, it does not modify posterior uncertainty, and it does not create
 pseudo-observations.
 If any gate is zero ($q_t=0$, $c_t=0$, or $\tau_t=0$), then $r_t=0$ and the
-acquisition function reduces exactly to standard EI.
+posterior mean used by EI is unchanged.
+Accepted regional restarts may still expand the numerical candidate pool, so
+this equality is a coupling fallback rather than a guarantee that the complete
+optimization trajectory matches unguided BO.
 Table~\ref{tab:protocol_settings} lists the core numerical settings that
 instantiate these operators.
 
@@ -345,14 +350,14 @@ path-dependent feasibility is known only after evaluation.
 \label{alg:llmbo}
 \footnotesize
 \begin{algorithmic}[1]
-\Require Simulator $\bS$, LLM $\bL$, BO budget $T$, weights $\bW$,
-guidance horizon $T_{\mathrm L}$
+\Require Simulator $\bS$, LLM $\bL$, total budget $N$, initial budget $n_0$,
+weights $\bW$, guidance horizon $T_{\mathrm L}$
 \Ensure Evaluated nondominated set $\bP$
 \State Query $\bL$ for a warm-start pool; repair and rank by
 \eqref{eq:portfolio}
 \State Add selected LLM proposals and random protocol-domain-valid points
-\State Evaluate the initial portfolio and initialize $\bD$
-\For{$t=1$ to $T$}
+\State Evaluate $n_0$ initial protocols and initialize $\bD$
+\For{$t=1$ to $N-n_0$}
     \State Select $\bw^{(t)}$; transform and re-scalarize feasible data
     \State Fit the GP to $g_t(\cdot\mid\bw^{(t)})$
     \If{$t\leq T_{\mathrm L}$}
@@ -360,7 +365,8 @@ guidance horizon $T_{\mathrm L}$
         \State Add accepted anchors as restarts; attempt \eqref{eq:bounded_coupling}
     \EndIf
     \State Maximize EI using $\mu_t^{\mathrm A}$ and select $\btheta_{t+1}$
-    \State Evaluate $\bS(\btheta_{t+1})$; update $\bD$ and feasible set $\bP$
+    \State Evaluate $\bS(\btheta_{t+1})$ and append the result to $\bD$
+    \State Update $\bP$ and the GP training subset using feasible results
 \EndFor
 \State \Return $\bP$
 \end{algorithmic}

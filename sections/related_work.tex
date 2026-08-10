@@ -105,6 +105,7 @@ LABO) and does not allow LLM preferences to permanently alter the surrogate
 (unlike the preference-guided framework).
 Instead, it restricts LLM influence to two bounded, temporary touchpoints---a
 screened warm-start and an early-window regional guidance operator---each of
-which reduces exactly to its standard BO counterpart when validation fails.
-This design ensures that the LLM can improve over standard BO but can never
-make it worse, a property not provided by any prior LLM--BO method.
+which discards unusable language-model output before simulator evaluation.
+This design bounds the authority of the LLM and preserves an unguided numerical
+fallback, but it does not imply that every LLM-guided optimization trajectory
+must outperform standard BO.

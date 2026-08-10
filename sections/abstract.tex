@@ -2,32 +2,38 @@
 % Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-Fast-charging protocol design for lithium-ion batteries requires balancing
-charging time, peak temperature rise, and a degradation proxy under tightly
-limited evaluation budgets, because each candidate protocol must be assessed
-through costly electrochemical--thermal simulation.
-Bayesian optimization (BO) is well suited to this sample-scarce regime, but
-its cold-start phase---where only a few initial observations shape the
-surrogate---can waste precious evaluations on unpromising regions.
-Large language models (LLMs) encode broad domain knowledge that could inform
-early search decisions, yet their outputs are neither physical measurements
-nor feasibility guarantees, making direct reliance on LLM proposals risky in
-safety-constrained battery design.
-Our key insight is to treat the LLM as an advisory preference source while
-retaining the simulator as the sole arbiter of physical evidence.
-We propose LLMBO-MO, a multiobjective BO framework with two advisory
-touchpoints: a protocol-domain-screened warm-start that supplies diverse
-initial candidates, and bounded regional guidance whose influence reverts
-exactly to standard expected improvement when the LLM advice is invalid.
-Only simulator-evaluated protocols train the Gaussian-process surrogate.
-Under a matched budget of 56 simulator evaluations and five fixed seeds,
-LLMBO-MO yields consistent hypervolume improvement over ParEGO on two SPMe
-parameterizations, with a component study revealing that screened
-warm-starting provides the dominant gain while regional guidance offers a
-complementary benefit.
-The results demonstrate a conservative, risk-bounded interface for
-integrating language-model guidance into data-scarce battery optimization
-without treating generated text as physical evidence.
+Fast-charging protocol design requires balancing charging time, peak
+temperature rise, and degradation under an evaluation budget constrained by
+electrochemical--thermal simulation cost.
+Bayesian optimization (BO) is suitable for this regime, but its early search
+is sensitive to a small initial design, while direct use of large-language-
+model (LLM) predictions would introduce unverified numerical evidence.
+We propose LLMBO-MO, an asymmetric multiobjective BO framework that uses an LLM
+only to propose and prioritize search locations.
+The framework combines a protocol-domain-screened warm start with temporary
+weight-conditioned regional preferences; the simulator remains the sole
+objective oracle, and only evaluated protocols train the Gaussian-process
+surrogate.
+Under 56 simulator evaluations and five archived seeds, LLMBO-MO obtains a
+mean hypervolume (HV) of \ChenLLMBOMean\ on Chen2020, compared with
+\ChenParEGOMean\ for ParEGO, and exceeds NSGA-II, DISK, and PIMD by
+\ChenNSGAGain--\ChenPIMDGain.
+On Ecker2015, the observed HV advantage is \EckerMidGain\ at evaluation 30 and
+\EckerFinalGain\ at the final budget.
+A Chen2020 sensitivity study finds similar final HV for min--max and Z-score
+preprocessing, whereas omitting normalization produces lower mean HV and much
+larger dispersion.
+A separate archive-growth diagnostic maintains \OptimalLLMBOFinal\ feasible
+nondominated protocols after 50 iterations, compared with
+\OptimalParEGOFinal\ for ParEGO.
+The ten-seed prompt study shows a mean HV increase of \PromptHVGain\
+over random initialization after Holm correction ($p=\PromptHolmP$).
+The component evidence identifies screened warm starting as the more stable
+contributor, whereas an independent benefit from regional coupling is not
+established.
+These results support a restricted-evidence design pattern for injecting
+language-model priors into simulation-driven engineering optimization without
+treating generated text as physical evidence.
 \end{abstract}
 
 \begin{IEEEkeywords}

@@ -1,4 +1,4 @@
-\begin{figure}[H]
+\begin{figure}[!t]
 \centering
 \definecolor{oiBlue}{HTML}{0072B2}
 \definecolor{oiOrange}{HTML}{E69F00}
@@ -197,14 +197,14 @@
     {return objectives and trajectories} (0,3.85);
 \draw[flow] (0,0.42) -- node[tinylabel, right] {check feasibility} (0,0.03);
 \draw[feedback]
-    (-4.25,1.88) -- (-4.58,1.88) -- (-4.58,8.82) -- (-4.25,8.82);
+    (-3.92,1.88) -- (-4.12,1.88) -- (-4.12,8.82) -- (-3.92,8.82);
 \node[font=\sffamily\tiny, text=black!58, rotate=90, fill=white, inner sep=1pt]
-    at (-4.58,5.35) {constrained Pareto search};
+    at (-4.12,5.35) {constrained Pareto search};
 
 % Compact color legend
 \node[draw=black!28, fill=white, rounded corners=1pt,
       font=\sffamily\tiny, text=black!65, align=left, inner sep=2pt]
-    at (2.45,0.60)
+    at (2.05,0.60)
     {\textcolor{oiBlue}{\rule{1.2ex}{1.2ex}} protocol\quad
      \textcolor{oiOrange}{\rule{1.2ex}{1.2ex}} objectives\quad
      \textcolor{oiGreen}{\rule{1.2ex}{1.2ex}} feasibility};
