@@ -2,38 +2,39 @@
 % Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-Fast-charging protocol design requires balancing charging time, peak
-temperature rise, and degradation under an evaluation budget constrained by
-electrochemical--thermal simulation cost.
-Bayesian optimization (BO) is suitable for this regime, but its early search
-is sensitive to a small initial design, while direct use of large-language-
-model (LLM) predictions would introduce unverified numerical evidence.
-We propose LLMBO-MO, an asymmetric multiobjective BO framework that uses an LLM
-only to propose and prioritize search locations.
-The framework combines a protocol-domain-screened warm start with temporary
-weight-conditioned regional preferences; the simulator remains the sole
-objective oracle, and only evaluated protocols train the Gaussian-process
-surrogate.
-Under 56 simulator evaluations and five archived seeds, LLMBO-MO obtains a
-mean hypervolume (HV) of \ChenLLMBOMean\ on Chen2020, compared with
-\ChenParEGOMean\ for ParEGO, and exceeds NSGA-II, DISK, and PIMD by
-\ChenNSGAGain--\ChenPIMDGain.
-On Ecker2015, the observed HV advantage is \EckerMidGain\ at evaluation 30 and
-\EckerFinalGain\ at the final budget.
-A Chen2020 sensitivity study finds similar final HV for min--max and Z-score
-preprocessing, whereas omitting normalization produces lower mean HV and much
-larger dispersion.
-A separate archive-growth diagnostic maintains \OptimalLLMBOFinal\ feasible
-nondominated protocols after 50 iterations, compared with
-\OptimalParEGOFinal\ for ParEGO.
-The ten-seed prompt study shows a mean HV increase of \PromptHVGain\
-over random initialization after Holm correction ($p=\PromptHolmP$).
-The component evidence identifies screened warm starting as the more stable
-contributor, whereas an independent benefit from regional coupling is not
-established.
-These results support a restricted-evidence design pattern for injecting
-language-model priors into simulation-driven engineering optimization without
-treating generated text as physical evidence.
+Fast-charging protocol design for lithium-ion batteries is a constrained
+multiobjective optimization problem that must balance charging time, thermal
+stress, and degradation under a limited evaluation budget.
+Bayesian optimization (BO) is attractive for this setting because it can reduce
+the number of expensive electrochemical--thermal simulations.
+However, its early search is strongly influenced by a small initial design,
+exactly when task-specific observations are scarce.
+Large language models (LLMs) offer a possible source of battery-domain prior
+knowledge, but their generated numerical outputs cannot be regarded as
+simulator-validated physical evidence.
+To address these two issues, this paper proposes LLMBO-MO, a multiobjective BO
+framework that separates LLM-based search guidance from numerical optimization
+evidence.
+First, a protocol-domain-screened and diversity-aware LLM warm start is
+developed to construct a more informative initial design from textual battery
+knowledge.
+As an auxiliary extension, temporary weight-conditioned regional guidance may
+redirect acquisition search during the early BO stage.
+In both cases, the simulator remains the sole objective oracle and only
+evaluated protocols are used for Gaussian-process fitting and Pareto dominance.
+Under a budget of 56 simulator evaluations, LLMBO-MO obtains a mean
+hypervolume (HV) of \ChenLLMBOMean\ on Chen2020, compared with
+\ChenParEGOMean\ for ParEGO, and the observed advantage persists under the
+Ecker2015 parameterization.
+A controlled ten-seed initialization study further shows an HV improvement of
+\PromptHVGain\ over random initialization after Holm correction
+($p=\PromptHolmP$).
+Component analysis identifies the screened warm start as the more stable source
+of improvement, whereas an independent systematic benefit from regional
+guidance is not established.
+These results indicate that LLM-derived domain knowledge is most useful as
+bounded early-stage search guidance rather than as a substitute for
+simulator-grounded numerical evidence.
 \end{abstract}
 
 \begin{IEEEkeywords}

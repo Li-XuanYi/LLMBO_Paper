@@ -1,5 +1,7 @@
 % ============================================================================
 % References (hand-written thebibliography; no external .bib needed)
+% Hyperref in main.tex makes in-text citations clickable; selected DOI / source
+% entries below also provide external links.
 % ============================================================================
 \begin{thebibliography}{99}
 
@@ -39,27 +41,23 @@ Art.~no.~118244, 2022.
 \bibitem{ref13}
 X.~Wang and B.~Jiang, ``Multi-objective optimization for fast charging design
 of lithium-ion batteries using constrained Bayesian optimization,''
-\textit{J. Power Sources}, vol.~584, Art.~no.~233602, 2023.
+\textit{J. Power Sources}, vol.~584, Art.~no.~233602, 2023,
+\href{https://doi.org/10.1016/j.jpowsour.2023.233602}
+{doi:10.1016/j.jpowsour.2023.233602}.
+
+
+\bibitem{refGPA}
+B.-C.~Wang, Y.-Y.~Mao, Y.~Wang, and H.-X.~Li,
+``Gaussian process-accelerated multiobjective evolutionary design of charging
+process considering multiple user preferences,''
+\textit{IEEE Trans. Ind. Informat.}, vol.~20, no.~8, pp.~10123--10133, 2024,
+\href{https://doi.org/10.1109/TII.2024.3388602}
+{doi:10.1109/TII.2024.3388602}.
 
 \bibitem{refPrBO}
 W.~Jeong, S.~Heo, and J.~H.~Lee, ``Health-conscious charging of lithium-ion
 batteries using Bayesian optimization guided by a semi-empirical aging
 model,'' \textit{J. Energy Storage}, vol.~141, Art.~no.~119348, 2026.
-
-\bibitem{ref10}
-T.~Liu, N.~Astorga, N.~Seedat, and M.~van der Schaar, ``Large language models
-to enhance Bayesian optimization,'' in \textit{Proc. Int. Conf. Learn.
-Represent.}, 2024.
-
-\bibitem{ref16}
-X.~Yuan \textit{et al.}, ``Unleashing LLMs in Bayesian optimization:
-Preference-guided framework for scientific discovery,'' in \textit{Proc. Int.
-Conf. Learn. Represent.}, 2026.
-
-\bibitem{refLABO}
-Z.~Chen \textit{et al.}, ``LABO: LLM-accelerated Bayesian optimization through
-broad exploration and selective experimentation,'' in \textit{Proc. 43rd Int.
-Conf. Mach. Learn.}, PMLR, vol.~306, 2026.
 
 \bibitem{refDong}
 G.~Dong, Y.~Feng, Y.~Lou, M.~Zhang, and J.~Wei, ``Data-driven fast charging
@@ -88,15 +86,27 @@ S.~Yoon, Y.~Lee, and H.-K.~Kim, ``Enhancing fast-charging protocols with
 section-based Bayesian optimization for lithium-ion batteries to prevent
 Li-plating,'' \textit{eTransportation}, vol.~26, Art.~no.~100460, 2025.
 
+\bibitem{refPengTemporal}
+C.~Peng, S.~Yan, C.~Zhong, Q.~Huang, C.~Wu, and H.~Huang,
+``Learning-based temporal sequence of constrained handling selection for
+constrained multi-objective evolutionary optimization,''
+\textit{IEEE Trans. Evol. Comput.}, vol.~30, no.~3, pp.~1123--1136, 2026,
+\href{https://doi.org/10.1109/TEVC.2025.3584207}
+{doi:10.1109/TEVC.2025.3584207}.
+
+\bibitem{refPengDynamic}
+C.~Peng, J.~Zhang, Z.~Cai, Y.~Xu, Q.~Huang, and H.~Huang,
+``Strategy selection in dynamic constrained multi-objective optimization via
+state-augmented deep reinforcement learning,'' \textit{IEEE Trans. Evol.
+Comput.}, early access, 2026,
+\href{https://doi.org/10.1109/TEVC.2026.3678702}
+{doi:10.1109/TEVC.2026.3678702}.
+
 \bibitem{ref4}
 J.~Knowles, ``ParEGO: A hybrid algorithm with on-line landscape approximation
 for expensive multiobjective optimization problems,'' \textit{IEEE Trans.
 Evol. Comput.}, vol.~10, no.~1, pp.~50--66, 2006.
 
-\bibitem{refGardner}
-J.~R.~Gardner, M.~J.~Kusner, Z.~Xu, K.~Q.~Weinberger, and J.~P.~Cunningham,
-``Bayesian optimization with inequality constraints,'' in \textit{Proc. 31st
-Int. Conf. Mach. Learn.}, PMLR, vol.~32, pp.~937--945, 2014.
 
 \bibitem{refQEHVI}
 S.~Daulton, M.~Balandat, and E.~Bakshy, ``Differentiable expected hypervolume
@@ -120,10 +130,40 @@ improvement of probability and mapping crowding distance for expensive
 multi/many-objective optimization,'' \textit{Eng. Appl. Artif. Intell.},
 vol.~133, Art.~no.~108616, 2024.
 
-\bibitem{refPlatEMO}
-Y.~Tian, R.~Cheng, X.~Zhang, and Y.~Jin, ``PlatEMO: A MATLAB platform for
-evolutionary multi-objective optimization [educational forum],'' \textit{IEEE
-Comput. Intell. Mag.}, vol.~12, no.~4, pp.~73--87, 2017.
+
+\bibitem{ref10}
+T.~Liu, N.~Astorga, N.~Seedat, and M.~van der Schaar, ``Large language models
+to enhance Bayesian optimization,'' in \textit{Proc. Int. Conf. Learn.
+Represent.}, 2024,
+\href{https://openreview.net/forum?id=OOxotBmGol}{[Online]}.
+
+\bibitem{ref16}
+X.~Yuan, Z.~Chen, J.~Zhang, H.~Xiong, N.~Ye, Y.~Li, and Q.~Gu,
+``Unleashing LLMs in Bayesian optimization: Preference-guided framework for
+scientific discovery,'' \textit{arXiv preprint arXiv:2605.17976}, 2026,
+\href{https://arxiv.org/abs/2605.17976}{arXiv:2605.17976}.
+
+\bibitem{refLABO}
+Z.~Chen \textit{et al.}, ``LABO: LLM-accelerated Bayesian optimization through
+broad exploration and selective experimentation,'' \textit{arXiv preprint
+arXiv:2605.22054}, 2026,
+\href{https://arxiv.org/abs/2605.22054}{arXiv:2605.22054}.
+
+\bibitem{refKuaiLLMBO}
+X.~Kuai, J.-H.~Ren, B.-C.~Wang, and Y.~Feng,
+``Large language model-enhanced Bayesian optimization for parameter
+identification of lithium-ion batteries,'' \textit{J. Energy Storage},
+vol.~135, Art.~no.~118198, 2025,
+\href{https://doi.org/10.1016/j.est.2025.118198}
+{doi:10.1016/j.est.2025.118198}.
+
+\bibitem{refSoberLLMBO}
+A.~Kristiadi, F.~Strieth-Kalthoff, M.~Skreta, P.~Poupart,
+A.~Aspuru-Guzik, and G.~Pleiss,
+``A sober look at LLMs for material discovery: Are they actually good for
+Bayesian optimization over molecules?'' in \textit{Proc. 41st Int. Conf.
+Mach. Learn.}, PMLR, vol.~235, pp.~25603--25622, 2024,
+\href{https://proceedings.mlr.press/v235/kristiadi24a.html}{[Online]}.
 
 \bibitem{refSuri}
 G.~Suri and S.~Onori, ``A control-oriented cycle-life model for hybrid
@@ -137,8 +177,7 @@ asymptotic derivation of a single particle model with electrolyte,''
 
 \bibitem{ref7}
 V.~Sulzer \textit{et al.}, ``Python Battery Mathematical Modelling
-(PyBaMM),'' \textit{J. Open Res. Softw.},
-vol.~9, no.~1, Art.~no.~14, 2021.
+(PyBaMM),'' \textit{J. Open Res. Softw.}, vol.~9, no.~1, Art.~no.~14, 2021.
 
 \bibitem{ref8}
 C.-H.~Chen, F.~Brosa Planella, K.~O'Regan, D.~Gastol, W.~D.~Widanage, and

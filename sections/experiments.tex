@@ -27,27 +27,31 @@ Chen2020 and Ecker2015, so absolute HV values are interpreted only within one
 parameterization.
 Reported uncertainty is one sample standard deviation.
 
-The main tables summarize five archived seeds per method.
-For the Chen2020 LLMBO-MO and ParEGO comparison, seed 8409 is taken from the
-archive underlying Fig.~\ref{fig:chen_hv_5way}, while seeds 8410--8413 come
-from the retained comparison archives.
-The runs share the parameterization, method preset, 56-call budget, and HV
-definition, but were not executed in one synchronized batch.
-They are therefore reported as descriptive five-seed evidence; no
-inferential or equivalence claim is made.
-The archive manifest records the source and configuration of every entry.
+Five repeated runs are summarized for each method.
+For the Chen2020 LLMBO-MO and ParEGO comparison, seed 8409 corresponds to the
+trajectory shown in Fig.~\ref{fig:chen_hv_5way}, while seeds 8410--8413 are
+drawn from compatible runs with the same parameterization, method preset,
+56-call budget, and HV definition.
+Because these runs were not generated in one synchronized execution batch, the
+five-seed comparison is interpreted descriptively and is not used for an
+inferential significance claim.
 
 ParEGO is the primary BO comparator because it shares the
 scalarization--GP backbone with LLMBO-MO~\cite{ref4}.
-The Chen2020 archive additionally contains NSGA-II and the surrogate-assisted
+The Chen2020 comparison additionally includes NSGA-II and the surrogate-assisted
 evolutionary algorithms DISK and PIMD~\cite{ref5,refDISK,refPIMD} under the
 same 56-evaluation cap.
-Matched qEHVI and qNEHVI runs are not present in the archive; their absence is
+Matched qEHVI and qNEHVI runs are not available; their absence is
 treated as an evaluation limitation rather than as evidence against those
 methods~\cite{refQEHVI,refQNEHVI}.
 
+The numerical validation first compares fixed-budget optimization performance,
+then examines initialization evidence and component contributions.
+Pareto-set interpretation and a bounded discussion follow; complete supporting
+diagnostics are retained in Appendix~\ref{app:diagnostics}.
+
 \begin{table}[!t]
-\caption{Fixed-Budget Protocol and Archived LLMBO-MO Configuration}
+\caption{Fixed-Budget Experimental Configuration}
 \label{tab:protocol_settings}
 \centering
 \scriptsize
@@ -56,32 +60,33 @@ methods~\cite{refQEHVI,refQNEHVI}.
 >{\raggedright\arraybackslash}p{0.42\columnwidth}
 >{\raggedright\arraybackslash}p{0.49\columnwidth}@{}}
 \toprule
-Setting & Archived value \\
+Setting & Value \\
 \midrule
 Battery parameterizations & Chen2020; Ecker2015 \\
 Initialization / BO calls & 6 / 50 \\
 Total simulator calls & 56 \\
 LLMBO-MO initialization & 3 screened LLM + 3 random \\
 ParEGO initialization & 6 random \\
-Chen2020 archived seeds & 8409--8413 \\
-Ecker2015 archived seeds & 8409--8413 \\
+Chen2020 seeds & 8409--8413 \\
+Ecker2015 seeds & 8409--8413 \\
 Guidance horizon / anchors & 16 / 64 \\
 Region influence in main Chen runs & early candidate-pool expansion \\
 Posterior-mean coupling in main Chen runs & disabled \\
-LLM aliases & archive dependent; recorded per run \\
+LLM backend & recorded for each run \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The LLM aliases vary across retained archives, so cross-parameterization
-differences cannot be attributed to battery transfer alone.
+The LLM backend is not identical across all available runs; consequently,
+cross-parameterization differences are not interpreted as an isolated transfer
+effect.
 Within every run, the simulator remains the sole objective oracle and only
 simulator-evaluated protocols enter the GP training set and Pareto archive.
 
-\subsection{Chen2020 Five-Method Comparison}
+\subsection{Overall Optimization Performance}
 
 \begin{table}[!t]
-\caption{Chen2020 Final HV over Five Archived Seeds and 56 Evaluations}
+\caption{Chen2020 Final HV over Five Runs and 56 Evaluations}
 \label{tab:chen_results}
 \centering
 \footnotesize
@@ -99,22 +104,24 @@ PIMD & \ChenPIMDMean\,$\pm$\,\ChenPIMDStd & \ChenPIMDGain \\
 \end{tabular}
 \end{table}
 
+The fixed-budget comparison evaluates whether LLMBO-MO improves Pareto search
+under the common simulator budget.
 \autoref{tab:chen_results} shows that LLMBO-MO obtains the highest observed
-mean HV in the retained Chen2020 set.
+mean HV in the Chen2020 comparison.
 Its mean is \ChenParEGOGain\ above ParEGO and
-\ChenNSGAGain--\ChenPIMDGain\ above the evolutionary or transfer baselines.
+\ChenNSGAGain--\ChenPIMDGain\ above the evolutionary or surrogate-assisted baselines.
 The larger dispersion of ParEGO reflects substantial run-to-run variability,
 including the seed-8409 trajectory visualized below.
-Because the five entries combine compatible historical archives rather than a
-single synchronized campaign, these differences characterize the retained
-evidence and are not used for a significance claim.
+Because the five runs were not generated in one synchronized campaign, the
+differences are reported descriptively and are not used for a significance
+claim.
 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.76\textwidth]{chen2020_hv_5way.pdf}
 \caption{Chen2020 five-method search progress under the 56-evaluation cap.
 The LLMBO-MO and ParEGO center lines are representative seed-8409 trajectories;
-their shaded proxy envelopes are derived from five auxiliary archived traces.
+their shaded proxy envelopes are derived from five available traces.
 The NSGA-II, DISK, and PIMD lines are five-run means and their bands show one
 standard deviation.  The formal five-seed final statistics are reported in
 \autoref{tab:chen_results}.}
@@ -124,24 +131,23 @@ standard deviation.  The formal five-seed final statistics are reported in
 The representative seed-8409 case in Fig.~\ref{fig:chen_hv_5way} ends at
 0.3848 for LLMBO-MO and 0.3523 for ParEGO, a descriptive difference of
 \ChenRepresentativeGain.
-This case illustrates how the screened initialization and early candidate-pool
-expansion can place the search in a favorable part of the protocol space.
+This representative trajectory is consistent with the proposed mechanism:
+the advantage appears during the early portion of the budget, where
+initialization and temporary candidate guidance can alter which part of the
+protocol space is explored first.
 It is not substituted for the five-seed statistics in
 \autoref{tab:chen_results}.
 
-\subsection{Performance Across Battery Parameterizations}
-
-The Chen2020 results above provide the default evaluation setting.
-To examine performance under a different battery parameterization, we repeat
-the LLMBO-MO--ParEGO comparison with the Ecker2015 model while retaining the
-same 56-evaluation cap and five archived seeds.
+The Ecker2015 comparison examines whether the observed fixed-budget behavior is
+confined to the primary Chen2020 parameterization.
+The same 56-evaluation cap and five seeds are used.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.99\columnwidth]{ecker2015_hv.pdf}
-\caption{Ecker2015 HV over five archived seeds.  Lines are five-seed means and
-bands show one sample standard deviation.  The dashed line marks evaluation
-30, where the intermediate-budget comparison is reported.}
+\caption{Ecker2015 HV over five runs. Lines are five-seed means and bands show
+one sample standard deviation. The dashed line marks evaluation 30, where the
+intermediate-budget comparison is reported.}
 \label{fig:ecker_hv}
 \end{figure}
 
@@ -162,103 +168,28 @@ LLMBO-MO & \textbf{\EckerMidLLMBO} &
 \end{tabular}
 \end{table}
 
-\autoref{fig:ecker_hv} shows a larger separation under Ecker2015.
 At evaluation 30, LLMBO-MO reaches an HV of \EckerMidLLMBO, compared with
 \EckerMidParEGO\ for ParEGO, corresponding to a \EckerMidGain\ intermediate-
 budget advantage.
-At the full 56-evaluation budget, the respective means are
-\EckerLLMBOMean\ and \EckerParEGOMean, corresponding to a \EckerFinalGain\
-final difference.
-Together with the primary Chen2020 comparison, this result shows that the
-observed behavior is not confined to the default parameter set.
-Because the LLM aliases differ across retained archives, however, it is not
-interpreted as an isolated battery-transfer effect.
+At evaluation 56, the respective means are \EckerLLMBOMean\ and
+\EckerParEGOMean, corresponding to a \EckerFinalGain\ final difference.
+Together with Chen2020, this persistence check shows that the observed behavior
+is not confined to one parameterization.
+It is not a controlled transfer study because the LLM backend is not identical
+across all runs; the difference therefore cannot be attributed specifically to
+battery transfer.
 
-\subsection{Optimal Charging Protocol Set}
+\subsection{Effectiveness of the Proposed Knowledge Guidance}
 
-A multiobjective charging optimizer should return a set of feasible trade-off
-protocols rather than a single schedule, because users may assign different
-importance to charging time, temperature rise, and degradation.
-Here, an ``optimal charging protocol'' means a feasible Pareto-nondominated
-entry in the current archive.
-\autoref{fig:optimal_protocols} reports the archive size after each
-algorithmic iteration, averaged over five retained runs; the shaded bands show
-the archived across-run dispersion.
+\subsubsection{Initialization Prior}
 
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.99\columnwidth]{optimal_protocols_curve.pdf}
-\caption{Chen2020 Pareto-archive growth over 50 algorithmic iterations.
-Lines are five-run means and bands show across-run dispersion.  An optimal
-charging protocol is a feasible Pareto-nondominated archive entry.}
-\label{fig:optimal_protocols}
-\end{figure}
-
-At iteration 50, LLMBO-MO maintains an average of approximately
-\OptimalLLMBOFinal\ nondominated protocols, compared with
-\OptimalParEGOFinal\ for ParEGO.
-Its curve remains higher through most of the search, indicating that each
-iteration maintains a richer collection of candidate trade-offs in these
-archives.
-Protocol count and HV measure different properties and are therefore not
-treated as interchangeable.
-Moreover, because the horizontal axis is the number of algorithmic iterations,
-Fig.~\ref{fig:optimal_protocols} is a per-iteration archive-growth diagnostic,
-not a claim about sample efficiency under an identical number of simulator
-calls.
-It is independent of the 56-evaluation HV comparison in
-Fig.~\ref{fig:chen_hv_5way} and \autoref{tab:chen_results}.
-
-\subsection{Objective-Preprocessing Sensitivity}
-
-The three charging objectives have different numerical scales.
-We therefore compare min--max scaling, Z-score standardization, and no
-normalization on Chen2020 using the latest five-seed, 56-evaluation archive.
-
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.99\columnwidth]{objective_normalization_hv.pdf}
-\caption{Chen2020 objective-preprocessing sensitivity over five archived
-seeds.  Lines show mean HV and bands show one sample standard deviation.}
-\label{fig:normalization_hv}
-\end{figure}
-
-\begin{table}[!t]
-\caption{Objective-Preprocessing Sensitivity on Chen2020}
-\label{tab:normalization_hv}
-\centering
-\footnotesize
-\setlength{\tabcolsep}{3.8pt}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-Preprocessing & Evaluation 30 & Evaluation 56 \\
-\midrule
-Min--max & \NormMidMinMax & \NormMinMaxMean\,$\pm$\,\NormMinMaxStd \\
-Z-score & \textbf{\NormMidZScore} & \NormZScoreMean\,$\pm$\,\NormZScoreStd \\
-None & \NormMidNone & \NormNoneMean\,$\pm$\,\NormNoneStd \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Z-score preprocessing progresses faster in the middle of the search, reaching
-an HV of \NormMidZScore\ at evaluation 30 compared with \NormMidMinMax\ for
-min--max scaling.
-At evaluation 56, min--max scaling has the slightly higher mean
-(\NormMinMaxMean\ versus \NormZScoreMean), but the difference is small and is
-not interpreted as a significant ordering.
-Both scale-balancing choices have substantially lower final dispersion than
-the unnormalized condition, whose final result is
-\NormNoneMean\,$\pm$\,\NormNoneStd.
-This sensitivity study indicates that heterogeneous objective magnitudes
-should be balanced, while either conventional scaling choice is defensible for
-the retained setting.
-
-\subsection{Warm-Start Prompt Study}
-
-The strongest controlled evidence for the language component is a separate
-Chen2020 prompt study using ten seeds and a shorter 26-evaluation budget.
-All variants share the downstream BO procedure and differ only in the
-initial-candidate source.
+The initialization study examines whether battery-specific LLM knowledge improves
+the stage in which BO has the least task-specific evidence.
+A separate Chen2020 prompt study uses ten seeds and
+a shorter 26-evaluation budget.
+All variants share the same downstream BO procedure and differ only in the
+initial-candidate source, so the comparison targets the value of the
+initialization prior rather than later regional guidance.
 
 \begin{table}[!t]
 \caption{Chen2020 Warm-Start Prompt Study over Ten Seeds}
@@ -282,21 +213,27 @@ The experimental battery prompt improves mean HV over random initialization by
 The paired contrast remains nonzero after Holm correction
 ($p=\PromptHolmP$) and has standardized effect size
 $d_z=\PromptEffect$.
-This result supports the value of battery-specific prompt content for
-short-budget initialization; it does not isolate regional guidance or extend
-directly to the 56-evaluation main comparison.
+The result shows that the gain is not explained by prompting alone: the
+detailed generic prompt is close to random initialization, whereas the
+battery-specific prompt produces the clear improvement.
+This supports the proposed use of an LLM as a carrier of domain-specific
+initialization knowledge in the low-data regime.
+Because this study uses a shorter budget, it is treated as mechanism evidence
+for the cold start rather than as a substitute for the 56-evaluation main
+comparison.
 
-\subsection{Component Study}
 \label{sec:component}
 
-The Chen2020 component archive separates the screened warm start from regional
-guidance under the 56-evaluation cap.
-The values in \autoref{tab:ablation} are descriptive because the retained
-regional variants contain an external-restart difference and the historical
-archive does not preserve a complete source hash.
+\subsubsection{Component Evidence}
+
+The component study separates the contribution of the screened warm start from
+that of continued regional guidance.
+The values in \autoref{tab:ablation} are interpreted descriptively because the
+regional variants also differ in their external acquisition restarts.  This
+confound prevents the regional effect from being isolated completely.
 
 \begin{table}[!t]
-\caption{Chen2020 Component Study over Five Archived Seeds}
+\caption{Chen2020 Component Study over Five Runs}
 \label{tab:ablation}
 \centering
 \footnotesize
@@ -317,10 +254,21 @@ The screened warm start provides the largest isolated mean change and reduces
 dispersion relative to plain BO.
 Regional guidance alone has a smaller positive mean difference, while the
 complete configuration is essentially level with warm start alone.
-The component evidence therefore supports warm starting as the more stable
-contributor but does not support an additive or systematic regional benefit.
+The component evidence therefore supports the screened warm start as the more
+stable contributor but does not establish an additive or systematic regional
+benefit.
+This result is important to the interpretation of LLMBO-MO: the available data
+favor a bounded early-stage prior over persistent LLM intervention once
+simulator evidence begins to accumulate.
+Accordingly, regional guidance is treated as an auxiliary extension rather than
+as a co-equal source of the reported gain.
 
-\subsection{Pareto Protocol and Trajectory Interpretation}
+\subsection{Analysis of Optimal Charging Protocols}
+
+The optimization metrics above establish search behavior, but the returned
+object is ultimately a set of charging protocols rather than an HV value.
+We therefore examine representative simulator-evaluated solutions to connect
+the numerical Pareto set back to charging behavior.
 
 \begin{figure*}[!t]
 \centering
@@ -333,7 +281,7 @@ contributor but does not support an additive or systematic regional benefit.
   \includegraphics[width=\linewidth]{charging_profiles.pdf}
 \end{minipage}
 \caption{Chen2020 protocol interpretation. \emph{Left:} feasible evaluated
-LLMBO-MO protocols pooled across five archived runs; A--E are globally
+LLMBO-MO protocols pooled across five runs; A--E are globally
 nondominated representatives and correspond exactly to
 \autoref{tab:representative_protocols}. \emph{Right:} independent simulated
 current, voltage, temperature, and SOC trajectory examples for selected
@@ -379,19 +327,33 @@ illustrative alternatives at the cost of a larger temperature excursion.
 These trajectories are simulated and are not measurements of lifetime or
 protection-system performance.
 
-\subsection{Limitations}
+\subsection{Discussion}
 
-The evidence has six principal limitations.
-First, all quantitative results are simulation based, and
+Two supporting diagnostics test numerical behavior outside the central LLM
+claim.
+The Pareto archive remains descriptively richer for LLMBO-MO through most of
+the recorded iterations, although archive count is neither HV nor an
+equal-simulator-call efficiency measure.
+The objective-scaling study shows that balancing heterogeneous objective
+magnitudes reduces final dispersion relative to no normalization, while the
+ordering between min--max and Z-score scaling is small at the final budget.
+The complete diagnostic figures, table, and interpretation are provided in
+Appendix~\ref{app:diagnostics} so that they do not obscure the mechanism
+evidence above.
+
+The experimental scope imposes several boundaries on the comparison.
+All results are simulation based; the Chen2020 summary combines compatible
+runs rather than one synchronized batch; matched qEHVI and qNEHVI results are
+unavailable; and the LLM backend is not identical across all runs.
+Consequently, the evidence does not establish state-of-the-art MOBO performance
+or isolate cross-parameterization transfer.
+
+The interpretive scope is likewise narrower than physical battery validation.
 $D_{\mathrm{chg}}$ is an uncalibrated trajectory-averaged proxy rather than a
 measured capacity-fade endpoint.
-Second, the Chen2020 five-seed summary combines compatible historical archives
-rather than one synchronized execution batch.
-Third, matched qEHVI and qNEHVI results are unavailable, so the present study
-does not establish state-of-the-art MOBO performance.
-Fourth, the LLM backend differs across archives, preventing attribution of
-cross-parameterization differences to battery transfer.
-Fifth, the optimal-protocol comparison is indexed by algorithmic iteration
-and cannot be read as an equal-simulator-call sample-efficiency test.
-Finally, the component archive contains an acquisition-restart confound and
-does not establish an independent benefit from regional coupling.
+The archive-growth axis counts algorithmic iterations rather than equal
+simulator calls, and the component comparison contains an acquisition-restart
+confound.
+Accordingly, the present data support knowledge-informed initialization but do
+not establish an independent systematic benefit from regional guidance or a
+claim that every LLM-assisted trajectory outperforms standard BO.

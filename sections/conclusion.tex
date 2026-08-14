@@ -4,42 +4,40 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper introduced LLMBO-MO for simulation-limited multiobjective battery
-fast-charging design.
-Its central idea is to separate advisory language-model knowledge from
-evidence-grade numerical evaluation: the LLM proposes and prioritizes search
-locations, while the simulator remains the sole objective oracle and only
-evaluated protocols train the GP surrogate.
-The resulting framework combines a protocol-domain-screened warm start with
-temporary weight-conditioned candidate-pool guidance and an optional bounded
-posterior-mean coupling.
+In this paper, an LLM-augmented multiobjective Bayesian optimization method,
+called LLMBO-MO, was developed for battery fast-charging protocol design under
+a limited simulator-evaluation budget.
+The method is motivated by two characteristics of the problem: BO is
+particularly sensitive to initialization when task-specific observations are
+scarce, while LLM-generated numerical outputs cannot be regarded as verified
+battery evidence.
+Accordingly, LLMBO-MO uses the LLM primarily to guide search locations.
+A protocol-domain-screened and diversity-aware warm start introduces
+battery-domain knowledge before sequential optimization.
+Temporary weight-conditioned regional guidance is retained as an auxiliary
+option for biasing early acquisition search.
+All objective values, feasibility decisions, GP targets, and Pareto relations
+remain determined by the battery simulator.
 
-Across five archived Chen2020 seeds, LLMBO-MO achieves a mean HV of
-\ChenLLMBOMean, compared with \ChenParEGOMean\ for ParEGO, and exceeds the
-three retained evolutionary or transfer baselines by
-\ChenNSGAGain--\ChenPIMDGain.
-On Ecker2015, the observed advantage is \EckerMidGain\ at evaluation 30 and
-\EckerFinalGain\ at the final budget.
-The objective-preprocessing study shows that min--max and Z-score scaling are
-both stable in the retained setting, whereas omitting scale balancing increases
-dispersion.
-The separate iteration-indexed diagnostic also maintains
-\OptimalLLMBOFinal\ feasible nondominated protocols after 50 iterations,
-compared with \OptimalParEGOFinal\ for ParEGO; this archive-size result is not
-treated as an equal-simulator-budget sample-efficiency claim.
-The ten-seed prompt study provides the strongest controlled language-component
-evidence, with an HV increase of \PromptHVGain\ over random initialization
-after multiplicity correction.
-The component study indicates that screened warm starting is the more stable
-contributor; the retained data do not establish an independent systematic
-benefit from regional coupling.
+The numerical results show that LLMBO-MO obtains the highest observed mean HV
+among the Chen2020 comparison methods under 56 simulator evaluations,
+with a mean HV of \ChenLLMBOMean\ compared with \ChenParEGOMean\ for ParEGO.
+The observed advantage also persists under the Ecker2015 parameterization.
+More importantly, the controlled prompt study shows that the battery-specific
+warm start improves mean HV by \PromptHVGain\ over random initialization after
+multiplicity correction, while the component study identifies the warm start as
+the more stable source of improvement.
+The component results do not establish a systematic independent gain from regional
+guidance, indicating that LLM-derived knowledge is most reliably useful in the
+evidence-scarce early stage rather than as persistent intervention throughout
+the complete BO process.
 
-The current conclusions are limited to SPMe simulation, two parameterizations,
-an uncalibrated degradation proxy, and partially mixed historical archives.
-Matched qEHVI/qNEHVI comparisons, synchronized multi-seed runs under one code
-snapshot, controlled LLM-backend studies, and physical-cell replay are needed
-before claiming state-of-the-art performance, battery transfer, or measured
-lifetime improvement.
-These extensions will determine whether the bounded-advisory interface can
-retain its early-search benefit under stronger numerical baselines and
-experimentally validated degradation endpoints.
+The present conclusions are limited to SPMe-based simulation, two battery
+parameterizations, the adopted trajectory-averaged degradation proxy, and the
+available simulation runs.
+Future work should include synchronized multi-seed comparisons with stronger
+multiobjective BO baselines, controlled studies of LLM backends and prompt
+robustness, and physical-cell validation with experimentally grounded
+degradation endpoints.
+These studies will determine whether the early-stage benefit observed here
+persists under broader battery conditions and real experimental uncertainty.

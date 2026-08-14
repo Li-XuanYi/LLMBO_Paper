@@ -1,48 +1,57 @@
 % ============================================================================
-% Continuation of Section III: simulation model and degradation proxy
+% Section III: Battery Simulation Model
 % ============================================================================
-\subsection{Electrochemical--Thermal Simulation Model}
+\section{Battery Simulation Model}
+\label{sec:model_section}
+
+Each candidate protocol is evaluated by the same numerical battery model so that
+differences among optimizers do not arise from different objective evaluators.
+The model consists of an electrochemical--thermal simulator and a
+protocol-level degradation proxy.
+
+\subsection{Electrochemical--Thermal Model}
 \label{sec:model}
 
-Each protocol is evaluated by the same numerical model, so differences among
-optimizers do not arise from different objective evaluators. The simulator
-combines a Single Particle Model with electrolyte dynamics (SPMe) and a
-spatially lumped thermal balance. The SPMe retains solid-phase diffusion,
-electrolyte transport, and interfacial reaction kinetics at lower cost than a
-full porous-electrode model~\cite{ref6}; the implementation uses
-PyBaMM~\cite{ref7}.
-
-The standard lumped thermal balance and the reported temperature objective are
-\[
+The electrochemical dynamics are represented by a Single Particle Model with
+electrolyte dynamics (SPMe).
+The SPMe retains solid-phase diffusion, electrolyte transport, and interfacial
+reaction kinetics at substantially lower computational cost than a full
+porous-electrode model~\cite{ref6}.
+The implementation uses PyBaMM~\cite{ref7}.
+A spatially lumped thermal model is coupled to the electrochemical simulation.
+The thermal balance and the reported temperature-rise objective are
+\begin{equation}
 \begin{aligned}
 C_{\mathrm{th}}\frac{\mathrm dT}{\mathrm dt}
 &=\dot Q_{\mathrm{gen}}-hA(T-T_{\mathrm{amb}}),\\
 \Delta T_p(\btheta)
 &=\max_t T(t)-T_{\mathrm{init}},
 \end{aligned}
-\]
+\label{eq:thermal}
+\end{equation}
 where $C_{\mathrm{th}}$ is the effective thermal capacitance,
 $\dot Q_{\mathrm{gen}}$ collects electrochemical, ohmic, and reversible heat,
-and $hA$ is the lumped heat-transfer coefficient. Because the model is
-spatially lumped, $\Delta T_p$ measures peak cell-level temperature rise; it
-does not resolve thermomechanical loading or local temperature gradients.
+and $hA$ is the lumped heat-transfer coefficient.
+Because the thermal model is spatially lumped, $\Delta T_p$ represents the peak
+cell-level temperature rise and does not resolve local temperature gradients or
+thermomechanical loading.
 
-The Chen2020 parameter set is used for the LG INR21700-M50 case~\cite{ref8}.
-The Ecker2015 parameter set provides a second cell parameterization~\cite{ref9}.
+The Chen2020 parameter set is used for the LG INR21700-M50 case~\cite{ref8},
+while Ecker2015 provides a second battery parameterization~\cite{ref9}.
 Cell-specific capacity, voltage, and temperature limits are applied, while the
-optimization logic remains unchanged. Successive protocol stages are simulated
-sequentially, and the terminal electrochemical and thermal state of one stage
-initializes the next.
+protocol representation and optimization procedure remain unchanged.
+Successive charging stages are simulated sequentially so that the terminal
+electrochemical and thermal state of one stage initializes the next.
 
-\subsection{Protocol-Level Degradation Proxy}
+\subsection{Protocol-Level Degradation Model}
 \label{sec:aging}
 
 A single protocol simulation does not resolve long-horizon capacity fade.
-Accordingly, the third objective is an empirical degradation proxy, rather than a
-prediction of capacity lost during one charge. Let $\bar s$, $\bar T$, and
-$\bar I$ denote the time averages of SOC, temperature, and current over the
-completed charge, with $\bar s$ represented in the simulator's percentage-SOC
-convention. The implementation evaluates
+Accordingly, the third objective is a control-oriented degradation proxy rather
+than a direct prediction of capacity lost during one charge.
+Let $\bar s$, $\bar T$, and $\bar I$ denote the time-averaged SOC, temperature,
+and current over the completed charging trajectory.
+The implementation evaluates
 \begin{equation}
 \begin{aligned}
 \chi(\bar s,\bar T,\bar I)
@@ -55,20 +64,19 @@ D_{\mathrm{chg}}(\btheta)
 \label{eq:aging}
 \end{equation}
 Here $a_s$, $b_s$, $\beta_I$, $E_a$, $R$, $q_a$, $\gamma$, and $\kappa_D$
-are fixed proxy coefficients and are identical for all optimizers; none is
-re-estimated from the optimization results. This control-oriented algebraic
-construction is related to the severity-factor family of semi-empirical aging
-models~\cite{refSuri}.
+are fixed proxy coefficients shared by all optimization methods.
+The construction is related to the severity-factor family of control-oriented
+semi-empirical aging models~\cite{refSuri}.
 
-The scale factor $\kappa_D$ preserves the implemented objective scale. We
-report $D_{\mathrm{chg}}$ in arbitrary proxy units (a.u.), not as percentage
-capacity loss. Smaller values indicate less severe average operating
-conditions under this common proxy. Because the proxy uses trajectory
-averages, it does not separately resolve short high-SOC, high-current, or
-high-temperature excursions; this limitation is considered when interpreting
-the Pareto set.
+The scale factor $\kappa_D$ preserves the implemented objective scale; therefore
+$D_{\mathrm{chg}}$ is reported in arbitrary proxy units rather than as
+percentage capacity loss.
+Because the proxy uses trajectory averages, it does not separately resolve
+short high-SOC, high-current, or high-temperature excursions.
+This limitation is retained when interpreting the Pareto protocols.
 
-Together, the protocol realization and coupled simulator map
-$\btheta$ to $\mathbf f(\btheta)$ and a feasibility flag. Bayesian optimization
-treats this mapping as an expensive black box and does not access the internal
-electrochemical states when selecting the next protocol.
+In summary, the battery model maps each protocol $\btheta$ to
+$\mathbf f(\btheta)$ and a feasibility flag.
+BO treats this mapping as an expensive black box.
+Only these simulator-generated objective values are used for surrogate fitting,
+acquisition updates, and Pareto-set construction.

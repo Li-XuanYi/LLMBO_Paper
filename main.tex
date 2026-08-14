@@ -2,12 +2,7 @@
 % IEEE Transactions on Transportation Electrification
 % LLMBO-MO: LLM-Augmented Multiobjective Bayesian Optimization
 % for Battery Fast-Charging Protocol Design
-% ----------------------------------------------------------------------------
-% ROOT FILE. Do NOT write section content here.
-% Each collaborator edits ONE file under sections/ to avoid merge conflicts.
-% Compile with:  latexmk -pdf main.tex
 % ============================================================================
-
 \documentclass[journal]{IEEEtran}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -26,15 +21,13 @@
 \usepackage{array}
 \usepackage{url}
 \usepackage[hidelinks,bookmarksnumbered]{hyperref}
+\urlstyle{same}
 \renewcommand{\figureautorefname}{Figure}
 \renewcommand{\tableautorefname}{Table}
 
-% Search paths for split content
 \graphicspath{{figures/}}
-
 \hyphenation{op-tical net-works semi-conduc-tor}
 
-% ---- Math shorthands (shared across all sections) --------------------------
 \newcommand{\btheta}{\boldsymbol{\theta}}
 \newcommand{\bw}{\boldsymbol{w}}
 \newcommand{\bD}{\mathcal{D}}
@@ -45,41 +38,30 @@
 \newcommand{\bG}{\mathcal{G}}
 \newcommand{\R}{\mathbb{R}}
 
-% Single source of truth for all manuscript-facing experimental values.
 \input{sections/experiment_values}
 
 \begin{document}
 
-% ---- Title block -----------------------------------------------------------
-\title{
-LLMBO-MO: Large Language Model-Augmented Multiobjective Bayesian Optimization \\
-for Battery Fast-Charging Protocol Design
-}
+\title{LLMBO-MO: Large Language Model-Augmented Multiobjective Bayesian Optimization\\
+for Battery Fast-Charging Protocol Design}
 
-\author{
-Anonymous~Authors%
+\author{Anonymous~Authors%
 }
 
 \markboth{Submitted to IEEE Transactions on Transportation Electrification}%
 {Anonymous Authors: LLMBO-MO for Battery Fast-Charging}
 
 \maketitle
-
-% ---- Abstract & Keywords ---------------------------------------------------
 \input{sections/abstract}
-
 \IEEEpeerreviewmaketitle
 
-% ---- Body ------------------------------------------------------------------
-\input{sections/introduction}   % Sec. I
-\input{sections/related_work}   % Sec. II
-\input{sections/problem}        % Sec. III
-\input{sections/model}          % continuation of Sec. III
-\input{sections/method}         % Sec. IV
-\input{sections/experiments}    % Sec. V
-\input{sections/conclusion}     % Sec. VI
-
-% ---- References ------------------------------------------------------------
+\input{sections/introduction}
+\input{sections/problem}
+\input{sections/model}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/conclusion}
+\input{sections/appendices}
 \input{sections/references}
 
 \end{document}
