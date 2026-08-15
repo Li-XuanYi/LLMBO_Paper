@@ -6,11 +6,11 @@
 \section{Optional Bounded Preference Coupling}
 \label{app:coupling}
 
-Accepted regional anchors can optionally be translated into a bounded
+Accepted regional anchors can additionally be translated into a bounded
 adjustment of the acquisition mean.
-This component was retained for diagnostic analysis, but it is separate from
-the acquisition-restart role described in Section~\ref{sec:region_pref} and is
-disabled in the principal Chen2020 configuration.
+This posterior-mean coupling is a diagnostic variant that is separate from the
+acquisition-restart regional guidance used by the principal LLMBO-MO
+configuration; it is therefore analyzed independently here.
 
 Let $\bG_t=\{\mathbf g_{j,t}\}_{j=1}^{M}$ denote accepted anchors.
 Each anchor is scored using its EI value, posterior uncertainty, and novelty:
@@ -99,7 +99,7 @@ primary sample-efficiency metric.
 Here, an ``optimal charging protocol'' means a feasible Pareto-nondominated
 entry in the current archive.
 
-\begin{figure}[H]
+\begin{figure}[!t]
 \centering
 \includegraphics[width=0.99\columnwidth]{optimal_protocols_curve.pdf}
 \caption{Chen2020 Pareto-archive growth over 50 algorithmic iterations. Lines
@@ -122,7 +122,7 @@ The scaling diagnostic compares min--max scaling, Z-score standardization, and
 no normalization on Chen2020 over five runs and the same 56-evaluation budget.
 It tests numerical robustness rather than the LLM mechanism.
 
-\begin{figure}[H]
+\begin{figure}[!t]
 \centering
 \includegraphics[width=0.99\columnwidth]{objective_normalization_hv.pdf}
 \caption{Chen2020 objective-preprocessing sensitivity over five runs. Lines

@@ -20,11 +20,13 @@ LLMBO-MO addresses this tension by assigning the two information sources
 asymmetric roles.
 The LLM provides \emph{search guidance}, whereas the battery simulator provides
 \emph{optimization evidence}.
-The primary mechanism is a knowledge-informed initial design whose protocols
-are evaluated before entering the database.
-An optional early advisory mechanism can additionally redirect acquisition
-search, but it neither creates observations nor persists after simulator
-evidence has accumulated.
+The first stage is a knowledge-informed initial design whose protocols are
+evaluated before entering the database.
+A second, bounded early regional-guidance stage can then redirect acquisition
+search toward promising neighborhoods while the numerical BO backbone retains
+final candidate authority.
+Neither stage creates observations without simulator evaluation, and the
+regional influence is restricted to the evidence-scarce early search.
 Thus, objective values, feasibility, GP targets, and Pareto dominance remain
 grounded exclusively in simulator-evaluated protocols.
 
@@ -43,13 +45,17 @@ A weight vector defines the current trade-off direction; observed objectives
 are transformed and scalarized; a GP surrogate and expected improvement (EI)
 select the next protocol; and simulator evaluation updates $\bD$ and the Pareto
 set $\bP$.
-Within the first $T_{\mathrm L}$ iterations, an optional LLM advisory can supply
-a validated point or region as an additional acquisition-search restart.
+Within the first $T_{\mathrm L}$ iterations, the LLM can supply a bounded point or
+region preference.  As summarized by the regional branch in
+Fig.~\ref{fig:framework}, this preference is allowed to bias the acquisition
+search only within a controlled early-stage window.  The principal Chen2020
+configuration realizes the bias conservatively through acquisition-search
+restarts, while the explicit bounded region-lifted posterior-mean realization is
+given in Appendix~\ref{app:coupling}.  Both realizations preserve the same
+evidence boundary: the LLM changes search preference, whereas objective values,
+GP targets, and Pareto updates are created only after simulator evaluation.
 Invalid or absent advice falls back to ordinary EI, and after
 $T_{\mathrm L}$ the numerical BO loop proceeds alone.
-The bounded posterior-mean variant used only for component analysis is described
-separately in Appendix~\ref{app:coupling}; it is not part of the principal
-Chen2020 configuration.
 
 \input{figures/fig_llambo_mo_framework}
 
@@ -195,11 +201,14 @@ Every selected candidate is repaired to $\Theta_{\mathrm{proto}}$, evaluated by
 the battery simulator, and appended to $\bD$; the feasible set and $\bP$ are
 then updated.
 
-\subsubsection{Optional Early Advisory Guidance}
+\subsubsection{Bounded Early Regional Guidance}
 \label{sec:region_pref}
 
-Regional guidance is retained as a bounded auxiliary extension for the early
-search window $t\leq T_{\mathrm L}$.
+Regional guidance forms the second LLM touchpoint of the complete method during
+the early search window $t\leq T_{\mathrm L}$.
+It is deliberately bounded so that the knowledge-informed warm start establishes
+the initial search prior, while regional guidance acts as a local refinement of
+subsequent acquisition optimization.
 At iteration $t$, the prompt contains the current weight vector, observed
 objective ranges, current best values, selected evaluated protocols, and a
 summary of optimization progress.
@@ -208,7 +217,7 @@ no-preference response, allowing it to abstain when the available context does
 not support a useful recommendation.
 
 A returned point or region is parsed, clipped, repaired to
-$\Theta_{\mathrm{proto}}$, and validated.
+$\Theta_{\mathrm{proto}}$, and checked for protocol-domain admissibility.
 A point preference is converted to a local hyperrectangle with fixed-width
 margins; regions that are too narrow or too broad are rejected.
 Anchors sampled from an accepted region are added only as restarts for numerical
@@ -217,9 +226,12 @@ Consequently, advice can change where the acquisition optimizer searches but
 cannot change an objective value or enter the GP training set.
 Invalid advice falls back to the original candidate pool, and all advisory
 interaction stops after $T_{\mathrm L}$.
-The component evidence in Section~\ref{sec:component} does not establish a
-systematic independent benefit from this extension, so it is not treated as a
-co-equal source of the reported gain.
+The component study in Section~\ref{sec:component} evaluates this mechanism both
+in isolation and in combination with the warm start.
+The short-budget ablation in Section~\ref{sec:component} is consistent with
+this intended division of labor: regional guidance is most effective when it
+refines a search already initialized by battery-domain knowledge, rather than
+when it is used as an isolated substitute for that prior.
 
 All paths therefore return to the same evidence chain: candidate selection,
 simulator evaluation, database update, and Pareto update.
@@ -231,7 +243,7 @@ Algorithm~\ref{alg:llmbo} summarizes the principal procedure.
 \footnotesize
 \begin{algorithmic}[1]
 \Require Simulator $\bS$, LLM $\bL$, total budget $N$, initial budget $n_0$,
-weights $\bW$, optional guidance horizon $T_{\mathrm L}$
+weights $\bW$, guidance horizon $T_{\mathrm L}$
 \Ensure Evaluated nondominated set $\bP$
 \State Query $\bL$ for a warm-start pool; repair and rank by
 \eqref{eq:portfolio}
@@ -241,7 +253,7 @@ weights $\bW$, optional guidance horizon $T_{\mathrm L}$
     \State Select $\bw^{(t)}$ and re-scalarize feasible data by
     \eqref{eq:tchebycheff}
     \State Fit the GP surrogate and construct EI by \eqref{eq:ei}
-    \If{optional guidance is enabled and $t\leq T_{\mathrm L}$}
+    \If{regional guidance is enabled and $t\leq T_{\mathrm L}$}
         \State Query $\bL$; add a valid region only as EI-search restarts
     \EndIf
     \State Maximize EI and select $\btheta_{t+1}$

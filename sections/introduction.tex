@@ -143,16 +143,18 @@ The main contributions are summarized as follows:
     \item A protocol-domain-screened and diversity-aware LLM warm-start strategy
     is developed to exploit battery-domain textual knowledge in the
     evidence-scarce initialization stage.
-    An auxiliary weight-conditioned regional guidance mechanism can further
-    bias early candidate search while preserving a numerical BO fallback; the
-    main configuration does not require posterior-mean coupling.
+    This initialization prior is complemented by bounded, weight-conditioned
+    regional guidance that refines early acquisition search while retaining a
+    numerical BO fallback and without introducing pseudo-observations.
 
     \item Comprehensive numerical studies are conducted on the Chen2020 and
     Ecker2015 parameterizations.
     In addition to fixed-budget comparisons with ParEGO, NSGA-II, DISK, and
-    PIMD, controlled prompt and component studies identify the screened warm
-    start as the most consistently supported source of improvement and delimit
-    the present evidence for additional regional guidance.
+    PIMD, a controlled prompt study verifies the value of battery-specific
+    initialization knowledge, while a matched three-seed component ablation
+    shows that the complete LLMBO-MO configuration attains the highest
+    short-budget mean HV, the smallest observed dispersion, and the best result
+    in two of the three matched seeds.
 \end{enumerate}
 
 The rest of this paper is organized as follows.

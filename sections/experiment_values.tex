@@ -1,13 +1,18 @@
 % Canonical manuscript-facing values generated from the available result set.
-% Chen2020 uses five available runs per method.  The seed-8409 LLMBO-MO and
-% ParEGO entries are the runs visualized in Fig.~\ref{fig:chen_hv_5way}; the
-% remaining entries are recorded in the result manifest described in Sec. V.
+% Reader-facing summary figures and tables in Section V use these same values.
+% Chen2020 and Ecker2015 main comparisons retain the five-run statistics from
+% the project results manifest. Displayed Chen2020 endpoints refer only to the
+% archived seed-8409 center lines in the convergence figure. The component
+% ablation uses the matched three-seed archive identified in results_manifest.json.
 
 \newcommand{\ChenLLMBOMean}{0.3848}
 \newcommand{\ChenLLMBOStd}{0.0073}
 \newcommand{\ChenParEGOMean}{0.3778}
 \newcommand{\ChenParEGOStd}{0.0169}
 \newcommand{\ChenParEGOGain}{1.85\%}
+\newcommand{\ChenDisplayedLLMBO}{0.3848}
+\newcommand{\ChenDisplayedParEGO}{0.3523}
+\newcommand{\ChenDisplayedGain}{9.2\%}
 \newcommand{\ChenNSGAMean}{0.3265}
 \newcommand{\ChenNSGAStd}{0.0220}
 \newcommand{\ChenNSGAGain}{17.9\%}
@@ -17,7 +22,8 @@
 \newcommand{\ChenPIMDMean}{0.2941}
 \newcommand{\ChenPIMDStd}{0.0195}
 \newcommand{\ChenPIMDGain}{30.8\%}
-\newcommand{\ChenRepresentativeGain}{9.2\%}
+
+% Chen2020 main comparison: five-run final statistics (seeds 8409--8413).
 
 \newcommand{\EckerParEGOMean}{0.4760}
 \newcommand{\EckerParEGOStd}{0.0039}
@@ -44,3 +50,32 @@
 \newcommand{\PromptHVGain}{0.05828}
 \newcommand{\PromptHolmP}{0.005859}
 \newcommand{\PromptEffect}{1.309}
+
+
+% Short-budget Chen2020 component ablation (three matched seeds: 8409--8411,
+% 6 initialization evaluations + 10 BO iterations = 16 simulator calls).
+\newcommand{\AblationSeeds}{3}
+\newcommand{\AblationBaselineSOne}{0.2522}
+\newcommand{\AblationBaselineSTwo}{0.3404}
+\newcommand{\AblationBaselineSThree}{0.2797}
+\newcommand{\AblationWarmSOne}{0.3446}
+\newcommand{\AblationWarmSTwo}{0.3363}
+\newcommand{\AblationWarmSThree}{0.3579}
+\newcommand{\AblationRegionSOne}{0.2472}
+\newcommand{\AblationRegionSTwo}{0.3377}
+\newcommand{\AblationRegionSThree}{0.3090}
+\newcommand{\AblationFullSOne}{0.3456}
+\newcommand{\AblationFullSTwo}{0.3518}
+\newcommand{\AblationFullSThree}{0.3527}
+\newcommand{\AblationTotalCalls}{16}
+\newcommand{\AblationBaselineMean}{0.2907}
+\newcommand{\AblationBaselineStd}{0.0451}
+\newcommand{\AblationWarmMean}{0.3462}
+\newcommand{\AblationWarmStd}{0.0109}
+\newcommand{\AblationRegionMean}{0.2980}
+\newcommand{\AblationRegionStd}{0.0462}
+\newcommand{\AblationFullMean}{0.3500}
+\newcommand{\AblationFullStd}{0.0039}
+\newcommand{\AblationWarmGain}{+0.0555}
+\newcommand{\AblationRegionGain}{+0.0072}
+\newcommand{\AblationFullGain}{+0.0593}

@@ -7,7 +7,14 @@
       "figures\\chen2020_hv_5way.pdf",
       "figures\\chen2020_hv_5way.png"
     ],
-    "evaluations": 56
+    "evaluations": 56,
+    "source": "Compare_Exp/experiment_records/（HV）05-03/curve_data/hv_convergence_5way_plotted_curves.csv",
+    "llmbo_mo_center_line": "archived seed 8409 trajectory",
+    "parego_center_line": "archived seed 8409 trajectory",
+    "llmbo_mo_final": 0.38482555920297173,
+    "parego_final": 0.3523110937014429,
+    "relative_difference_percent": 9.2274873071,
+    "band_note": "LLMBO-MO and ParEGO use stored visualization envelopes; NSGA-II, DISK, and PIMD use five-run sample standard deviations."
   },
   "ecker2015": {
     "outputs": [
@@ -103,6 +110,15 @@
       "D",
       "E"
     ]
+  },
+  "component_ablation": {
+    "outputs": [
+      "figures\\ablation_hv_box.png"
+    ],
+    "evaluations": 16,
+    "seeds": [8409, 8410, 8411],
+    "uncertainty": "sample standard deviation",
+    "source": "Ablation_Exp/experiment_records/ablation_4way_3seeds_10iter_deepseek_v3_codex_2026_05_17"
   },
   "sources": {
     "chen_csv": "hv_convergence_5way_plotted_curves.csv",

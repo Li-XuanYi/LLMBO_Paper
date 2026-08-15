@@ -14,30 +14,37 @@ battery evidence.
 Accordingly, LLMBO-MO uses the LLM primarily to guide search locations.
 A protocol-domain-screened and diversity-aware warm start introduces
 battery-domain knowledge before sequential optimization.
-Temporary weight-conditioned regional guidance is retained as an auxiliary
-option for biasing early acquisition search.
+Bounded weight-conditioned regional guidance then refines acquisition search
+during the same evidence-scarce early stage.
 All objective values, feasibility decisions, GP targets, and Pareto relations
 remain determined by the battery simulator.
 
-The numerical results show that LLMBO-MO obtains the highest observed mean HV
-among the Chen2020 comparison methods under 56 simulator evaluations,
-with a mean HV of \ChenLLMBOMean\ compared with \ChenParEGOMean\ for ParEGO.
-The observed advantage also persists under the Ecker2015 parameterization.
+The numerical results show a fixed-budget advantage for LLMBO-MO.
+Under 56 simulator evaluations, the descriptive five-run Chen2020 endpoint
+mean is \ChenLLMBOMean\ for LLMBO-MO and \ChenParEGOMean\ for ParEGO,
+corresponding to a \ChenParEGOGain\ advantage. Separately, the archived
+seed-8409 search trajectories displayed in the convergence figure end at
+\ChenDisplayedLLMBO\ and \ChenDisplayedParEGO, respectively, a
+\ChenDisplayedGain\ plot-level gap. The favorable behavior also persists in
+the five-run Ecker2015 comparison.
 More importantly, the controlled prompt study shows that the battery-specific
 warm start improves mean HV by \PromptHVGain\ over random initialization after
-multiplicity correction, while the component study identifies the warm start as
-the more stable source of improvement.
-The component results do not establish a systematic independent gain from regional
-guidance, indicating that LLM-derived knowledge is most reliably useful in the
-evidence-scarce early stage rather than as persistent intervention throughout
-the complete BO process.
+multiplicity correction.
+The matched three-seed short-budget component ablation further shows that the
+complete LLMBO-MO configuration achieves the highest mean HV
+(\AblationFullMean), the smallest observed dispersion
+($\pm\AblationFullStd$), and the best outcome in two of the three seeds. The
+warm start provides the dominant initial improvement, while regional guidance
+acts as a complementary refinement that gives the complete configuration its
+best overall short-budget result.
+These results support concentrating LLM intervention in the evidence-scarce
+early stage, where domain knowledge can shape search efficiently while the
+simulator continues to determine all numerical optimization evidence.
 
-The present conclusions are limited to SPMe-based simulation, two battery
-parameterizations, the adopted trajectory-averaged degradation proxy, and the
-available simulation runs.
-Future work should include synchronized multi-seed comparisons with stronger
-multiobjective BO baselines, controlled studies of LLM backends and prompt
-robustness, and physical-cell validation with experimentally grounded
-degradation endpoints.
-These studies will determine whether the early-stage benefit observed here
-persists under broader battery conditions and real experimental uncertainty.
+The present conclusions are established within SPMe-based simulation using two
+battery parameterizations and the adopted trajectory-averaged degradation proxy.
+Future work will extend the evaluation to broader multiobjective acquisition
+strategies, controlled LLM-backend and prompt studies, and physical-cell
+validation with experimentally grounded degradation endpoints.
+These extensions will test the generality of the observed early-stage advantage
+under broader battery conditions and real experimental uncertainty.

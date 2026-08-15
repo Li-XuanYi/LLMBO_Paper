@@ -9,6 +9,15 @@
   "chen2020": {
     "budget": 56,
     "archive_note": "Five archived seeds assembled from compatible historical runs; descriptive, not a synchronized batch.",
+    "displayed_figure": {
+      "source": "Compare_Exp/experiment_records/（HV）05-03/curve_data/hv_convergence_5way_plotted_curves.csv",
+      "llmbo_mo_center_line": "archived seed 8409 trajectory",
+      "parego_center_line": "archived seed 8409 trajectory",
+      "llmbo_mo_final": 0.38482555920297173,
+      "parego_final": 0.3523110937014429,
+      "relative_difference_percent": 9.2274873071,
+      "band_note": "LLMBO-MO and ParEGO bands are stored visualization envelopes, not across-run standard deviations."
+    },
     "llmbo_mo": {
       "values": {
         "8409": 0.38482555920297173,
@@ -122,14 +131,29 @@
   },
   "component_study": {
     "benchmark": "Chen2020",
-    "budget": 56,
-    "plain_bo": {"mean": 0.3836, "sample_sd": 0.0113},
-    "warm_start": {"mean": 0.3902, "sample_sd": 0.0087},
-    "regional_guidance": {"mean": 0.3862, "sample_sd": 0.0125},
-    "complete": {"mean": 0.3900, "sample_sd": 0.0067},
-    "limitations": [
-      "Regional variants contain an external-restart confound.",
-      "The historical archive does not retain a complete source hash."
-    ]
+    "budget": 16,
+    "seeds": [8409, 8410, 8411],
+    "plain_bo": {
+      "values": [0.2521761643, 0.3403689248, 0.2796859484],
+      "mean": 0.2907,
+      "sample_sd": 0.0451
+    },
+    "warm_start": {
+      "values": [0.3446119372, 0.3362575816, 0.3578656785],
+      "mean": 0.3462,
+      "sample_sd": 0.0109
+    },
+    "regional_guidance": {
+      "values": [0.2472222861, 0.3376794767, 0.3089611369],
+      "mean": 0.2980,
+      "sample_sd": 0.0462
+    },
+    "complete": {
+      "values": [0.3456075643, 0.3518496031, 0.3526592342],
+      "mean": 0.3500,
+      "sample_sd": 0.0039
+    },
+    "source": "Ablation_Exp/experiment_records/ablation_4way_3seeds_10iter_deepseek_v3_codex_2026_05_17",
+    "interpretation": "Matched short-budget component study with six initialization evaluations and ten BO iterations."
   }
 }

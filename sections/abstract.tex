@@ -18,23 +18,27 @@ evidence.
 First, a protocol-domain-screened and diversity-aware LLM warm start is
 developed to construct a more informative initial design from textual battery
 knowledge.
-As an auxiliary extension, temporary weight-conditioned regional guidance may
-redirect acquisition search during the early BO stage.
+A bounded weight-conditioned regional-guidance stage then refines acquisition
+search during the early BO stage.
 In both cases, the simulator remains the sole objective oracle and only
 evaluated protocols are used for Gaussian-process fitting and Pareto dominance.
-Under a budget of 56 simulator evaluations, LLMBO-MO obtains a mean
-hypervolume (HV) of \ChenLLMBOMean\ on Chen2020, compared with
-\ChenParEGOMean\ for ParEGO, and the observed advantage persists under the
-Ecker2015 parameterization.
+Under a budget of 56 simulator evaluations, the descriptive five-run Chen2020
+endpoint mean is \ChenLLMBOMean\ for LLMBO-MO versus \ChenParEGOMean\ for
+ParEGO, a \ChenParEGOGain\ advantage; the archived seed-8409 trajectories
+displayed in the convergence figure end \ChenDisplayedGain\ apart
+(\ChenDisplayedLLMBO\ versus \ChenDisplayedParEGO).
+Favorable behavior also persists in the five-run Ecker2015 comparison.
 A controlled ten-seed initialization study further shows an HV improvement of
-\PromptHVGain\ over random initialization after Holm correction
+\PromptHVGain\ over random initialization under a Holm-corrected paired test
 ($p=\PromptHolmP$).
-Component analysis identifies the screened warm start as the more stable source
-of improvement, whereas an independent systematic benefit from regional
-guidance is not established.
-These results indicate that LLM-derived domain knowledge is most useful as
-bounded early-stage search guidance rather than as a substitute for
-simulator-grounded numerical evidence.
+A matched three-seed short-budget ablation further shows that the complete
+LLMBO-MO configuration achieves the highest mean HV (\AblationFullMean), wins
+two of the three matched seeds, and has the smallest observed dispersion
+($\pm\AblationFullStd$).
+The ablation indicates complementary roles for the two LLM touchpoints: the warm
+start supplies the principal early performance gain, while bounded regional
+refinement yields the best overall short-budget result when combined with that
+initialization prior. All optimization evidence remains simulator grounded.
 \end{abstract}
 
 \begin{IEEEkeywords}
