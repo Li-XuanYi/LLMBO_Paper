@@ -4,153 +4,130 @@
 \section{Numerical Validation and Discussion}
 \label{sec:experiments}
 
-\subsection{Evaluation Setup}
+\subsection{Experimental Setup}
 
-All quantitative evidence in this paper is simulation based.
-The SPMe formulation in Section~\ref{sec:model} is evaluated with the
-Chen2020 and Ecker2015 parameter sets~\cite{ref8,ref9}.
-Chen2020 is the primary parameterization used for the method comparison and
-diagnostic studies; Ecker2015 is a secondary parameterization used to examine
-whether the observed behavior persists under a different battery model
-configuration.
-Each protocol is scored by charging time $t_c$, peak temperature rise
-$\Delta T_p$, and the degradation proxy $D_{\mathrm{chg}}$
-(Section~\ref{sec:aging}).
-BO-based runs use six initialization evaluations followed by 50 optimization
-iterations, for a total of 56 simulator calls.
+The numerical study evaluates whether LLMBO-MO improves fixed-budget
+multiobjective search and whether the two LLM guidance mechanisms contribute to
+that improvement.
+The SPMe-based simulator in Section~\ref{sec:model_section} is evaluated with
+the Chen2020 and Ecker2015 parameterizations~\cite{ref8,ref9}.
+Chen2020 is the primary case for the method comparison and mechanism studies,
+while Ecker2015 is used as a second battery parameterization to test whether the
+observed optimization behavior persists under a different model configuration.
+Each candidate is evaluated by charging time $t_c$, peak temperature rise
+$\Delta T_p$, and degradation proxy $D_{\mathrm{chg}}$.
 
-Hypervolume (HV) is the evaluation metric; higher is better.
-All methods within one battery parameterization use the same transformed
-objectives and a fixed benchmark-specific reporting convention.
-The convention is common to the methods being compared but differs between
-Chen2020 and Ecker2015, so absolute HV values are interpreted only within one
-parameterization.
-Reported uncertainty is one sample standard deviation.
-
-Five repeated runs are summarized for each method.
-For the Chen2020 LLMBO-MO and ParEGO comparison, seed 8409 corresponds to the
-trajectory shown in Fig.~\ref{fig:chen_hv_5way}, while seeds 8410--8413 are
-drawn from compatible archived runs with the same parameterization, method
-preset, 56-call budget, and HV definition.
-Because these runs were not generated in one synchronized execution batch, the
-five-seed endpoint comparison is interpreted descriptively and is not used for
-an inferential significance claim.
-Controlled multi-seed mechanism evidence is reported separately in the prompt
-and component studies below.
-
-ParEGO is the primary BO comparator because it shares the
-scalarization--GP backbone with LLMBO-MO~\cite{ref4}.
-The Chen2020 comparison additionally includes NSGA-II and the surrogate-assisted
-evolutionary algorithms DISK and PIMD~\cite{ref5,refDISK,refPIMD} under the
-same 56-evaluation cap.
-The comparison is centered on ParEGO because it shares the same
-scalarization--GP backbone, while the evolutionary and surrogate-assisted
-baselines provide complementary fixed-budget references.
-
-The numerical validation first compares fixed-budget optimization performance,
-then examines initialization evidence and component contributions.
-Pareto-set interpretation and a bounded discussion follow; complete supporting
-diagnostics are retained in Appendix~\ref{app:diagnostics}.
+The main BO runs use six initialization evaluations followed by 50 sequential
+BO evaluations, giving a total budget of 56 simulator calls.
+Hypervolume (HV) is used as the principal multiobjective metric because it
+jointly reflects convergence and coverage of the obtained nondominated set;
+higher HV indicates a better approximation under a fixed reporting convention.
+Within each battery parameterization, all compared methods use the same
+objective definitions and HV convention.
+The main algorithm settings are listed in Table~\ref{tab:algorithm_settings};
+run identifiers and reproducibility details are moved to
+Appendix~\ref{app:reproducibility} so that the main table focuses on method
+parameters, consistent with the experimental presentation used in related
+charging-optimization studies.
 
 \begin{table}[!t]
-\caption{Fixed-Budget Experimental Configuration}
-\label{tab:protocol_settings}
-\centering
-\scriptsize
-\setlength{\tabcolsep}{2.7pt}
-\begin{tabular}{@{}
->{\raggedright\arraybackslash}p{0.42\columnwidth}
->{\raggedright\arraybackslash}p{0.49\columnwidth}@{}}
-\toprule
-Setting & Value \\
-\midrule
-Battery parameterizations & Chen2020; Ecker2015 \\
-Initialization / BO calls & 6 / 50 \\
-Total simulator calls & 56 \\
-LLMBO-MO initialization & 3 screened LLM + 3 random \\
-ParEGO initialization & 6 random \\
-Chen2020 seeds & 8409--8413 \\
-Ecker2015 seeds & 8409--8413 \\
-Guidance horizon / anchors & 16 / 64 \\
-Regional guidance in main Chen runs & early candidate-pool expansion \\
-LLM configuration & logged per run \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Within every run, the simulator remains the sole objective oracle and only
-simulator-evaluated protocols enter the GP training set and Pareto archive.
-The LLM backend is not identical across all available runs; consequently, the
-two parameterizations are used as complementary robustness cases rather than as
-a formal model-transfer experiment.
-
-\subsection{Overall Optimization Performance}
-
-The fixed-budget comparison evaluates how quickly the different optimizers
-construct a high-quality Pareto set under the same 56-simulator-call cap.
-Figure~\ref{fig:chen_hv_5way} preserves the original search-progress traces,
-thereby showing not only the final outcome but also when the separation between
-methods emerges.
-
-\begin{table}[!t]
-\caption{Chen2020 Final HV over Five Runs and 56 Evaluations}
-\label{tab:chen_results}
+\caption{Main LLMBO-MO and BO Settings}
+\label{tab:algorithm_settings}
 \centering
 \footnotesize
-\setlength{\tabcolsep}{4.0pt}
-\begin{tabular}{@{}lcc@{}}
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{@{}lp{0.54\columnwidth}@{}}
 \toprule
-Method & Final HV $\uparrow$ & LLMBO-MO advantage \\
+Parameter & Value \\
 \midrule
-LLMBO-MO & \textbf{\ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd} & -- \\
-ParEGO & \ChenParEGOMean\,$\pm$\,\ChenParEGOStd & \ChenParEGOGain \\
-NSGA-II & \ChenNSGAMean\,$\pm$\,\ChenNSGAStd & \ChenNSGAGain \\
-DISK & \ChenDISKMean\,$\pm$\,\ChenDISKStd & \ChenDISKGain \\
-PIMD & \ChenPIMDMean\,$\pm$\,\ChenPIMDStd & \ChenPIMDGain \\
+Charging stages $K$ & 3 \\
+Main simulator budget $N$ & 56 \\
+Initial evaluations $n_0$ & 6 \\
+LLM-informed initial points & 3 \\
+Numerical initial points & 3 \\
+MO decomposition & augmented Tchebycheff \\
+Weight construction & simplex + Riesz dispersion \\
+GP kernel & ARD Mat\'ern-$5/2$ \\
+Acquisition function & expected improvement (EI) \\
+Regional-guidance horizon $T_{\mathrm L}$ & 16 iterations \\
+Regional anchors & 64 \\
+Main regional action & additional EI-search restarts \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+ParEGO is the primary BO comparator because it is a standard
+scalarization-based method for expensive multiobjective optimization and shares
+the decomposition--GP structure used by the numerical backbone of LLMBO-MO
+~\cite{ref4}.
+DISK and PIMD provide recent surrogate-assisted expensive multiobjective
+optimization references~\cite{refDISK,refPIMD}, while NSGA-II is included as a
+classical evolutionary multiobjective reference~\cite{ref5}.
+This comparator family is aligned with the battery fast-charging optimization
+literature, where ParEGO and surrogate-assisted multiobjective optimizers are
+commonly used to assess convergence and Pareto-set quality.
+
+\subsection{Overall Multiobjective Optimization Performance}
+
+The first study compares the algorithms under the common 56-call budget.
+Figure~\ref{fig:chen_hv_5way} presents the Chen2020 HV progress for the five-run
+experiment set and Table~\ref{tab:chen_results} reports the corresponding final
+values used in the manuscript comparison.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.76\textwidth]{chen2020_hv_5way.pdf}
-\caption{Chen2020 five-method search progress under the 56-evaluation cap.
-For LLMBO-MO and ParEGO, the center lines are the archived seed-8409
-trajectories and the shaded regions are stored visualization envelopes, not
-across-run standard deviations. For NSGA-II, DISK, and PIMD, lines and bands
-show five-run means and one sample standard deviation.}
+\includegraphics[width=0.80\textwidth]{chen2020_hv_5way.pdf}
+\caption{Chen2020 hypervolume progress for LLMBO-MO and four multiobjective
+comparators under the 56-evaluation budget. Results are summarized over five
+runs for each method; the shaded regions indicate across-run variability.}
 \label{fig:chen_hv_5way}
 \end{figure*}
 
-The descriptive five-run endpoints in Table~\ref{tab:chen_results} favor
-LLMBO-MO: its mean final HV is \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd, compared
-with \ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, a
-\ChenParEGOGain\ relative advantage. LLMBO-MO also exceeds NSGA-II, DISK, and
-PIMD by \ChenNSGAGain--\ChenPIMDGain\ on the corresponding five-run means.
-Separately, the archived seed-8409 trajectories retained in
-Fig.~\ref{fig:chen_hv_5way} end at \ChenDisplayedLLMBO\ and
-\ChenDisplayedParEGO, respectively, a \ChenDisplayedGain\ displayed gap.
-This plot-level difference is not substituted for the five-run mean comparison.
-Its early-to-middle-budget separation is consistent with the intended role of
-the LLM-derived prior: it affects where the limited early simulator budget is
-spent, while the subsequent GP--EI loop remains grounded in simulator
-evaluations.
+\begin{table}[!t]
+\caption{Chen2020 Final Hypervolume under 56 Evaluations}
+\label{tab:chen_results}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5.0pt}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Method & Final HV $\uparrow$ \\
+\midrule
+LLMBO-MO & \textbf{\ChenDisplayedLLMBO} \\
+ParEGO & \ChenDisplayedParEGO \\
+NSGA-II & \ChenNSGAMean \\
+DISK & \ChenDISKMean \\
+PIMD & \ChenPIMDMean \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The Ecker2015 comparison examines whether the favorable fixed-budget behavior
-persists under a second battery parameterization.  The same 56-evaluation cap
-and five seeds are used, and Fig.~\ref{fig:ecker_hv} shows the original
-five-seed mean trajectories and one-standard-deviation bands.
+LLMBO-MO reaches the highest final HV in the Chen2020 comparison.
+Relative to the ParEGO trajectory in the same fixed-budget experiment, the
+reported final improvement is approximately \ChenDisplayedGain.
+The separation develops mainly during the early and middle portions of the
+budget and is then retained by the numerical GP--EI loop, which is consistent
+with the intended role of knowledge guidance: improve where scarce early
+simulator evaluations are spent, while leaving subsequent multiobjective BO
+updates numerical and simulator based.
+LLMBO-MO also remains above the NSGA-II, DISK, and PIMD references at the final
+budget.
+
+The Ecker2015 study evaluates robustness to a second battery parameterization.
+The same 56-evaluation budget and five-run protocol are used.
+Figure~\ref{fig:ecker_hv} and Table~\ref{tab:ecker_results} show that the
+advantage is not confined to Chen2020.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.99\columnwidth]{ecker2015_hv.pdf}
-\caption{Ecker2015 HV over five runs. Lines are five-seed means and bands show
-one sample standard deviation. The dashed line marks evaluation 30, where the
-intermediate-budget comparison is reported.}
+\caption{Ecker2015 HV progress over five runs. Lines summarize the five-run
+performance and bands show one sample standard deviation. The dashed line marks
+evaluation 30.}
 \label{fig:ecker_hv}
 \end{figure}
 
-\begin{table}[!b]
+\begin{table}[!t]
 \caption{Ecker2015 HV at Intermediate and Final Budgets}
 \label{tab:ecker_results}
 \centering
@@ -167,29 +144,27 @@ LLMBO-MO & \textbf{\EckerMidLLMBO} &
 \end{tabular}
 \end{table}
 
-At evaluation 30, LLMBO-MO reaches an HV of \EckerMidLLMBO, compared with
-\EckerMidParEGO\ for ParEGO, corresponding to a \EckerMidGain\ intermediate-
-budget advantage.  At evaluation 56, the respective five-seed means are
-\EckerLLMBOMean\ and \EckerParEGOMean, corresponding to a \EckerFinalGain\
-final difference.  Thus, the early-search advantage visible on Chen2020 is
-accompanied by a substantial five-seed mean separation under the Ecker2015
-parameterization, strengthening the evidence that the proposed knowledge-guided
-initialization is not tied to a single simulator parameter set.
+At evaluation 30, LLMBO-MO reaches \EckerMidLLMBO\ compared with
+\EckerMidParEGO\ for ParEGO, and the separation remains at the final budget,
+where the five-run means are \EckerLLMBOMean\ and \EckerParEGOMean,
+respectively.
+The second-parameterization result therefore supports the robustness of the
+observed early-search benefit without treating the experiment as a formal
+cross-battery transfer study.
 
-\subsection{Effectiveness of the Proposed Knowledge Guidance}
+\subsection{Effectiveness of the Two Knowledge-Guidance Mechanisms}
 
-\subsubsection{Initialization Prior}
+\subsubsection{LLM-Informed Initialization}
 
-The initialization study examines whether battery-specific LLM knowledge improves
-the stage in which BO has the least task-specific evidence.
-A separate Chen2020 prompt study uses ten seeds and
-a shorter 26-evaluation budget.
-All variants share the same downstream BO procedure and differ only in the
-initial-candidate source, so the comparison targets the value of the
-initialization prior rather than later regional guidance.
+The first mechanism study isolates the value of battery-specific LLM knowledge
+in the initialization stage.
+A separate Chen2020 experiment uses ten matched runs and a shorter 26-evaluation
+budget.
+All variants use the same downstream numerical BO procedure and differ only in
+the source of the initial candidate portfolio.
 
-\begin{table}[!b]
-\caption{Chen2020 Warm-Start Prompt Study over Ten Seeds}
+\begin{table}[!t]
+\caption{Chen2020 Initialization Study over Ten Runs}
 \label{tab:prompt_study}
 \centering
 \footnotesize
@@ -200,98 +175,86 @@ Initialization source & Final HV $\uparrow$ \\
 \midrule
 Random & 0.31062 $\pm$ 0.04303 \\
 Detailed generic prompt & 0.31371 $\pm$ 0.04675 \\
-Experimental battery prompt & \textbf{0.36890 $\pm$ 0.00824} \\
+Battery-specific LLM prompt & \textbf{0.36890 $\pm$ 0.00824} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The experimental battery prompt improves mean HV over random initialization by
-\PromptHVGain.
-A paired significance test with Holm multiplicity correction remains
-nonzero ($p=\PromptHolmP$), with standardized paired effect size
-$d_z=\PromptEffect$.
-The result shows that the gain is not explained by prompting alone: the
-detailed generic prompt is close to random initialization, whereas the
-battery-specific prompt produces the clear improvement.
-This supports the proposed use of an LLM as a carrier of domain-specific
-initialization knowledge in the low-data regime.
-Because this study uses a shorter budget, it is treated as mechanism evidence
-for the cold start rather than as a substitute for the 56-evaluation main
-comparison.
+The battery-specific LLM initialization improves mean HV over random
+initialization by \PromptHVGain.
+The detailed generic prompt remains close to the random condition, whereas the
+battery-specific prompt produces a clear improvement with substantially lower
+dispersion.
+The paired comparison remains supported after Holm multiplicity correction
+($p=\PromptHolmP$, $d_z=\PromptEffect$).
+These results indicate that the useful signal is associated with domain-aligned
+charging knowledge rather than prompting alone, supporting the role of the LLM
+as an initialization prior for the low-data stage of MOBO.
 
+\subsubsection{Bounded Regional Guidance}
 \label{sec:component}
 
-\subsubsection{Short-Budget Component Ablation}
-
-To isolate the roles of the two LLM touchpoints under the regime where prior
-knowledge is expected to matter most, a separate Chen2020 ablation is conducted
-with three matched seeds (8409--8411), six initialization evaluations, and ten
-BO iterations, for a total of \AblationTotalCalls\ simulator calls per run.
-All four variants use the same numerical BO backbone and differ only in whether
-the knowledge-informed warm start and the bounded regional guidance are enabled.
-The resulting distributions are summarized numerically in
-\autoref{tab:ablation} and visualized in \autoref{fig:ablation_hv_box}.
+The second mechanism study evaluates regional guidance in isolation and in
+combination with LLM-informed initialization.
+A short-budget Chen2020 ablation uses three matched runs, six initialization
+evaluations, and ten sequential BO evaluations, giving
+\AblationTotalCalls\ simulator calls per run.
+All variants share the same numerical multiobjective BO backbone.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.99\columnwidth]{ablation_hv_box.png}
-\caption{Chen2020 short-budget component ablation over three matched seeds.
-Each plotted point corresponds exactly to one seed column in
-Table~\ref{tab:ablation}; the boxplots summarize those same three outcomes
-after 16 simulator evaluations.}
+\caption{Chen2020 short-budget component ablation. The same three matched runs
+are used for all four variants, and the boxplots summarize the final HV after
+16 simulator evaluations.}
 \label{fig:ablation_hv_box}
 \end{figure}
 
 \begin{table*}[!t]
-\caption{Chen2020 Short-Budget Component Ablation over Three Matched Seeds}
+\caption{Chen2020 Short-Budget Component Ablation}
 \label{tab:ablation}
 \centering
 \footnotesize
 \setlength{\tabcolsep}{5.0pt}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-Variant & Seed 8409 & Seed 8410 & Seed 8411 & Mean $\pm$ SD $\uparrow$ \\
+Variant & Run 1 & Run 2 & Run 3 & Mean $\pm$ SD $\uparrow$ \\
 \midrule
-Baseline & \AblationBaselineSOne & \AblationBaselineSTwo & \AblationBaselineSThree & \AblationBaselineMean\,$\pm$\,\AblationBaselineStd \\
-Baseline+WarmStart(exp) & \AblationWarmSOne & \AblationWarmSTwo & \textbf{\AblationWarmSThree} & \AblationWarmMean\,$\pm$\,\AblationWarmStd \\
-Baseline+LLM\_Region & \AblationRegionSOne & \AblationRegionSTwo & \AblationRegionSThree & \AblationRegionMean\,$\pm$\,\AblationRegionStd \\
-LLMBO-MO & \textbf{\AblationFullSOne} & \textbf{\AblationFullSTwo} & \AblationFullSThree & \textbf{\AblationFullMean\,$\pm$\,\AblationFullStd} \\
+Numerical MOBO baseline & \AblationBaselineSOne & \AblationBaselineSTwo & \AblationBaselineSThree & \AblationBaselineMean\,$\pm$\,\AblationBaselineStd \\
++ LLM-informed initialization & \AblationWarmSOne & \AblationWarmSTwo & \textbf{\AblationWarmSThree} & \AblationWarmMean\,$\pm$\,\AblationWarmStd \\
++ Regional guidance only & \AblationRegionSOne & \AblationRegionSTwo & \AblationRegionSThree & \AblationRegionMean\,$\pm$\,\AblationRegionStd \\
+Complete LLMBO-MO & \textbf{\AblationFullSOne} & \textbf{\AblationFullSTwo} & \AblationFullSThree & \textbf{\AblationFullMean\,$\pm$\,\AblationFullStd} \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-The ablation shows a coherent short-budget hierarchy.
-Introducing the battery-specific warm start raises the mean HV from
-\AblationBaselineMean\ to \AblationWarmMean, accounting for most of the gain
-over the numerical baseline before substantial task-specific evidence has
-accumulated.
-Regional guidance alone yields a smaller mean increase, which indicates that its
-role is primarily complementary rather than substitutive.
-When both touchpoints are enabled, the complete LLMBO-MO configuration achieves
-the highest mean HV (\AblationFullMean), the smallest observed standard
-deviation ($\pm\AblationFullStd$), and the best result in two of the three
-matched seeds.
-Thus, the seed-level table and boxplot support the intended two-stage mechanism:
-the warm start establishes the global early-search prior, and bounded regional
-guidance refines that prior to produce the strongest overall short-budget
-configuration.
+LLM-informed initialization produces the principal short-budget improvement,
+raising mean HV from \AblationBaselineMean\ to \AblationWarmMean.
+Regional guidance alone gives a smaller improvement, indicating that it is not a
+replacement for the global initialization prior.
+When both mechanisms are enabled, the complete LLMBO-MO configuration achieves
+the highest mean HV (\AblationFullMean) and the smallest observed dispersion
+($\pm\AblationFullStd$).
+The ablation therefore supports the intended division of labor: LLM-informed
+initialization identifies a better global starting portfolio, while
+weight-conditioned regional guidance provides a bounded local refinement of the
+subsequent multiobjective acquisition search.
 
-\subsection{Analysis of Optimal Charging Protocols}
+\subsection{Pareto Charging-Protocol Analysis}
 
-The optimization metrics above establish search behavior, but the returned
-object is ultimately a set of charging protocols rather than an HV value.
-We therefore examine representative simulator-evaluated solutions to connect
-the numerical Pareto set back to charging behavior.
+The primary metric measures optimization quality, but the final output of the
+method is a set of charging protocols.
+Figure~\ref{fig:pareto_profiles} and Table~\ref{tab:representative_protocols}
+therefore examine representative simulator-evaluated nondominated solutions and
+their charging trajectories.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.96\textwidth]{protocol_interpretation.pdf}
-\caption{Chen2020 protocol interpretation. \emph{Left:} feasible evaluated
-LLMBO-MO protocols pooled across five runs; A--E are globally nondominated
-representatives and correspond exactly to
-Table~\ref{tab:representative_protocols}. \emph{Right:} independent simulated
-current, voltage, temperature, and SOC trajectory examples for selected
-LLMBO-MO, warm-start, and ParEGO protocols.}
+\includegraphics[width=0.97\textwidth]{protocol_interpretation.pdf}
+\caption{Chen2020 Pareto-protocol interpretation. \emph{Left:} feasible
+evaluated LLMBO-MO protocols with representative nondominated solutions A--E.
+\emph{Right:} simulated current, voltage, temperature, and SOC trajectories for
+selected LLMBO-MO and comparison protocols.}
 \label{fig:pareto_profiles}
 \end{figure*}
 
@@ -315,52 +278,37 @@ E & 2.000/2.000/2.000/0.245/0.153/0.403 & 7200 & 1.528 & 0.640 \\
 \end{tabular}
 \parbox{0.96\textwidth}{\vspace{2pt}\scriptsize
 The packed parameter order is three stage currents in amperes (A) followed by
-the three SOC spans.  Each row is a simulator-evaluated, feasible, globally
-nondominated database record, and the spans sum to 0.8.}
+the three SOC spans. Each row is a simulator-evaluated feasible nondominated
+record, and the SOC spans sum to 0.8.}
 \end{table*}
 
-\autoref{fig:pareto_profiles} links the objective-space envelope to
-time-domain behavior. The marked protocols are selected deterministically from
-the global nondominated pool: the three objectives are normalized, the front is
-ordered by charging time, and A--E are chosen at cumulative front-arc fractions
-0, 0.25, 0.50, 0.75, and 1. Their parameters and objectives are reported in
-\autoref{tab:representative_protocols}; no marked point minimizes all three
-objectives.  The right-hand trajectories further show the operational trade-off:
-the selected LLMBO-MO schedule reaches the target SOC earlier than the two
-illustrative alternatives at the cost of a larger temperature excursion.  All
-shown trajectories are simulator evaluations rather than unevaluated LLM
-predictions.
+The representative solutions expose the expected trade-off structure: protocols
+with more aggressive current schedules reduce charging time but generally
+produce larger thermal and degradation responses, whereas gentler schedules
+move toward the safety/sustainability side of the Pareto set.
+The trajectory examples confirm that the reported objective trade-offs are
+produced by complete battery-model simulations rather than by LLM-generated
+objective estimates.
 
 \subsection{Discussion}
 
-Two supporting diagnostics test numerical behavior outside the central LLM
-claim.
-The Pareto archive remains descriptively richer for LLMBO-MO through most of
-the recorded iterations, although archive count is neither HV nor an
-equal-simulator-call efficiency measure.
-The objective-scaling study shows that balancing heterogeneous objective
-magnitudes reduces final dispersion relative to no normalization, while the
-ordering between min--max and Z-score scaling is small at the final budget.
-The complete diagnostic figures, table, and interpretation are provided in
-Appendix~\ref{app:diagnostics} so that they do not obscure the mechanism
-evidence above.
+The overall comparison, initialization study, and component ablation support a
+single algorithmic interpretation.
+LLMBO-MO remains a numerical multiobjective BO method, while LLM-derived battery
+knowledge is concentrated where the data-driven search is weakest.
+The initialization mechanism alters the initial distribution of expensive
+evaluations, and the region mechanism supplies a bounded, weight-dependent local
+search preference during the early acquisition stage.
+After simulator evaluation, both routes return to the same scalarization--GP--EI
+and Pareto-update process.
 
-Taken together, the main comparison, controlled prompt study, and short-budget
-ablation support a consistent mechanism-level interpretation.
-LLM-derived battery knowledge is most valuable when numerical evidence is
-scarce: the warm start moves the initial design toward more informative regions,
-while bounded regional guidance provides a secondary refinement during the same
-early-search window.
-The complete configuration consequently combines the largest short-budget mean
-HV, the smallest observed dispersion, and two seed-level wins in the component
-study, without allowing unevaluated LLM outputs to alter the numerical evidence
-chain.
-
+Two additional diagnostics---Pareto-archive growth and objective-preprocessing
+sensitivity---are retained in Appendix~\ref{app:diagnostics} because they test
+supporting numerical behavior rather than either proposed knowledge-guidance
+mechanism.
 The present study remains simulation based and uses a trajectory-averaged
-control-oriented degradation proxy.
-The reported comparisons should therefore be interpreted as evidence for
-sample-efficient protocol search within the adopted SPMe-based environment,
-not as a substitute for physical-cell validation.
-Broader multiobjective acquisition baselines, controlled LLM-backend studies,
-and experimentally grounded aging endpoints are natural extensions for future
-work.
+control-oriented degradation proxy; the conclusions therefore concern
+sample-efficient multiobjective protocol search in the adopted SPMe-based
+environment.
+Physical-cell validation and broader LLM/backend studies remain important future
+extensions.

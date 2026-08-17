@@ -99,13 +99,13 @@ primary sample-efficiency metric.
 Here, an ``optimal charging protocol'' means a feasible Pareto-nondominated
 entry in the current archive.
 
-\begin{figure}[!t]
+\begin{figure*}[!t]
 \centering
-\includegraphics[width=0.99\columnwidth]{optimal_protocols_curve.pdf}
+\includegraphics[width=0.72\textwidth]{optimal_protocols_curve.pdf}
 \caption{Chen2020 Pareto-archive growth over 50 algorithmic iterations. Lines
 are five-run means and bands show across-run dispersion.}
 \label{fig:optimal_protocols}
-\end{figure}
+\end{figure*}
 
 At iteration 50, LLMBO-MO maintains an average of approximately
 \OptimalLLMBOFinal\ nondominated protocols, compared with
@@ -122,13 +122,13 @@ The scaling diagnostic compares min--max scaling, Z-score standardization, and
 no normalization on Chen2020 over five runs and the same 56-evaluation budget.
 It tests numerical robustness rather than the LLM mechanism.
 
-\begin{figure}[!t]
+\begin{figure*}[!t]
 \centering
-\includegraphics[width=0.99\columnwidth]{objective_normalization_hv.pdf}
+\includegraphics[width=0.72\textwidth]{objective_normalization_hv.pdf}
 \caption{Chen2020 objective-preprocessing sensitivity over five runs. Lines
 show mean HV and bands show one sample standard deviation.}
 \label{fig:normalization_hv}
-\end{figure}
+\end{figure*}
 
 \begin{table}[H]
 \caption{Objective-Preprocessing Sensitivity on Chen2020}
@@ -158,3 +158,38 @@ the unnormalized condition, whose final result is
 \NormNoneMean\,$\pm$\,\NormNoneStd.
 Thus, heterogeneous objective magnitudes should be balanced, while either
 conventional scaling choice is defensible in the present setting.
+
+
+\section{Run Configuration and Reproducibility}
+\label{app:reproducibility}
+
+The main Chen2020 and Ecker2015 comparisons use five runs for each method.
+Run-level identifiers, random seeds, LLM call records, and parsed responses are
+retained in the experiment logs rather than in the main parameter table.
+The principal manuscript-facing configuration is summarized below so that the
+reported figures can be traced to the archived runs without interrupting the
+main experimental narrative.
+
+\begin{table}[!t]
+\caption{Run-Level Configuration Used in the Reported Studies}
+\label{tab:run_configuration}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lp{0.58\columnwidth}@{}}
+\toprule
+Study & Configuration \\
+\midrule
+Chen2020 main comparison & five runs; 56 simulator calls per run \\
+Ecker2015 robustness case & five runs; 56 simulator calls per run \\
+Initialization study & ten matched runs; 26-call budget \\
+Component ablation & three matched runs; 16-call budget \\
+Main regional guidance & $T_{\mathrm L}=16$, 64 anchors, EI-search restarts \\
+LLM records & prompt/configuration and responses logged per run \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the main algorithm, regional information affects only acquisition-search
+restarts. The posterior-mean coupling in Appendix~\ref{app:coupling} is a
+separate diagnostic realization and is not used to define the principal results.

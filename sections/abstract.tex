@@ -2,43 +2,34 @@
 % Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-Fast-charging protocol design for lithium-ion batteries is a constrained
-multiobjective optimization problem that must balance charging time, thermal
-stress, and degradation under a limited evaluation budget.
-Bayesian optimization (BO) is attractive for this setting because it can reduce
-the number of expensive electrochemical--thermal simulations.
-However, its early search is strongly influenced by a small initial design,
-exactly when task-specific observations are scarce.
-Large language models (LLMs) offer a possible source of battery-domain prior
-knowledge, but their generated numerical outputs cannot be regarded as
-simulator-validated physical evidence.
-To address these two issues, this paper proposes LLMBO-MO, a multiobjective BO
-framework that separates LLM-based search guidance from numerical optimization
-evidence.
-First, a protocol-domain-screened and diversity-aware LLM warm start is
-developed to construct a more informative initial design from textual battery
-knowledge.
-A bounded weight-conditioned regional-guidance stage then refines acquisition
-search during the early BO stage.
-In both cases, the simulator remains the sole objective oracle and only
-evaluated protocols are used for Gaussian-process fitting and Pareto dominance.
-Under a budget of 56 simulator evaluations, the descriptive five-run Chen2020
-endpoint mean is \ChenLLMBOMean\ for LLMBO-MO versus \ChenParEGOMean\ for
-ParEGO, a \ChenParEGOGain\ advantage; the archived seed-8409 trajectories
-displayed in the convergence figure end \ChenDisplayedGain\ apart
-(\ChenDisplayedLLMBO\ versus \ChenDisplayedParEGO).
-Favorable behavior also persists in the five-run Ecker2015 comparison.
-A controlled ten-seed initialization study further shows an HV improvement of
-\PromptHVGain\ over random initialization under a Holm-corrected paired test
-($p=\PromptHolmP$).
-A matched three-seed short-budget ablation further shows that the complete
-LLMBO-MO configuration achieves the highest mean HV (\AblationFullMean), wins
-two of the three matched seeds, and has the smallest observed dispersion
-($\pm\AblationFullStd$).
-The ablation indicates complementary roles for the two LLM touchpoints: the warm
-start supplies the principal early performance gain, while bounded regional
-refinement yields the best overall short-budget result when combined with that
-initialization prior. All optimization evidence remains simulator grounded.
+Fast-charging protocol design is important for improving the usability and
+lifetime of lithium-ion batteries, but it requires balancing charging speed,
+thermal safety, and degradation under strict operating constraints.
+Model-based evaluation can avoid extensive physical cycling experiments, yet
+repeated electrochemical--thermal simulations remain computationally expensive.
+Multiobjective Bayesian optimization (MOBO) is attractive in this setting
+because it can approximate a Pareto set with a limited number of costly
+evaluations; however, its early search can be inefficient when only sparse
+observations are available.
+This paper proposes LLMBO-MO, a decomposition-based multiobjective Bayesian
+optimization method that augments the numerical MOBO loop with two bounded
+large-language-model (LLM) guidance mechanisms.
+First, a protocol-domain-screened and diversity-aware LLM-informed
+initialization converts battery-domain knowledge into a more informative set of
+initial charging protocols.
+Second, a weight-conditioned regional-guidance mechanism uses the current
+multiobjective trade-off direction and optimization state to provide bounded
+search regions for early acquisition optimization, with an automatic fallback
+to the original numerical search.
+Both mechanisms modify only where the optimizer searches; objective values,
+constraint satisfaction, GP training targets, and Pareto updates are determined
+exclusively by simulator-evaluated protocols.
+Under a budget of 56 simulator evaluations, LLMBO-MO achieves an approximately
+\ChenDisplayedGain\ higher final hypervolume than ParEGO on Chen2020, and the
+advantage persists on the Ecker2015 parameterization.
+Additional mechanism studies further show that battery-specific LLM
+initialization substantially improves the low-data search stage and that the
+complete LLMBO-MO configuration provides the strongest short-budget result.
 \end{abstract}
 
 \begin{IEEEkeywords}

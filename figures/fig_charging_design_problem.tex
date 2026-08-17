@@ -1,10 +1,10 @@
-\begin{figure}[!t]
+\begin{figure*}[!t]
 \centering
-\includegraphics[width=0.98\columnwidth]{fig_charging_design_problem.pdf}
-\caption{Fast-charging design problem. A protocol is defined by stage currents
-and SOC spans, evaluated by the coupled battery model, and mapped to three
-minimized objectives subject to simulator-checked voltage and temperature
-constraints. The optimizer seeks a feasible Pareto set under a limited
+\includegraphics[width=0.64\textwidth]{fig_charging_design_problem.pdf}
+\caption{Fast-charging multiobjective design problem. A multistage current
+protocol is evaluated by the coupled battery model and mapped to charging time,
+peak temperature rise, and degradation subject to simulator-checked operating
+constraints. The optimization goal is a feasible Pareto set under a limited
 simulation budget.}
 \label{fig:charging_problem}
-\end{figure}
+\end{figure*}

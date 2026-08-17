@@ -4,129 +4,33 @@
 \section{Proposed LLMBO-MO}
 \label{sec:method}
 
-\subsection{Motivation}
+\subsection{Overview}
 
-The charging-design problem in \eqref{eq:cmop} is expensive because every new
-protocol must be evaluated by the battery model before its objective values and
-feasibility are known.
-BO reduces the number of evaluations, but its surrogate is least informative at
-the beginning of the search, when only a small initial design is available.
-Battery-domain knowledge can help identify plausible regions at this stage, yet
-LLM outputs are not equivalent to battery-model evaluations.
-Treating generated objective values as observations would introduce unverified
-evidence into GP fitting and Pareto comparison.
-
-LLMBO-MO addresses this tension by assigning the two information sources
-asymmetric roles.
-The LLM provides \emph{search guidance}, whereas the battery simulator provides
-\emph{optimization evidence}.
-The first stage is a knowledge-informed initial design whose protocols are
-evaluated before entering the database.
-A second, bounded early regional-guidance stage can then redirect acquisition
-search toward promising neighborhoods while the numerical BO backbone retains
-final candidate authority.
-Neither stage creates observations without simulator evaluation, and the
-regional influence is restricted to the evidence-scarce early search.
-Thus, objective values, feasibility, GP targets, and Pareto dominance remain
-grounded exclusively in simulator-evaluated protocols.
-
-\subsection{Framework}
-
-The evidence flow of LLMBO-MO is shown in \autoref{fig:framework}.
-Before sequential BO, the LLM generates protocol candidates from the problem
-description and battery-domain heuristics.
-The candidates are repaired to the protocol domain, screened for diversity,
-combined with numerical initialization points, and evaluated by the battery
-simulator.
-Only these verified evaluations form the initial observation database $\bD$.
-
-Sequential optimization then follows a numerical multiobjective BO backbone.
-A weight vector defines the current trade-off direction; observed objectives
-are transformed and scalarized; a GP surrogate and expected improvement (EI)
-select the next protocol; and simulator evaluation updates $\bD$ and the Pareto
-set $\bP$.
-Within the first $T_{\mathrm L}$ iterations, the LLM can supply a bounded point or
-region preference.  As summarized by the regional branch in
-Fig.~\ref{fig:framework}, this preference is allowed to bias the acquisition
-search only within a controlled early-stage window.  The principal Chen2020
-configuration realizes the bias conservatively through acquisition-search
-restarts, while the explicit bounded region-lifted posterior-mean realization is
-given in Appendix~\ref{app:coupling}.  Both realizations preserve the same
-evidence boundary: the LLM changes search preference, whereas objective values,
-GP targets, and Pareto updates are created only after simulator evaluation.
-Invalid or absent advice falls back to ordinary EI, and after
-$T_{\mathrm L}$ the numerical BO loop proceeds alone.
+LLMBO-MO is a decomposition-based multiobjective Bayesian optimization method
+augmented by two bounded knowledge-guidance mechanisms.
+The numerical MOBO loop remains the decision-making backbone: a trade-off weight
+selects the current multiobjective subproblem, observed objectives are
+transformed and scalarized, a GP surrogate is fitted, expected improvement (EI)
+is optimized, the selected protocol is evaluated by the battery simulator, and
+the evaluated database and Pareto archive are updated.
+The LLM acts only at two interfaces with this loop.
+First, before sequential BO, it helps construct a domain-informed initial design.
+Second, during an early guidance window, it may propose a bounded region used to
+enrich the numerical acquisition search.
+In both cases, the LLM changes candidate locations rather than objective values;
+only simulator-evaluated protocols enter $\bD$ or $\bP$.
+The complete workflow is summarized in Fig.~\ref{fig:framework}.
 
 \input{figures/fig_llambo_mo_framework}
 
-\subsection{Main Steps}
-
-\subsubsection{Knowledge-Informed Initialization}
-\label{sec:warm_start}
-
-The initialization mechanism targets the stage at which BO has the least
-task-specific evidence.
-Its prompt specifies the cell context, decision-variable bounds, $K$-stage
-constant-current geometry, objective definitions, and qualitative charging
-heuristics such as decreasing-current schedules and avoidance of extreme
-terminal SOC spans.
-The LLM returns a pool of numerical candidates and a self-reported score.
-Non-numerical entries and duplicates are removed, non-finite values are
-discarded, box violations are clipped, and candidates that cannot satisfy
-$\Delta s_K\geq\Delta s_K^{\min}$ are rejected.
-These operations check protocol-domain validity only; voltage and temperature
-feasibility are still determined by the simulator.
-
-Let $h_{\mathrm{ws}}(\btheta)\in[0,1]$ denote the LLM-reported score.
-A soft penalty discourages a terminal SOC span below a preferred boundary:
-\begin{equation}
-p_{\mathrm{soft}}(\btheta)=
-\operatorname{clip}\!\left(
-\frac{\Delta s_K^{\mathrm{soft}}-\Delta s_K}{w_{\mathrm{soft}}},
-0,1\right).
-\label{eq:soft_penalty}
-\end{equation}
-Let $\mathbb I_{\mathrm{mono}}(\btheta)$ indicate a nonincreasing current
-sequence.
-The candidate portfolio is selected greedily according to
-\begin{equation}
-\begin{aligned}
-J_{\mathrm{ws}}(\btheta)
-={}&h_{\mathrm{ws}}(\btheta)
--\omega_p p_{\mathrm{soft}}(\btheta)
-+\omega_m\mathbb I_{\mathrm{mono}}(\btheta)\\
-&+\omega_d d_{\min}(\btheta,\mathcal C_{\mathrm{sel}}),
-\end{aligned}
-\label{eq:portfolio}
-\end{equation}
-where
-\begin{equation}
-d_{\min}(\btheta,\mathcal C_{\mathrm{sel}})=
-\begin{cases}
-0, & \mathcal C_{\mathrm{sel}}=\varnothing,\\
-\displaystyle\min_{\mathbf c\in\mathcal C_{\mathrm{sel}}}
-\|\widehat{\btheta}-\widehat{\mathbf c}\|_2,
-& \text{otherwise}.
-\end{cases}
-\label{eq:diversity}
-\end{equation}
-The hat denotes normalized decision coordinates.
-Random protocol-domain-valid points complete the initial design so that search
-is not restricted to LLM proposals.
-Most importantly, a candidate enters $\bD$ only after simulator evaluation.
-The mechanism therefore changes the distribution of evaluated initial
-locations without creating pseudo-observations.
-
-\subsubsection{Numerical Multiobjective BO Backbone}
+\subsection{Decomposition-Based Multiobjective BO Backbone}
 \label{sec:parego_backbone}
 
-After initialization, LLMBO-MO uses a ParEGO-style numerical
-backbone~\cite{ref4}.
-Keeping the scalarization, GP model, and acquisition rule common to LLMBO-MO
-and the primary BO baseline isolates the effect of the knowledge-informed
-initial design.
+At iteration $t$, LLMBO-MO selects a trade-off weight $\bw^{(t)}$ from a set
+$\bW$ initialized on a Das--Dennis simplex lattice and dispersed by projected
+Riesz-energy relaxation~\cite{ref15}.
 Because the three objectives have different numerical ranges, charging time and
-the degradation proxy are first logarithmically transformed:
+the degradation proxy are first logarithmically transformed,
 \begin{equation}
 \begin{aligned}
 \tilde{\mathbf f}(\btheta)
@@ -134,54 +38,45 @@ the degradation proxy are first logarithmically transformed:
 \ell_t(\btheta)
 &=\log_{10}\!\max(t_c/t_{\mathrm{ref}},\varepsilon_t),\\
 \ell_D(\btheta)
-&=\log_{10}\!\max(D_{\mathrm{chg}}/D_{\mathrm{ref}},
-\varepsilon_D).
+&=\log_{10}\!\max(D_{\mathrm{chg}}/D_{\mathrm{ref}},\varepsilon_D).
 \end{aligned}
 \label{eq:objective_transform}
 \end{equation}
-For objective $i$, let $R_{i,t}^{\mathrm{hist}}$ denote the observed range and
-$R_i^{\mathrm{glob}}=\tilde y_i^{\mathrm{ref}}-
-\tilde y_i^{\mathrm{ideal}}$.
-The scale used by the implementation is
+For objective $i$, let $R_{i,t}^{\mathrm{hist}}$ denote its observed range and
+$R_i^{\mathrm{glob}}=\tilde y_i^{\mathrm{ref}}-\tilde y_i^{\mathrm{ideal}}$.
+The implementation uses
 \begin{equation}
 s_{i,t}=
 \begin{cases}
 R_i^{\mathrm{glob}},&
 R_{i,t}^{\mathrm{hist}}<\rho_R R_i^{\mathrm{glob}},\\
-R_{i,t}^{\mathrm{hist}},&\text{otherwise}.
+R_{i,t}^{\mathrm{hist}},&\text{otherwise},
 \end{cases}
 \label{eq:objective_scale}
 \end{equation}
-Using the global range when the early observed range is too narrow avoids
-overemphasizing a poorly estimated scale.
+which prevents a narrow early observed range from dominating the scalarization.
 
-At iteration $t$, a weight vector $\bw^{(t)}$ is selected from $\bW$, which is
-initialized on a Das--Dennis simplex lattice and dispersed by projected
-Riesz-energy relaxation~\cite{ref15}.
-The transformed objectives are combined through an augmented Tchebycheff
-function:
+The transformed objectives are decomposed through an augmented Tchebycheff
+function,
 \begin{equation}
 \begin{aligned}
 \bar f_{i,t}(\btheta)
 &=\frac{|\tilde f_i(\btheta)-\tilde z_{i,t}^{\ast}|}{s_{i,t}},\\
 g_t(\btheta\mid\bw^{(t)})
 &=\max_i w_i^{(t)}\bar f_{i,t}(\btheta)
-+\rho_{\mathrm{aug}}\sum_{i=1}^{m}
-w_i^{(t)}\bar f_{i,t}(\btheta),
++\rho_{\mathrm{aug}}\sum_{i=1}^{m}w_i^{(t)}\bar f_{i,t}(\btheta),
 \end{aligned}
 \label{eq:tchebycheff}
 \end{equation}
-where $\bw^{(t)}\geq\mathbf 0$, $\mathbf1^\top\bw^{(t)}=1$, and $m=3$.
-Feasible observations are re-scalarized by \eqref{eq:tchebycheff} at every
-iteration.
+where $\bw^{(t)}\geq\mathbf 0$, $\mathbf 1^\top\bw^{(t)}=1$, and $m=3$.
+All feasible observations are re-scalarized for the current weight at every
+iteration, so one numerical BO loop can sequentially explore different parts of
+the Pareto front.
 
 An ARD Mat\'ern-$5/2$ GP with a white-noise term is fitted to standardized
 scalar targets on normalized decision variables.
-Kernel hyperparameters are estimated by marginal likelihood with multiple
-restarts.
-Let $\mu_t(\btheta)$ and $\sigma_t(\btheta)$ be its posterior mean and standard
-deviation.
-For minimization, EI is
+Let $\mu_t(\btheta)$ and $\sigma_t(\btheta)$ denote the GP posterior mean and
+standard deviation. For minimization, EI is
 \begin{equation}
 \begin{aligned}
 z_t(\btheta)
@@ -195,47 +90,102 @@ z_t(\btheta)
 where $g_t^{\min}$ is the best observed scalar value and $\Phi(\cdot)$ and
 $\phi(\cdot)$ are the standard normal cumulative distribution and density
 functions.
-The candidate pool contains the incumbent, Gaussian and uniform samples, and
-multi-start L-BFGS-B solutions.
-Every selected candidate is repaired to $\Theta_{\mathrm{proto}}$, evaluated by
-the battery simulator, and appended to $\bD$; the feasible set and $\bP$ are
-then updated.
+The acquisition optimizer uses the incumbent, Gaussian and uniform candidates,
+and multi-start L-BFGS-B solutions.
+The selected protocol is repaired to $\Theta_{\mathrm{proto}}$, evaluated by
+$\bS$, appended to $\bD$, and used to update the feasible Pareto archive
+$\bP$.
+This ParEGO-style scalarization--GP--EI loop~\cite{ref4} is the numerical
+backbone shared with the primary BO comparator.
 
-\subsubsection{Bounded Early Regional Guidance}
+\subsection{LLM-Informed Initialization}
+\label{sec:warm_start}
+
+The first LLM mechanism targets the low-data stage before sequential BO begins.
+Its prompt specifies the battery context, decision-variable bounds, three-stage
+MCC geometry, objective definitions, and qualitative charging knowledge such as
+reasonable current ordering and SOC allocation.
+The LLM returns a pool of numerical protocol candidates together with a
+self-reported preference score.
+Non-numerical or non-finite entries and duplicates are removed, box violations
+are clipped, and candidates that cannot satisfy
+$\Delta s_K\geq\Delta s_K^{\min}$ are rejected.
+These operations enforce protocol-domain admissibility only; voltage and
+temperature feasibility are still determined by the simulator.
+
+Let $h_{\mathrm{ws}}(\btheta)\in[0,1]$ denote the LLM-reported score.
+A soft penalty discourages a terminal SOC span below a preferred boundary,
+\begin{equation}
+p_{\mathrm{soft}}(\btheta)=
+\operatorname{clip}\!\left(
+\frac{\Delta s_K^{\mathrm{soft}}-\Delta s_K}{w_{\mathrm{soft}}},0,1\right).
+\label{eq:soft_penalty}
+\end{equation}
+Let $\mathbb I_{\mathrm{mono}}(\btheta)$ indicate a nonincreasing current
+sequence. Candidate selection combines the LLM score, the soft charging prior,
+and portfolio diversity,
+\begin{equation}
+\begin{aligned}
+J_{\mathrm{ws}}(\btheta)
+={}&h_{\mathrm{ws}}(\btheta)-\omega_p p_{\mathrm{soft}}(\btheta)
++\omega_m\mathbb I_{\mathrm{mono}}(\btheta)\\
+&+\omega_d d_{\min}(\btheta,\mathcal C_{\mathrm{sel}}),
+\end{aligned}
+\label{eq:portfolio}
+\end{equation}
+where
+\begin{equation}
+d_{\min}(\btheta,\mathcal C_{\mathrm{sel}})=
+\begin{cases}
+0,&\mathcal C_{\mathrm{sel}}=\varnothing,\\
+\displaystyle\min_{\mathbf c\in\mathcal C_{\mathrm{sel}}}
+\|\widehat{\btheta}-\widehat{\mathbf c}\|_2,&\text{otherwise}.
+\end{cases}
+\label{eq:diversity}
+\end{equation}
+The hat denotes normalized decision coordinates.
+Random protocol-domain-valid points complete the initial design so that the
+search is not restricted to LLM proposals.
+Every selected initial protocol is evaluated by the simulator before entering
+$\bD$; hence, the LLM changes the distribution of initial evaluation locations
+without creating pseudo-observations.
+
+\subsection{Bounded Weight-Conditioned Regional Guidance}
 \label{sec:region_pref}
 
-Regional guidance forms the second LLM touchpoint of the complete method during
-the early search window $t\leq T_{\mathrm L}$.
-It is deliberately bounded so that the knowledge-informed warm start establishes
-the initial search prior, while regional guidance acts as a local refinement of
-subsequent acquisition optimization.
-At iteration $t$, the prompt contains the current weight vector, observed
-objective ranges, current best values, selected evaluated protocols, and a
-summary of optimization progress.
-The LLM can return a point, a hyperrectangular region, or an explicit
-no-preference response, allowing it to abstain when the available context does
-not support a useful recommendation.
+The second LLM mechanism operates only during an early window
+$t\le T_{\mathrm L}$ and refines acquisition optimization after an initial
+simulator-validated database has been formed.
+At iteration $t$, the prompt includes the current decomposition weight
+$\bw^{(t)}$, observed objective ranges, current best values, selected evaluated
+protocols, and a compact summary of the optimization state.
+The LLM can return a point, a bounded hyperrectangular region, or an explicit
+no-preference response.
+A point is converted to a local region with fixed-width margins; returned
+regions are parsed, clipped, repaired to $\Theta_{\mathrm{proto}}$, and rejected
+when they are too narrow, too broad, or otherwise inadmissible.
 
-A returned point or region is parsed, clipped, repaired to
-$\Theta_{\mathrm{proto}}$, and checked for protocol-domain admissibility.
-A point preference is converted to a local hyperrectangle with fixed-width
-margins; regions that are too narrow or too broad are rejected.
-Anchors sampled from an accepted region are added only as restarts for numerical
-EI maximization.
-Consequently, advice can change where the acquisition optimizer searches but
-cannot change an objective value or enter the GP training set.
-Invalid advice falls back to the original candidate pool, and all advisory
-interaction stops after $T_{\mathrm L}$.
-The component study in Section~\ref{sec:component} evaluates this mechanism both
-in isolation and in combination with the warm start.
-The short-budget ablation in Section~\ref{sec:component} is consistent with
-this intended division of labor: regional guidance is most effective when it
-refines a search already initialized by battery-domain knowledge, rather than
-when it is used as an isolated substitute for that prior.
+Anchors sampled from an accepted region are used only as additional restarts for
+the numerical EI maximization in \eqref{eq:ei}.
+Thus, regional guidance can redirect where the acquisition optimizer searches,
+but it does not modify an objective value, GP training target, posterior model,
+or Pareto relation.
+Invalid or absent guidance falls back to the original numerical acquisition
+search, and all LLM regional interaction stops after $T_{\mathrm L}$.
+This bounded design makes the region mechanism complementary to the
+LLM-informed initialization: the first mechanism supplies a global early search
+prior, whereas the second adapts a local search preference to the current
+multiobjective trade-off direction.
+The optional posterior-mean coupling studied during method development is not
+part of the principal algorithm and is retained only in
+Appendix~\ref{app:coupling}.
 
-All paths therefore return to the same evidence chain: candidate selection,
-simulator evaluation, database update, and Pareto update.
-Algorithm~\ref{alg:llmbo} summarizes the principal procedure.
+\subsection{Algorithm Summary}
+
+Algorithm~\ref{alg:llmbo} summarizes the complete procedure.
+The numerical MOBO backbone remains active throughout the full budget, while
+LLM assistance is concentrated in the evidence-scarce initialization and early
+acquisition stages.
 
 \begin{algorithm}[!t]
 \caption{LLMBO-MO}
@@ -243,22 +193,24 @@ Algorithm~\ref{alg:llmbo} summarizes the principal procedure.
 \footnotesize
 \begin{algorithmic}[1]
 \Require Simulator $\bS$, LLM $\bL$, total budget $N$, initial budget $n_0$,
-weights $\bW$, guidance horizon $T_{\mathrm L}$
-\Ensure Evaluated nondominated set $\bP$
-\State Query $\bL$ for a warm-start pool; repair and rank by
+weight set $\bW$, guidance horizon $T_{\mathrm L}$
+\Ensure Evaluated feasible Pareto set $\bP$
+\State Construct LLM-informed candidate pool; repair and rank using
 \eqref{eq:portfolio}
-\State Add selected LLM proposals and random protocol-domain-valid points
-\State Evaluate $n_0$ initial protocols and initialize $\bD$
+\State Combine selected LLM candidates with random protocol-domain-valid points
+\State Evaluate $n_0$ initial protocols using $\bS$ and initialize $\bD,\bP$
 \For{$t=1$ to $N-n_0$}
-    \State Select $\bw^{(t)}$ and re-scalarize feasible data by
-    \eqref{eq:tchebycheff}
-    \State Fit the GP surrogate and construct EI by \eqref{eq:ei}
-    \If{regional guidance is enabled and $t\leq T_{\mathrm L}$}
-        \State Query $\bL$; add a valid region only as EI-search restarts
+    \State Select trade-off weight $\bw^{(t)}\in\bW$
+    \State Transform and scalarize feasible observations by
+    \eqref{eq:objective_transform}--\eqref{eq:tchebycheff}
+    \State Fit the GP and construct EI by \eqref{eq:ei}
+    \If{$t\le T_{\mathrm L}$ and regional guidance is enabled}
+        \State Query $\bL$ using $\bw^{(t)}$ and the current BO state
+        \State Add anchors from an admissible region as EI-search restarts
     \EndIf
     \State Maximize EI and select $\btheta_{t+1}$
     \State Evaluate $\bS(\btheta_{t+1})$ and append the result to $\bD$
-    \State Update the feasible set and Pareto archive $\bP$
+    \State Update the feasible Pareto archive $\bP$
 \EndFor
 \State \Return $\bP$
 \end{algorithmic}
