@@ -4,12 +4,65 @@
 \section{Problem Formulation}
 \label{sec:problem}
 
-Fast-charging design seeks a set of feasible charging protocols that balances
-charging speed, thermal safety, and degradation.
-Let $\btheta$ denote a multistage constant-current charging protocol and let
-$\Theta_{\mathrm{proto}}$ denote its admissible protocol domain.
-The charging-design problem is formulated directly as the constrained
-multiobjective problem
+The charging-design problem is formulated as the selection of a multistage
+constant-current protocol that balances charging speed, thermal safety, and
+degradation while satisfying operating constraints.
+Fig.~\ref{fig:charging_problem} summarizes the protocol variables, optimization
+objectives, and feasibility conditions.
+
+\input{figures/fig_charging_design_problem}
+
+\subsection{Multistage Constant-Current Protocol}
+
+A multistage constant-current (MCC) protocol divides charging into $K$ stages.
+Stage $k$ is characterized by a current coordinate $I_k$ and a delivered
+state-of-charge (SOC) span $\Delta s_k$.
+The battery is charged from an initial SOC $s_0$ to a target SOC $s_f$.
+The independent decision vector and the dependent terminal SOC span are
+\begin{equation}
+\begin{aligned}
+\btheta
+&=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top,\\
+\Delta s_K
+&=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k.
+\end{aligned}
+\label{eq:protocol}
+\end{equation}
+The admissible domain $\Theta_{\mathrm{proto}}$ imposes box bounds on the
+currents and SOC spans and requires
+$\Delta s_K\geq\Delta s_K^{\min}$.
+This lower bound prevents a degenerate terminal stage and ensures that the
+protocol covers the prescribed SOC interval.
+
+Following established BO-based charging formulations~\cite{ref14,ref13}, SOC
+spans rather than stage durations are optimized.
+If both current and duration were independent variables, the delivered charge
+would introduce a strongly coupled and potentially redundant representation.
+SOC-span coordinates instead place the switching boundaries directly in the SOC
+domain and simplify constraint handling.
+The experiments use $K=3$, as in those studies.
+
+Let $I_k^{\mathrm{cell}}=\phi_{\mathrm{cell}}(I_k)$ denote the physical cell
+current associated with the protocol coordinate $I_k$.
+The charging time is
+\begin{equation}
+t_c(\btheta)=\kappa_t Q_{\mathrm{eff}}
+\sum_{k=1}^{K}\frac{\Delta s_k}{I_k^{\mathrm{cell}}},
+\label{eq:charging_time}
+\end{equation}
+where $Q_{\mathrm{eff}}$ is the effective capacity and $\kappa_t$ converts
+charge to time units.
+
+\subsection{Constrained Multiobjective Charging Design}
+
+The charging-design objectives quantify charging speed, thermal response, and
+degradation severity.
+For a protocol $\btheta$, the minimized objective vector contains charging time
+$t_c(\btheta)$, peak temperature rise $\Delta T_p(\btheta)$, and the
+protocol-level degradation proxy $D_{\mathrm{chg}}(\btheta)$.
+The latter two objectives are defined by the battery model in
+Section~\ref{sec:model_section}.
+The constrained multiobjective problem is
 \begin{equation}
 \begin{aligned}
 \min_{\btheta\in\Theta_{\mathrm{proto}}}\quad
@@ -23,77 +76,34 @@ multiobjective problem
 &I_{\min}\le I(t;\btheta)\le I_{\max},\\
 &s_0\le \mathrm{SOC}(t;\btheta)\le s_f,\\
 &V(t;\btheta)\le V_{\max},\\
-&T(t;\btheta)\le T_{\max}.
+&T(t;\btheta)\le T_{\max},
+\qquad 0\le t\le t_c(\btheta).
 \end{aligned}
 \label{eq:cmop}
 \end{equation}
-Here $t_c$ is charging time, $\Delta T_p$ is peak temperature rise, and
-$D_{\mathrm{chg}}$ is the protocol-level degradation proxy defined in
-Section~\ref{sec:aging}.
-The three objectives are conflicting: aggressive charging can reduce $t_c$ but
-generally increases thermal and degradation severity.
-Because the preferred trade-off varies with user demand, the optimization target
-is a feasible Pareto set rather than a solution associated with one fixed
-preference vector.
+The protocol domain enforces the explicit current and SOC-coordinate bounds.
+The battery simulator checks the path-dependent voltage and temperature limits.
+A protocol that violates either limit or fails to reach $s_f$ is infeasible and
+is excluded from the Pareto set.
 
-\paragraph{Principal notation:}
-$\btheta$ denotes the charging protocol, $\mathbf f(\btheta)$ the three-objective
-vector, $\bD$ the simulator-evaluated database, $\bP$ the feasible Pareto
-archive, $\bw^{(t)}$ the decomposition weight, and
-$g_t(\btheta\mid\bw^{(t)})$ the scalarized objective optimized by the GP--EI
-subproblem.  The battery simulator is denoted by $\bS$.
-
-\subsection{Multistage Constant-Current Protocol}
-
-A multistage constant-current (MCC) protocol divides the charging process into
-$K$ stages.
-Let $I_k$ and $\Delta s_k$ denote the applied current and delivered SOC span of
-stage $k$, respectively.
-The battery is charged from an initial SOC $s_0$ to a target SOC $s_f$.
-Following established BO-based charging formulations~\cite{ref14,ref13}, SOC
-spans rather than stage durations are used as decision variables, so that stage
-boundaries are explicit in the SOC domain and the current--time representation
-is not redundant.
-
-The independent decision vector, dependent terminal SOC span, and charging time
-are
-\begin{equation}
-\begin{aligned}
-\btheta
-&=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top,\\
-\Delta s_K
-&=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k,\\
-t_c(\btheta)
-&=\kappa_t Q_{\mathrm{eff}}
-\sum_{k=1}^{K}\frac{\Delta s_k}{I_k^{\mathrm{cell}}}.
-\end{aligned}
-\label{eq:protocol}
-\end{equation}
-Here $Q_{\mathrm{eff}}$ is the effective capacity,
-$I_k^{\mathrm{cell}}=\phi_{\mathrm{cell}}(I_k)$ maps the protocol current
-coordinate to the physical cell current used by the simulator, and $\kappa_t$
-converts charge to time units.
-The domain $\Theta_{\mathrm{proto}}$ enforces the current and SOC-span bounds and
-requires $\Delta s_K\ge\Delta s_K^{\min}$ to avoid a degenerate terminal stage.
-Following previous charging-design studies~\cite{ref14,ref13}, $K=3$ is used in
-the experiments.
+The objectives are inherently conflicting.
+Higher currents can shorten charging time but generally increase heat generation
+and degradation severity.
+The preferred compromise varies across operating scenarios.
+The optimization target is therefore a feasible Pareto set that preserves these
+trade-offs rather than a single protocol selected using a fixed preference
+vector.
 
 \subsection{Expensive Black-Box Evaluation}
 
-For a given protocol, the battery model returns the objective vector and a
-feasibility flag,
+For each candidate protocol, the battery model returns the objective vector and
+a feasibility indicator,
 \begin{equation}
 \bS(\btheta)\longrightarrow
 \bigl(\mathbf f(\btheta),\,\mathbb I_{\mathrm{feas}}(\btheta)\bigr).
 \label{eq:sim_map}
 \end{equation}
-The protocol domain handles the explicit decision-variable bounds, whereas the
-simulator checks the path-dependent voltage and temperature constraints in
-\eqref{eq:cmop}.
-A protocol violating these limits or failing to complete the prescribed SOC
-interval is excluded from the feasible Pareto archive.
-Because every evaluation of \eqref{eq:sim_map} requires an electrochemical--
-thermal simulation, the central optimization challenge is to approximate the
-Pareto set using as few simulator calls as possible.
-
-\input{figures/fig_charging_design_problem}
+Each call to $\bS$ requires a coupled electrochemical--thermal simulation and
+evaluation of the degradation proxy described in Section~\ref{sec:model_section}.
+The resulting optimization challenge is to approximate the feasible Pareto set
+with as few simulator calls as possible.

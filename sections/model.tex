@@ -4,10 +4,11 @@
 \section{Battery Simulation Model}
 \label{sec:model_section}
 
-Each candidate protocol is evaluated by the same numerical battery model so that
-differences among optimizers do not arise from different objective evaluators.
-The model consists of an electrochemical--thermal simulator and a
-protocol-level degradation proxy.
+Each candidate protocol is evaluated by a common battery-model pipeline
+consisting of an electrochemical--thermal simulator and a protocol-level
+degradation proxy.
+Using the same evaluator for all optimization methods isolates differences
+caused by the search algorithms rather than by the objective model.
 
 \subsection{Electrochemical--Thermal Model}
 \label{sec:model}
@@ -76,7 +77,7 @@ short high-SOC, high-current, or high-temperature excursions.
 This limitation is retained when interpreting the Pareto protocols.
 
 In summary, the battery model maps each protocol $\btheta$ to
-$\mathbf f(\btheta)$ and a feasibility flag.
-BO treats this mapping as an expensive black box.
-Only these simulator-generated objective values are used for surrogate fitting,
-acquisition updates, and Pareto-set construction.
+$\mathbf f(\btheta)$ together with a feasibility flag.
+For BO, this mapping is treated as an expensive black box.
+Only simulator-evaluated objective values are used for surrogate fitting and
+Pareto-set construction.

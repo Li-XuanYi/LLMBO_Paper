@@ -2,34 +2,36 @@
 % Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-Fast-charging protocol design is important for improving the usability and
-lifetime of lithium-ion batteries, but it requires balancing charging speed,
-thermal safety, and degradation under strict operating constraints.
-Model-based evaluation can avoid extensive physical cycling experiments, yet
-repeated electrochemical--thermal simulations remain computationally expensive.
+Fast, safe, and durable charging is essential for lithium-ion battery
+applications, yet charging-protocol design must balance charging speed, thermal
+stress, and degradation under operating constraints.
+Physics-based electrochemical--thermal simulation reduces reliance on repeated
+physical cycling, but evaluating many candidate protocols remains
+computationally expensive.
 Multiobjective Bayesian optimization (MOBO) is attractive in this setting
-because it can approximate a Pareto set with a limited number of costly
-evaluations; however, its early search can be inefficient when only sparse
-observations are available.
-This paper proposes LLMBO-MO, a decomposition-based multiobjective Bayesian
-optimization method that augments the numerical MOBO loop with two bounded
-large-language-model (LLM) guidance mechanisms.
-First, a protocol-domain-screened and diversity-aware LLM-informed
-initialization converts battery-domain knowledge into a more informative set of
-initial charging protocols.
-Second, a weight-conditioned regional-guidance mechanism uses the current
-multiobjective trade-off direction and optimization state to provide bounded
-search regions for early acquisition optimization, with an automatic fallback
-to the original numerical search.
-Both mechanisms modify only where the optimizer searches; objective values,
-constraint satisfaction, GP training targets, and Pareto updates are determined
-exclusively by simulator-evaluated protocols.
-Under a budget of 56 simulator evaluations, LLMBO-MO achieves an approximately
-\ChenDisplayedGain\ higher final hypervolume than ParEGO on Chen2020, and the
-advantage persists on the Ecker2015 parameterization.
-Additional mechanism studies further show that battery-specific LLM
-initialization substantially improves the low-data search stage and that the
-complete LLMBO-MO configuration provides the strongest short-budget result.
+because it can approximate a Pareto set with a limited number of expensive
+evaluations.
+Its early search, however, is sensitive to the small initial design, when the
+surrogate contains little task-specific information.
+This paper proposes LLMBO-MO, a large language model (LLM)-guided extension of a
+ParEGO-style decomposition-based MOBO backbone.
+LLM-informed initialization converts qualitative battery knowledge into a
+protocol-domain-valid and decision-space-diverse initial portfolio, while
+weight-conditioned regional guidance uses the active decomposition direction
+and optimization state to add region-informed restarts to early expected
+improvement optimization.
+The numerical BO search is always retained.
+All selected protocols are evaluated by the battery simulator before they enter
+the surrogate training set or Pareto archive, and path-dependent voltage and
+temperature feasibility is determined by the simulator.
+Under 56 simulator evaluations and five seeds, LLMBO-MO achieves a mean
+final hypervolume of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020,
+compared with \ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, corresponding
+to a \ChenFinalGain\ improvement.
+A similar advantage is observed on Ecker2015.
+Mechanism studies further show that battery-specific LLM information is most
+useful during initialization, while regional guidance acts as a secondary
+early-search refinement.
 \end{abstract}
 
 \begin{IEEEkeywords}

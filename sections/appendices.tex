@@ -103,7 +103,7 @@ entry in the current archive.
 \centering
 \includegraphics[width=0.72\textwidth]{optimal_protocols_curve.pdf}
 \caption{Chen2020 Pareto-archive growth over 50 algorithmic iterations. Lines
-are five-run means and bands show across-run dispersion.}
+are five-seed means and bands show across-seed dispersion.}
 \label{fig:optimal_protocols}
 \end{figure*}
 
@@ -111,7 +111,7 @@ At iteration 50, LLMBO-MO maintains an average of approximately
 \OptimalLLMBOFinal\ nondominated protocols, compared with
 \OptimalParEGOFinal\ for ParEGO.
 Its curve remains higher through most of the search, indicating a richer
-retained set of trade-offs in these runs.
+retained set of trade-offs across these seeds.
 Because the horizontal axis counts algorithmic iterations,
 Fig.~\ref{fig:optimal_protocols} is not an equal-simulator-call sample-efficiency
 comparison and is independent of the fixed-budget HV result.
@@ -119,18 +119,18 @@ comparison and is independent of the fixed-budget HV result.
 \subsection{Objective-Scaling Sensitivity}
 
 The scaling diagnostic compares min--max scaling, Z-score standardization, and
-no normalization on Chen2020 over five runs and the same 56-evaluation budget.
+no normalization on Chen2020 over five seeds and the same 56-evaluation budget.
 It tests numerical robustness rather than the LLM mechanism.
 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.72\textwidth]{objective_normalization_hv.pdf}
-\caption{Chen2020 objective-preprocessing sensitivity over five runs. Lines
+\caption{Chen2020 objective-preprocessing sensitivity over five seeds. Lines
 show mean HV and bands show one sample standard deviation.}
 \label{fig:normalization_hv}
 \end{figure*}
 
-\begin{table}[H]
+\begin{table}[!t]
 \caption{Objective-Preprocessing Sensitivity on Chen2020}
 \label{tab:normalization_hv}
 \centering
@@ -160,18 +160,19 @@ Thus, heterogeneous objective magnitudes should be balanced, while either
 conventional scaling choice is defensible in the present setting.
 
 
-\section{Run Configuration and Reproducibility}
+\section{Seed Configuration and Reproducibility}
 \label{app:reproducibility}
 
-The main Chen2020 and Ecker2015 comparisons use five runs for each method.
-Run-level identifiers, random seeds, LLM call records, and parsed responses are
-retained in the experiment logs rather than in the main parameter table.
-The principal manuscript-facing configuration is summarized below so that the
-reported figures can be traced to the archived runs without interrupting the
-main experimental narrative.
+The main Chen2020 and Ecker2015 comparisons use the same five seeds
+(\MainSeedSet) for each method.
+Seed-level identifiers, LLM call records, and parsed responses are retained in
+the experiment logs rather than in the main parameter table.
+The principal configuration is summarized below so that the reported statistics
+can be traced to the corresponding seed set without interrupting the main
+experimental narrative.
 
 \begin{table}[!t]
-\caption{Run-Level Configuration Used in the Reported Studies}
+\caption{Seed and Configuration Summary for the Reported Studies}
 \label{tab:run_configuration}
 \centering
 \footnotesize
@@ -180,12 +181,12 @@ main experimental narrative.
 \toprule
 Study & Configuration \\
 \midrule
-Chen2020 main comparison & five runs; 56 simulator calls per run \\
-Ecker2015 robustness case & five runs; 56 simulator calls per run \\
-Initialization study & ten matched runs; 26-call budget \\
-Component ablation & three matched runs; 16-call budget \\
+Chen2020 main comparison & five seeds (\MainSeedSet); 56 calls per seed \\
+Ecker2015 second-parameterization case & five seeds (\MainSeedSet); 56 calls per seed \\
+Initialization study & ten matched seeds; 26-call budget \\
+Component ablation & three matched seeds (8409--8411); 16-call budget \\
 Main regional guidance & $T_{\mathrm L}=16$, 64 anchors, EI-search restarts \\
-LLM records & prompt/configuration and responses logged per run \\
+LLM records & prompt/configuration and responses logged per seed \\
 \bottomrule
 \end{tabular}
 \end{table}

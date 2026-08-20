@@ -1,12 +1,6 @@
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=0.98\textwidth]{fig_llambo_mo_framework.pdf}
-\caption{LLMBO-MO workflow. The decomposition-based multiobjective BO
-backbone performs trade-off weight selection, objective transformation and
-scalarization, GP fitting, EI optimization, simulator evaluation, and Pareto
-update. The LLM enters through two bounded interfaces: an informed
-initialization before sequential BO and a weight-conditioned regional guidance
-branch that supplies additional EI-search restarts during the early stage.
-Only simulator-evaluated protocols update the numerical optimization state.}
+\includegraphics[width=\columnwidth]{图2-v2.png}
+\caption{Structure of LLMBO-MO}
 \label{fig:framework}
-\end{figure*}
+\end{figure}

@@ -6,19 +6,18 @@
 
 \subsection{Overview}
 
-LLMBO-MO is a decomposition-based multiobjective Bayesian optimization method
-augmented by two bounded knowledge-guidance mechanisms.
-The numerical MOBO loop remains the decision-making backbone: a trade-off weight
-selects the current multiobjective subproblem, observed objectives are
-transformed and scalarized, a GP surrogate is fitted, expected improvement (EI)
-is optimized, the selected protocol is evaluated by the battery simulator, and
-the evaluated database and Pareto archive are updated.
-The LLM acts only at two interfaces with this loop.
-First, before sequential BO, it helps construct a domain-informed initial design.
-Second, during an early guidance window, it may propose a bounded region used to
-enrich the numerical acquisition search.
-In both cases, the LLM changes candidate locations rather than objective values;
-only simulator-evaluated protocols enter $\bD$ or $\bP$.
+LLMBO-MO augments a ParEGO-style decomposition-based multiobjective Bayesian
+optimization backbone with two LLM-guided search mechanisms.
+The numerical MOBO loop remains responsible for trade-off decomposition,
+surrogate fitting, acquisition optimization, simulator evaluation, and Pareto
+updating.
+The LLM interacts with this loop only through candidate locations.
+Before sequential BO, it contributes to a domain-informed initial design.
+During a bounded early-search window, it may additionally provide a
+weight-conditioned region preference that supplies extra restarts to the
+numerical acquisition optimizer.
+The original numerical search remains available in both stages, and no
+unevaluated LLM proposal is used as a surrogate target or Pareto value.
 The complete workflow is summarized in Fig.~\ref{fig:framework}.
 
 \input{figures/fig_llambo_mo_framework}
@@ -101,19 +100,20 @@ backbone shared with the primary BO comparator.
 \subsection{LLM-Informed Initialization}
 \label{sec:warm_start}
 
-The first LLM mechanism targets the low-data stage before sequential BO begins.
+The first LLM mechanism targets the data-scarce stage before sequential BO
+begins.
 Its prompt specifies the battery context, decision-variable bounds, three-stage
 MCC geometry, objective definitions, and qualitative charging knowledge such as
 reasonable current ordering and SOC allocation.
 The LLM returns a pool of numerical protocol candidates together with a
-self-reported preference score.
+heuristic ranking score that is used only during candidate selection.
 Non-numerical or non-finite entries and duplicates are removed, box violations
 are clipped, and candidates that cannot satisfy
 $\Delta s_K\geq\Delta s_K^{\min}$ are rejected.
 These operations enforce protocol-domain admissibility only; voltage and
 temperature feasibility are still determined by the simulator.
 
-Let $h_{\mathrm{ws}}(\btheta)\in[0,1]$ denote the LLM-reported score.
+Let $h_{\mathrm{ws}}(\btheta)\in[0,1]$ denote the LLM-provided heuristic score.
 A soft penalty discourages a terminal SOC span below a preferred boundary,
 \begin{equation}
 p_{\mathrm{soft}}(\btheta)=
@@ -122,8 +122,8 @@ p_{\mathrm{soft}}(\btheta)=
 \label{eq:soft_penalty}
 \end{equation}
 Let $\mathbb I_{\mathrm{mono}}(\btheta)$ indicate a nonincreasing current
-sequence. Candidate selection combines the LLM score, the soft charging prior,
-and portfolio diversity,
+sequence. Candidate selection combines the LLM score, the soft protocol heuristic,
+and decision-space diversity,
 \begin{equation}
 \begin{aligned}
 J_{\mathrm{ws}}(\btheta)
@@ -147,8 +147,9 @@ The hat denotes normalized decision coordinates.
 Random protocol-domain-valid points complete the initial design so that the
 search is not restricted to LLM proposals.
 Every selected initial protocol is evaluated by the simulator before entering
-$\bD$; hence, the LLM changes the distribution of initial evaluation locations
-without creating pseudo-observations.
+$\bD$.
+Thus, the LLM changes the distribution of initial evaluation locations without
+introducing unevaluated objective values into the BO database.
 
 \subsection{Bounded Weight-Conditioned Regional Guidance}
 \label{sec:region_pref}
@@ -166,16 +167,17 @@ regions are parsed, clipped, repaired to $\Theta_{\mathrm{proto}}$, and rejected
 when they are too narrow, too broad, or otherwise inadmissible.
 
 Anchors sampled from an accepted region are used only as additional restarts for
-the numerical EI maximization in \eqref{eq:ei}.
-Thus, regional guidance can redirect where the acquisition optimizer searches,
-but it does not modify an objective value, GP training target, posterior model,
-or Pareto relation.
-Invalid or absent guidance falls back to the original numerical acquisition
-search, and all LLM regional interaction stops after $T_{\mathrm L}$.
-This bounded design makes the region mechanism complementary to the
-LLM-informed initialization: the first mechanism supplies a global early search
-prior, whereas the second adapts a local search preference to the current
-multiobjective trade-off direction.
+the numerical EI maximization in \eqref{eq:ei}; the original acquisition
+restarts and the full protocol domain are retained.
+Regional guidance therefore biases the numerical search without restricting the
+feasible search space or modifying objective values, GP training targets, the
+posterior model, or Pareto relations.
+Invalid or absent guidance simply leaves the original acquisition search
+unchanged, and all LLM regional interaction stops after $T_{\mathrm L}$.
+The two mechanisms consequently play different roles: LLM-informed
+initialization provides a diversified global starting design, whereas regional
+guidance supplies a local, weight-conditioned search bias during the early
+sequential stage.
 The optional posterior-mean coupling studied during method development is not
 part of the principal algorithm and is retained only in
 Appendix~\ref{app:coupling}.
@@ -184,7 +186,7 @@ Appendix~\ref{app:coupling}.
 
 Algorithm~\ref{alg:llmbo} summarizes the complete procedure.
 The numerical MOBO backbone remains active throughout the full budget, while
-LLM assistance is concentrated in the evidence-scarce initialization and early
+LLM assistance is concentrated in the data-scarce initialization and early
 acquisition stages.
 
 \begin{algorithm}[!t]

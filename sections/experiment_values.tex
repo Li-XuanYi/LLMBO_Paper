@@ -1,11 +1,16 @@
-% Canonical manuscript-facing values generated from the available result set.
-% Reader-facing summary figures and tables in Section V use these same values.
-% Chen2020 and Ecker2015 main comparisons retain the five-run statistics from
-% the supplied manuscript; the component ablation uses the supplied three-seed manifest.
+% Canonical manuscript-facing values.
+% Main Chen2020 and Ecker2015 comparisons are reported over five seeds.
+% Chen2020 seed-level summary uses seeds 8409--8413.
 
-\newcommand{\ChenDisplayedLLMBO}{0.3848}
-\newcommand{\ChenDisplayedParEGO}{0.3523}
-\newcommand{\ChenDisplayedGain}{9.5\%}
+\newcommand{\MainSeedSet}{8409--8413}
+
+% Chen2020 main comparison: five-seed final HV (mean +/- sample SD).
+\newcommand{\ChenLLMBOMean}{0.3848}
+\newcommand{\ChenLLMBOStd}{0.0073}
+\newcommand{\ChenParEGOMean}{0.3520}
+\newcommand{\ChenParEGOStd}{0.0169}
+\newcommand{\ChenFinalGain}{9.3\%}
+
 \newcommand{\ChenNSGAMean}{0.3265}
 \newcommand{\ChenNSGAStd}{0.0220}
 \newcommand{\ChenNSGAGain}{17.9\%}
@@ -16,8 +21,7 @@
 \newcommand{\ChenPIMDStd}{0.0195}
 \newcommand{\ChenPIMDGain}{30.8\%}
 
-% Chen2020 main comparison values used by the manuscript-facing figure/table.
-
+% Ecker2015 main comparison: five-seed summary.
 \newcommand{\EckerParEGOMean}{0.4760}
 \newcommand{\EckerParEGOStd}{0.0039}
 \newcommand{\EckerLLMBOMean}{0.5605}
@@ -27,6 +31,7 @@
 \newcommand{\EckerMidGain}{28.3\%}
 \newcommand{\EckerFinalGain}{17.8\%}
 
+% Objective-preprocessing diagnostic.
 \newcommand{\NormMinMaxMean}{0.4146}
 \newcommand{\NormMinMaxStd}{0.0067}
 \newcommand{\NormZScoreMean}{0.4122}
@@ -40,13 +45,13 @@
 \newcommand{\OptimalLLMBOFinal}{49.4}
 \newcommand{\OptimalParEGOFinal}{45.8}
 
+% Chen2020 initialization study: ten matched seeds.
 \newcommand{\PromptHVGain}{0.05828}
 \newcommand{\PromptHolmP}{0.005859}
 \newcommand{\PromptEffect}{1.309}
 
-
-% Short-budget Chen2020 component ablation (three matched seeds: 8409--8411,
-% 6 initialization evaluations + 10 BO iterations = 16 simulator calls).
+% Short-budget Chen2020 component ablation:
+% matched seeds 8409--8411, 6 initialization evaluations + 10 BO iterations.
 \newcommand{\AblationSeeds}{3}
 \newcommand{\AblationBaselineSOne}{0.2522}
 \newcommand{\AblationBaselineSTwo}{0.3404}
