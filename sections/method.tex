@@ -4,6 +4,23 @@
 \section{Proposed LLMBO-MO}
 \label{sec:method}
 
+The battery model in Section~\ref{sec:model_section} maps each candidate
+protocol to an objective vector together with a feasibility flag, so the
+design problem is an expensive black-box evaluation for BO.
+LLMBO-MO interfaces with this black box at a single point: the
+candidate-protocol decision vector $\btheta$.
+The LLM is allowed to read the battery-domain text, the decision-variable
+bounds, and the current BO state (active decomposition weight, observed
+objective ranges, selected evaluated protocols), but it does not have
+access to the simulator, the GP surrogate, the acquisition surface, or the
+feasible Pareto archive.
+All objective values entering the surrogate training set and the Pareto
+archive are produced by the simulator, not by the LLM.
+
+The following subsection motivates the design of LLMBO-MO from the
+limitations of the closest prior work; the numerical backbone and the two
+LLM mechanisms are then described in detail.
+
 \subsection{Overview}
 
 LLMBO-MO augments a ParEGO-style decomposition-based multiobjective Bayesian
@@ -21,6 +38,76 @@ unevaluated LLM proposal is used as a surrogate target or Pareto value.
 The complete workflow is summarized in Fig.~\ref{fig:framework}.
 
 \input{figures/fig_llambo_mo_framework}
+
+\subsection{Design Rationale and Motivation}
+\label{sec:motivation}
+
+The design of LLMBO-MO is guided by four explicit considerations that
+together distinguish the proposed method from the closest prior work.
+
+\emph{Why an LLM rather than a rule-based template, a fine-tuned prior
+model, or a full historical-archive transfer.}
+Ref.~\cite{refEIMO} transfers \emph{optimization experience} across
+state-of-health levels and therefore requires running the algorithm at
+multiple SOH levels before the target SOH is reached.
+Ref.~\cite{refGPA} trains a Gaussian-process surrogate from past runs.
+Both approaches are effective when the necessary historical optimization
+data are available, but they require data that are not always present in
+a new battery project.
+LLMBO-MO instead queries an LLM, which needs only battery-domain text, so
+the same prompt template is portable across cell chemistries, cell
+formats, and operating windows with only the context block being replaced.
+A hand-coded multi-stage template generator (a \emph{rules} baseline) is
+also a possible source of qualitative information, and the present
+manuscript explicitly includes such a comparator in the
+initialization study to disentangle prompt quality from domain
+knowledge.
+
+\emph{Why exactly two LLM touchpoints rather than a single
+end-to-end interface.}
+A single LLM call embedded inside the BO loop would conflate
+\emph{where to look} with \emph{what the objective is} and would require
+trusting the LLM with surrogate updates or Pareto assignments, which
+violates the LLM-to-surrogate boundary that the present work enforces.
+Two narrowly scoped touchpoints keep the LLM strictly on the candidate
+side of the boundary: one touchpoint at initialization (data-scarce
+stage) and one touchpoint at early acquisition (where the surrogate is
+still uncertain).
+
+\emph{Why initialization plus a bounded early window rather than
+full-horizon guidance.}
+The prompt study in Section~\ref{sec:experiments} shows that the LLM
+contribution is largest at initialization and decreases as the surrogate
+accumulates task-specific data.
+Restricting the regional guidance to an early window
+$t\le T_{\mathrm L}$ therefore concentrates the LLM call budget where it
+is most informative and avoids the LLM and the GP surrogate competing for
+the same decision during the data-rich stage.
+The early-window restriction is also what makes the API cost predictable
+and what allows the LLM to be replaced by a random-region baseline for
+robustness checks.
+
+\emph{Why weight-conditioning rather than objective-conditioning or
+hypervolume-conditioning.}
+In a decomposition-based MOBO, the active trade-off weight $\bw^{(t)}$
+fully specifies the current scalarization of the problem, and conditioning
+the LLM on $\bw^{(t)}$ directly aligns the regional preference with the
+scalarized target.
+Objective-conditioning would have to aggregate three competing objectives
+into a single LLM input, and hypervolume-conditioning would have to
+communicate a set-valued signal that is harder for an LLM to reason
+about.
+The chosen design therefore uses the same Das--Dennis-simplex weight
+schedule that the underlying ParEGO-style backbone uses, which keeps
+the LLM interface and the numerical interface synchronized at every
+iteration.
+
+Taken together, these four considerations motivate a design that
+(a) treats the LLM as a portable domain-knowledge interface,
+(b) keeps the LLM strictly on the candidate side of the
+LLM-to-surrogate boundary, (c) restricts the LLM call budget to the
+data-scarce and early-uncertainty stages, and (d) synchronizes the LLM
+interface with the decomposition weight used by the numerical backbone.
 
 \subsection{Decomposition-Based Multiobjective BO Backbone}
 \label{sec:parego_backbone}
@@ -102,9 +189,9 @@ backbone shared with the primary BO comparator.
 
 The first LLM mechanism targets the data-scarce stage before sequential BO
 begins.
-Its prompt specifies the battery context, decision-variable bounds, three-stage
-MCC geometry, objective definitions, and qualitative charging knowledge such as
-reasonable current ordering and SOC allocation.
+Its prompt specifies the battery context, decision-variable bounds,
+three-stage MCC geometry, objective definitions, and qualitative charging
+knowledge such as reasonable current ordering and SOC allocation.
 The LLM returns a pool of numerical protocol candidates together with a
 heuristic ranking score that is used only during candidate selection.
 Non-numerical or non-finite entries and duplicates are removed, box violations

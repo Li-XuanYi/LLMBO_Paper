@@ -18,20 +18,53 @@ All selected protocols are evaluated by the battery simulator before they are
 used for surrogate fitting or Pareto updating.
 
 Under 56 simulator evaluations and five seeds, LLMBO-MO attains a mean
-final HV of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020, compared with
-\ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, corresponding to a
-\ChenFinalGain\ improvement.
-A similar final-HV advantage is observed under the Ecker2015 parameterization.
-The matched initialization study provides the clearest mechanism-level evidence:
-battery-specific LLM information improves early search when simulator
-observations are scarce.
-The three-seed component ablation does not establish an independent systematic
-benefit from regional guidance, although the combined LLMBO-MO variant achieves
-the highest observed mean HV among the four short-budget variants.
+final HV of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020, compared
+with \ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, corresponding
+to a \ChenFinalGain\ improvement.
+A similar final-HV advantage is observed under the Ecker2015
+parameterization.
+The matched initialization study provides the clearest mechanism-level
+evidence: battery-specific LLM information improves early search when
+simulator observations are scarce.
+The three-seed component ablation does not establish an independent
+systematic benefit from regional guidance, although the combined
+LLMBO-MO variant achieves the highest observed mean HV among the four
+short-budget variants.
 These results indicate that LLM knowledge is most reliably useful as
 early-stage search guidance within a numerical MOBO process.
 
-Future work will extend the evaluation to stronger matched MOBO baselines,
-controlled comparisons across LLM backends and prompt realizations, broader
-battery operating conditions, and physical-cell experiments with
-experimentally grounded degradation endpoints.
+\emph{Despite these results, several limitations should be kept in mind.}
+First, the evaluation is simulation based: the SPMe electrochemical and
+lumped thermal model in Section~\ref{sec:model_section} captures the
+dominant dynamics of lithium-ion fast charging but does not resolve
+localized degradation, lithium plating, or thermal gradients, and the
+conclusions therefore do not transfer directly to physical cells.
+Second, the third objective is a control-oriented trajectory-averaged
+degradation proxy rather than a measured capacity-fade endpoint, so the
+Pareto protocols should be interpreted in proxy units rather than as
+quantitative cycle-life predictions.
+Third, the five-seed main comparison is descriptive: the reported
+means and standard deviations characterize the observed seed
+distribution, and the relative improvement over ParEGO is small enough
+that an additional inferential test is needed before the difference
+should be called statistically reliable (paired test statistics are
+reported in Section~\ref{sec:experiments}).
+Fourth, the three-seed regional-guidance ablation is statistically
+inconclusive, and the regional mechanism should therefore be read as
+a secondary early-search refinement rather than as a peer
+contribution to the LLM-informed initialization.
+Fifth, the present results are obtained with a single LLM backend
+(V4-Flash) on a single battery chemistry family; a controlled
+cross-LLM robustness study and additional parameterizations are
+required before the method can be claimed to be LLM-backend-agnostic
+or chemistry-agnostic.
+Finally, the Ecker2015 experiment is interpreted as a second-battery
+parameterization check rather than as a formal cross-battery transfer
+study, because the two parameterizations share the same simulator
+family and the same five seeds.
+
+Future work will extend the evaluation to stronger matched MOBO
+baselines (notably qEHVI and qNEHVI), controlled comparisons across
+LLM backends and prompt realizations, broader battery operating
+conditions, and physical-cell experiments with experimentally grounded
+degradation endpoints.

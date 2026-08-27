@@ -7,99 +7,147 @@
 Fast and reliable charging is a central requirement for lithium-ion batteries
 used in electric vehicles and energy-storage systems.
 Increasing the charging current can shorten charging time, but it also
-intensifies heat generation and degradation, creating inherent trade-offs among
-charging speed, thermal safety, and battery durability~\cite{ref1,ref2,refYang}.
+intensifies heat generation and degradation, creating inherent trade-offs
+among charging speed, thermal safety, and battery
+durability~\cite{ref1,ref2,refYang}.
 Because the preferred compromise varies across operating scenarios,
-charging-protocol design is naturally a constrained multiobjective optimization
-problem whose desired output is a set of Pareto-nondominated protocols rather
-than a single schedule selected by fixed preferences.
+charging-protocol design is naturally a constrained multiobjective
+optimization problem whose desired output is a set of Pareto-nondominated
+protocols rather than a single schedule selected by fixed preferences.
 
 Accurate evaluation of a charging protocol is costly.
 Physical cycling requires substantial time and laboratory resources,
 particularly when degradation is included.
 Physics-based electrochemical--thermal simulation reduces reliance on repeated
-experiments, but each candidate still requires the numerical solution of
-coupled battery dynamics.
-Consequently, the number of simulator evaluations becomes a major computational
-bottleneck.
+experiments~\cite{ref6,ref7}, but each candidate still requires the numerical
+solution of coupled battery dynamics.
+Consequently, the number of simulator evaluations becomes a major
+computational bottleneck.
 Bayesian optimization (BO) is well suited to this setting because a
 probabilistic surrogate and an acquisition function can prioritize informative
 evaluations under a limited budget~\cite{ref3,ref11,ref12,ref14}.
 For multiple objectives, decomposition-based multiobjective BO (MOBO) can
 sequentially explore different trade-off directions and approximate a Pareto
-set with relatively few expensive evaluations~\cite{ref13,refZhu}.
-Gaussian-process-assisted evolutionary optimization has likewise demonstrated
-the value of surrogate modeling for sample-efficient charging
-design~\cite{refGPA}.
+set with relatively few expensive evaluations~\cite{ref4,ref13,refZhu}.
 
-Existing studies improve BO-based charging design mainly by refining the search
-strategy or by incorporating additional task knowledge.
+Existing studies improve BO-based charging design mainly by refining the
+search strategy or by incorporating additional task knowledge.
 Mesh-adaptive and parallel acquisition strategies improve the allocation of
-new evaluations~\cite{refDong,refBLASTS}, whereas digital twins, aging models,
-electrochemical constraints, and related physics-based information provide
-task-specific numerical guidance~\cite{refDigitalTwin,refPrBO,refYoon}.
+new evaluations~\cite{refDong,refBLASTS}, whereas digital twins, aging
+models, electrochemical constraints, and related physics-based information
+provide task-specific numerical
+guidance~\cite{refDigitalTwin,refPrBO,refYoon}.
 These approaches are effective when suitable models or historical numerical
 information are available.
-They are less direct, however, for incorporating qualitative charging knowledge
-such as plausible multistage current patterns, SOC allocation heuristics, and
-thermal--degradation trade-offs.
-This limitation matters most at the beginning of BO: with only a few evaluated
-protocols, the surrogate is highly sensitive to the initial design, and poor
-initial samples may consume a substantial fraction of a tight simulation
-budget before informative regions are reached.
+They are less direct, however, for incorporating qualitative charging
+knowledge such as plausible multistage current patterns, SOC allocation
+heuristics, and thermal--degradation trade-offs, which is exactly the
+information that practitioners carry when they design a new charging
+protocol.
+This limitation matters most at the beginning of BO: with only a few
+evaluated protocols, the surrogate is highly sensitive to the initial
+design, and poor initial samples may consume a substantial fraction of a
+tight simulation budget before informative regions are reached.
 
-Large language models (LLMs) provide a possible interface for translating such
-textual knowledge into optimization suggestions.
+Large language models (LLMs) provide a possible interface for translating
+such textual knowledge into optimization suggestions.
 LLAMBO introduced LLM-assisted warm starts, candidate generation, and
 surrogate-related reasoning for BO~\cite{ref10}.
-Subsequent studies have considered point or region preferences and selective use
-of inexpensive LLM predictions~\cite{ref16,refLABO}.
+Subsequent studies have considered point or region preferences and selective
+use of inexpensive LLM predictions~\cite{ref16,refLABO}.
 LLM-assisted BO has also been applied to battery parameter
-identification~\cite{refKuaiLLMBO}, while broader studies show that the value of
-LLM guidance depends strongly on alignment with the target scientific
-domain~\cite{refSoberLLMBO}.
+identification~\cite{refKuaiLLMBO}, while broader studies show that the
+value of LLM guidance depends strongly on alignment with the target
+scientific domain~\cite{refSoberLLMBO}.
 For multiobjective fast-charging design, two aspects remain insufficiently
 explored.
-First, raw LLM suggestions must be converted into a protocol-domain-valid and
-diverse initial design before they can provide useful information to BO.
-Second, if LLM guidance is retained during sequential search, the recommendation
-should reflect the active multiobjective trade-off rather than remain
-independent of the current decomposition direction and optimization state.
-In either case, LLM suggestions should guide where the optimizer searches,
-while simulator evaluations continue to determine objective values and
-path-dependent physical feasibility.
+First, raw LLM suggestions must be converted into a protocol-domain-valid
+and diverse initial design before they can provide useful information to BO.
+Second, if LLM guidance is retained during sequential search, the
+recommendation should reflect the active multiobjective trade-off rather
+than remain independent of the current decomposition direction and
+optimization state.
+In either case, LLM suggestions should guide \emph{where} the optimizer
+searches, while simulator evaluations continue to determine objective
+values and path-dependent physical feasibility.
+
+The closest prior work in fast-charging protocol design follows a related
+but distinct strategy.
+EIMO~\cite{refEIMO} transfers \emph{optimization experience} from previously
+optimized state-of-health (SOH) levels to a new SOH level through a
+transfer acquisition function, and GPA-MOBO~\cite{refGPA} accelerates a
+decomposition-based MOBO backbone using a Gaussian-process surrogate with
+multiple user-preference directions.
+Both target the same application and share the same
+decomposition--GP--EI numerical backbone as the present work.
+LLMBO-MO differs from them in the \emph{source} of prior information: it
+queries an LLM, which requires only battery-domain text, rather than
+running EIMO at multiple SOH levels or training a problem-specific
+surrogate.
+The two families are therefore complementary---EIMO is preferable when
+historical optimization data are available at multiple SOH levels, whereas
+LLMBO-MO is preferable when only domain knowledge is available in textual
+form.
 
 This paper proposes \emph{LLMBO-MO}, which augments a ParEGO-style
 decomposition-based MOBO backbone with two LLM-guided search mechanisms.
-The main contributions are summarized as follows:
-\begin{enumerate}
-    \item An \emph{LLM-informed initialization} mechanism is developed to
-    translate battery-domain textual knowledge into numerical charging
-    protocols. Protocol-domain screening, heuristic ranking, and
-    diversity-aware selection are used to construct a valid and
-    decision-space-diverse initial portfolio, and every selected protocol is
-    evaluated by the battery simulator before entering the BO database.
+\emph{The main contributions are organized around a single problem-solution
+chain}: each contribution fixes one specific gap in applying LLM guidance
+to early-stage multiobjective battery optimization.
+The first contribution is a \emph{LLM-informed initialization} that
+converts battery-domain textual knowledge into a protocol-domain-valid and
+decision-space-diverse initial portfolio; this addresses the data-scarce
+stage before sequential BO begins.
+The second contribution is a \emph{weight-conditioned regional guidance}
+mechanism that supplies additional restarts to early expected-improvement
+optimization and is positioned as a secondary early-search refinement,
+not as a peer to the initialization; this reflects the modest and
+inconclusive 3-seed ablation result reported in
+Section~\ref{sec:experiments}.
+The third contribution is a fixed-budget numerical validation on two
+SPMe parameterizations with matched seeds, which quantifies the combined
+mechanism and the relative contribution of each component.
 
-    \item A \emph{weight-conditioned regional guidance} mechanism is developed
-    for the early sequential stage. The active decomposition weight and current
-    optimization state are used to obtain a bounded point or region preference.
-    Accepted regions contribute additional restarts to numerical
-    expected-improvement optimization, while the original acquisition search is
-    retained as an automatic fallback.
+The principal findings and insights are summarized as follows.
+\begin{itemize}
+    \item A decomposition-based MOBO backbone, when seeded with a
+    battery-domain-validated and decision-space-diverse LLM portfolio,
+    produces a higher mean final hypervolume than the same backbone
+    initialized with random or generic-prompt candidates under matched
+    26-evaluation seeds.
+    \item The LLM-derived improvement is concentrated in the
+    initialization step; the additional bounded regional guidance
+    contributes a smaller and statistically inconclusive
+    three-seed refinement.
+    \item The advantage transfers to a second SPMe parameterization
+    but is interpreted as an additional battery-model check
+    rather than as a formal cross-battery transfer study.
+    \item The LLM is restricted to candidate locations; all objective
+    values and Pareto-set entries are simulator-validated, which keeps
+    the surrogate training set and the Pareto archive free of unevaluated
+    LLM outputs.
+\end{itemize}
 
-    \item Fixed-budget numerical studies evaluate the complete method and its
-    two mechanisms. The main Chen2020 and Ecker2015 comparisons use the same
-    five seeds for every method. On Chen2020, LLMBO-MO attains a mean
-    final HV of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ versus
-    \ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO after 56 simulator
-    evaluations. Additional matched-seed studies isolate the contribution of
-    battery-specific initialization and the complementary role of regional
-    guidance.
-\end{enumerate}
+\emph{Note to practitioners.} LLMBO-MO is best viewed as an early-stage
+search aid when (i) the simulator is too expensive for a long BO budget,
+(ii) domain knowledge is available in textual form but not as a numerical
+prior, and (iii) the practitioner is willing to maintain a small LLM
+prompt and response log for reproducibility.
+The method adds at most $n_0{+}T_{\mathrm L}$ LLM calls to the optimization
+loop (six initialization queries plus a bounded early-window sequence in
+the present configuration), so its incremental API cost is modest compared
+with the simulator cost.
+If the LLM backend is unavailable, the LLM touchpoints degrade gracefully:
+the initialization falls back to a random protocol-domain-valid
+portfolio, and the regional-guidance branch is skipped, leaving the
+underlying ParEGO-style MOBO loop intact.
 
 The rest of this paper is organized as follows.
-Section~\ref{sec:problem} formulates the multiobjective fast-charging problem.
-Section~\ref{sec:model_section} introduces the battery simulation model.
-Section~\ref{sec:method} presents LLMBO-MO.
-Section~\ref{sec:experiments} reports the numerical validation and discussion,
-and Section~\ref{sec:conclusion} concludes the paper.
+Section~\ref{sec:problem} formulates the multiobjective fast-charging
+problem and the MCC protocol geometry following
+Ref.~\cite{refTahir}.
+Section~\ref{sec:model_section} introduces the battery simulation model and
+the control-oriented degradation proxy.
+Section~\ref{sec:method} develops LLMBO-MO.
+Section~\ref{sec:experiments} reports the numerical validation and
+discussion, and Section~\ref{sec:conclusion} concludes the paper.

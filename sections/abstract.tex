@@ -2,36 +2,38 @@
 % Abstract (IEEE Transactions style) + Index Terms
 % ============================================================================
 \begin{abstract}
-Fast, safe, and durable charging is essential for lithium-ion battery
-applications, yet charging-protocol design must balance charging speed, thermal
-stress, and degradation under operating constraints.
-Physics-based electrochemical--thermal simulation reduces reliance on repeated
-physical cycling, but evaluating many candidate protocols remains
-computationally expensive.
-Multiobjective Bayesian optimization (MOBO) is attractive in this setting
-because it can approximate a Pareto set with a limited number of expensive
-evaluations.
-Its early search, however, is sensitive to the small initial design, when the
-surrogate contains little task-specific information.
-This paper proposes LLMBO-MO, a large language model (LLM)-guided extension of a
-ParEGO-style decomposition-based MOBO backbone.
-LLM-informed initialization converts qualitative battery knowledge into a
-protocol-domain-valid and decision-space-diverse initial portfolio, while
-weight-conditioned regional guidance uses the active decomposition direction
-and optimization state to add region-informed restarts to early expected
-improvement optimization.
-The numerical BO search is always retained.
-All selected protocols are evaluated by the battery simulator before they enter
-the surrogate training set or Pareto archive, and path-dependent voltage and
-temperature feasibility is determined by the simulator.
-Under 56 simulator evaluations and five seeds, LLMBO-MO achieves a mean
-final hypervolume of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020,
-compared with \ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, corresponding
-to a \ChenFinalGain\ improvement.
-A similar advantage is observed on Ecker2015.
-Mechanism studies further show that battery-specific LLM information is most
-useful during initialization, while regional guidance acts as a secondary
-early-search refinement.
+Fast, safe, and durable charging of lithium-ion batteries requires balancing
+charging speed, thermal stress, and degradation, which makes
+charging-protocol design a constrained multiobjective optimization problem.
+Bayesian optimization (BO) is attractive in this setting because it can
+approximate a Pareto set with a limited number of expensive
+simulator evaluations, but its early search is highly sensitive to the small
+initial design and to the absence of task-specific structure.
+This paper proposes LLMBO-MO, a large language model (LLM)-guided extension of
+a ParEGO-style decomposition-based multiobjective BO backbone that addresses
+this early-search gap.
+The proposed method introduces two LLM touchpoints that are kept strictly
+separable from the numerical surrogate: (i) an LLM-informed initialization
+that converts qualitative battery knowledge into a protocol-domain-valid and
+decision-space-diverse initial portfolio, and (ii) a weight-conditioned
+regional guidance mechanism that uses the active decomposition direction and
+the current optimization state to add region-informed restarts to early
+expected-improvement optimization, while the original numerical search is
+retained as an automatic fallback.
+All selected protocols are evaluated by the battery simulator before they
+enter the surrogate training set or the Pareto archive, and path-dependent
+voltage and temperature feasibility is determined by the simulator rather
+than by the LLM.
+Under 56 simulator evaluations and five seeds, LLMBO-MO attains a mean final
+hypervolume of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020, compared
+with \ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, a \ChenFinalGain\
+relative improvement; a similar advantage is observed on Ecker2015.
+Mechanism studies show that the gain is concentrated in the
+LLM-informed initialization, whereas regional guidance acts as a
+secondary early-search refinement.
+The conclusions are limited to simulation-based evaluation, a control-oriented
+degradation proxy, a single LLM backend, and matched-seed fixed-budget
+comparisons against a backbone-matched comparator set.
 \end{abstract}
 
 \begin{IEEEkeywords}
