@@ -464,7 +464,6 @@ def make_pareto_protocols(
 
     ax.legend(
         loc="upper right",
-        frameon=False,                   # 范例图例无边框
         fontsize=14,
         handlelength=1.0,
     )
