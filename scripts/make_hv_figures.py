@@ -347,7 +347,7 @@ def _select_arc_representatives(front: list[dict[str, Any]]) -> list[dict[str, A
     cumulative /= cumulative[-1]
 
     selected_indices: list[int] = []
-    for target in np.linspace(0.0, 1.0, 5):
+    for target in np.linspace(0.0, 1.0, 3):
         for candidate in np.argsort(np.abs(cumulative - target)):
             candidate_index = int(candidate)
             if candidate_index not in selected_indices:
@@ -355,7 +355,7 @@ def _select_arc_representatives(front: list[dict[str, Any]]) -> list[dict[str, A
                 break
     selected = [ordered[index] for index in selected_indices]
     selected.sort(key=lambda record: record["objectives"][0])
-    for label, record in zip("ABCDE", selected):
+    for label, record in zip("ABC", selected):
         record["label"] = label
     return selected
 
@@ -404,20 +404,19 @@ def make_pareto_protocols(
         record["dsoc3"] = 0.8 - theta[3] - theta[4]
         record["feasible"] = True
         record["globally_nondominated"] = True
-
     _style()
     fig = plt.figure(figsize=(7.15, 6.30))
     ax = fig.add_subplot(111, projection="3d")
+
     all_values = np.asarray([record["objectives"] for record in deduplicated], dtype=float)
-    ax.scatter(
+    ax.scatter(                              # 空心点 → 范例式的实心薰衣草紫圆点
         all_values[:, 0],
         all_values[:, 1],
         all_values[:, 2],
-        s=15,
-        facecolors="none",
-        edgecolors="#355C97",
-        linewidths=0.7,
-        alpha=0.55,
+        s=24,
+        c="#8484CC",
+        alpha=0.65,
+        linewidths=0,
         label="LLMBO-MO",
     )
     for record in selected:
@@ -427,29 +426,51 @@ def make_pareto_protocols(
             [temperature],
             [degradation],
             marker="*",
-            s=210,
-            color="#F5222D",
-            edgecolors="#F5222D",
+            s=400,                           # 星标加大，范例中很醒目
+            c="#D62728",
+            edgecolors="#9E1B1B",
+            linewidths=0.6,
             depthshade=False,
             zorder=10,
         )
         ax.text(
             time_value,
             temperature,
-            degradation + 0.025,
+            degradation + 0.03,
             record["label"],
-            fontsize=12,
+            fontsize=16,                     # 字母标签加大加粗，同范例
+            fontweight="bold",
             color="black",
             zorder=11,
         )
-    ax.set_xlabel("Charging time (s)", labelpad=9)
-    ax.set_ylabel("Temperature rise (K)", labelpad=9)
-    ax.set_zlabel("Degradation proxy (a.u.)", labelpad=8)
-    ax.view_init(elev=23, azim=-58)
+
+    for pane in (ax.xaxis.pane, ax.yaxis.pane, ax.zaxis.pane):
+        pane.set_facecolor("#f2f2f2")        # 浅暖灰 pane，模仿范例底色
+        pane.set_edgecolor("#D9D9D9")
+
+    ax.set_xlabel("Charging Time / s", labelpad=12)    # 范例用 " / " 分隔单位
+    ax.set_ylabel("Temperature Rise / K", labelpad=12)
+    ax.set_zlabel("Degradation / a.u.", labelpad=10)
+    ax.tick_params(labelsize=13, pad=5)               # 刻度字号加大
+    ax.view_init(elev=20, azim=302)
     ax.grid(True)
-    ax.legend(loc="upper right", frameon=True, fancybox=False, edgecolor="#777777")
+    zinfo = ax.zaxis._axinfo
+
+    # tickdir 在 0 和 1 之间切换，z 轴刻度会在左右两条侧棱之间切换
+    zinfo['tickdir'] = 1   # 刻度切换到另一条侧棱
+    zinfo['juggled'] = (1, 2, 0)
+    print(ax.zaxis._axinfo)
+        # 获取当前 z 轴信息
+
+    ax.legend(
+        loc="upper right",
+        frameon=False,                   # 范例图例无边框
+        fontsize=14,
+        handlelength=1.0,
+    )
     fig.tight_layout(pad=0.25)
     outputs = _save(fig, output_dir, "pareto_protocols_ae")
+
 
     results_dir.mkdir(parents=True, exist_ok=True)
     json_path = results_dir / "pareto_representatives.json"
@@ -457,7 +478,7 @@ def make_pareto_protocols(
         "selection_rule": (
             "Pool feasible observations, remove duplicates, retain the global minimization "
             "nondominated set, sort by charging time, normalize all objectives, and select "
-            "the records nearest cumulative front-arc fractions 0, 0.25, 0.50, 0.75, and 1."
+            "the records nearest cumulative front-arc fractions 0, 0.50, and 1."
         ),
         "soc_target": 0.8,
         "source_databases": source_paths,
