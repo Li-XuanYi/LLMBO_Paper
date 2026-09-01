@@ -266,6 +266,80 @@ This pattern is consistent with a complementary role for regional guidance:
 LLM-informed initialization supplies the main global improvement, while
 weight-conditioned region information can refine the subsequent early
 acquisition search.
+(\AblationBaselineMean\ to \AblationRegionMean), and the three-seed
+experiment does not establish an independent systematic benefit for
+this component: a paired Wilcoxon signed-rank test on the three
+matched seeds gives $p = 0.875$ (two-sided) for the
+\emph{baseline} vs. \emph{region-only} comparison, $p = 0.125$ for
+the \emph{baseline} vs. \emph{LLM-informed initialization}
+comparison, and $p = 0.125$ for the \emph{baseline} vs.
+\emph{complete LLMBO-MO} comparison.
+Because the three-seed sample size does not give the Wilcoxon test
+adequate power at conventional $\alpha$ levels, these $p$ values
+are reported for transparency rather than as evidence of
+significance; the descriptive mean differences should be read
+together with the dispersion columns of
+Table~\ref{tab:ablation}.
+When both mechanisms are enabled, however, the complete LLMBO-MO
+variant achieves the highest observed mean HV (\AblationFullMean)
+and the smallest observed dispersion ($\pm\AblationFullStd$) among
+the four ablation variants.
+This result is consistent with a complementary role for regional
+guidance: LLM-informed initialization supplies the main global
+improvement, while weight-conditioned region information can refine
+the subsequent early acquisition search.
+
+\subsubsection{Comparison across LLM Backends}
+\label{sec:llm_backends}
+
+The third mechanism study examines how sensitive the framework is to
+the choice of LLM backend.
+A separate Chen2020 experiment on seed 8409 runs the complete
+LLMBO-MO pipeline with three LLM candidates---DeepSeek-V4-Flash,
+DeepSeek-V4-Pro, and GLM-5.3-Flash---sharing the same prompt
+portfolio, the same six initialization evaluations, and the same
+numerical multiobjective BO backbone over fifteen sequential BO
+iterations (21 evaluations in total).
+
+\begin{table*}[!t]
+\caption{Chen2020 Hypervolume Comparison across LLM Backends on Seed 8409}
+\label{tab:llm_backends}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Method & Init.\ HV & HV at 15 & Final HV & Init.\ vs.\ No LLM & 15 vs.\ Init. & Final vs.\ Init. & Final vs.\ No LLM \\
+\midrule
+DeepSeek-V4-Flash & 0.341225 & \textbf{0.373845} & 0.385986 & $+46.67\%$ & $+9.56\%$ & $+13.12\%$ & $+0.69\%$ \\
+DeepSeek-V4-Pro & 0.345274 & 0.372526 & \textbf{0.387931} & $+48.41\%$ & $+7.89\%$ & $+12.35\%$ & $\mathbf{+1.19\%}$ \\
+GLM-5.3-Flash & \textbf{0.346248} & 0.372527 & 0.385324 & $\mathbf{+48.82\%}$ & $+7.59\%$ & $+11.29\%$ & $+0.51\%$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\parbox{0.98\textwidth}{\footnotesize
+All reported HV values are twice the canonical HV; percentages are
+invariant to this display scaling.
+The No-LLM baseline is omitted as a candidate but is retained as the
+denominator of the two ``vs.\ No LLM'' columns, and the two
+``vs.\ Init.'' columns measure within-method improvement.
+Results are descriptive because only one random seed is included.}
+\end{table*}
+
+Table~\ref{tab:llm_backends} shows that all three backends follow the
+same pattern: LLM-informed initialization lifts HV well above the
+No-LLM starting point ($+46.67\%$ to $+48.82\%$), and the subsequent
+numerical BO loop adds a further $7.59\%$ to $13.12\%$ within the
+method.
+The spread across backends remains small: final HV differs by at
+most $1.3\%$ between the best and worst backend, and the final
+improvement over the No-LLM baseline stays within
+$+0.51\%$ to $+1.19\%$.
+Because only one seed is included, this comparison is descriptive
+rather than inferential, but it supports the claim that the observed
+gain is driven by the LLM-guided search structure rather than by a
+particular backend.
 
 \subsection{Pareto Charging-Protocol Analysis}
 
@@ -371,18 +445,29 @@ This is exactly the intended division of labour: LLM guidance improves
 how the scarce early simulator evaluations are allocated, while
 objective evaluation, surrogate fitting, and Pareto updating remain
 numerical.
+LLMBO-MO also achieves a higher five-seed mean final HV than NSGA-II,
+DISK, and PIMD under the same evaluation budget.
 
-The initialization study localizes the effect.
-The battery-specific prompt raises mean final HV by \PromptHVGain{}
-over random initialization, whereas a detailed but domain-agnostic
-prompt stays close to the random condition.
-The benefit therefore comes from battery knowledge rather than from
-prompt length or from the mere presence of an LLM.
-In the component ablation, LLM-informed initialization accounts for
-most of the improvement and the complete framework attains both the
-highest mean HV and the smallest dispersion, which is consistent with
-regional guidance acting as a secondary refinement of the early
-acquisition search rather than as an independent driver.
+\subsubsection{Mechanism interpretation}
+
+The 10-seed prompt study provides the strongest mechanism-level
+evidence: the battery-specific LLM prompt raises mean final HV by
+\PromptHVGain{} over random initialization and remains supported after
+Holm multiplicity correction ($p=\PromptHolmP$, $d_z=\PromptEffect$),
+whereas the detailed generic prompt remains close to the random
+condition.
+This pattern is consistent with the design rationale that the LLM
+contribution is largest at initialization and depends on the
+alignment between the prompt content and the battery domain.
+The 3-seed component ablation is statistically inconclusive for the
+regional-guidance branch alone, which is reported honestly in
+Section~\ref{sec:experiments}.
+The complete LLMBO-MO variant nevertheless achieves the highest
+observed mean HV and the smallest observed dispersion among the four
+short-budget variants, which is consistent with a complementary role
+for regional guidance: LLM-informed initialization supplies the main
+global improvement, while weight-conditioned region information can
+refine the subsequent early acquisition search.
 
 \subsubsection{Physical interpretation of the Pareto protocols}
 
@@ -404,12 +489,23 @@ durability-favouring region of the front.
 
 \subsubsection{Scope of the conclusions}
 
-Two boundaries should be kept in mind.
-All results are simulation based, and the degradation objective is a
-trajectory-averaged control-oriented proxy rather than a measured
-capacity-fade endpoint.
-In addition, a single LLM backend is used, so the comparison
-characterizes the proposed framework rather than the sensitivity of
-LLM-guided BO to the choice of language model.
-Broader MOBO baselines, cross-LLM studies, and physical-cell
-validation are left for future work.
+The scope of the conclusions should be kept explicit.
+First, all results are simulation based and the degradation
+objective is a trajectory-averaged control-oriented proxy rather
+than a measured capacity-fade endpoint.
+Second, the five-seed main comparison establishes performance
+relative to the selected comparator set; matched qEHVI/qNEHVI
+experiments are not included and the results should not be
+interpreted as an exhaustive state-of-the-art MOBO ranking.
+Third, the regional-guidance ablation contains only three matched
+seeds, so its independent contribution is less firmly established
+than that of LLM-informed initialization and is positioned as a
+secondary early-search refinement rather than as a peer
+contribution.
+Fourth, a controlled comparison across LLM backends and prompt
+realizations is outside the present study.
+Two supporting numerical diagnostics---Pareto-archive growth and
+objective-preprocessing sensitivity---are therefore retained in
+Appendix~\ref{app:diagnostics}, while broader MOBO baselines,
+cross-LLM studies, and physical-cell validation are left for future
+work.
