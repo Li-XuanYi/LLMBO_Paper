@@ -68,16 +68,16 @@ The constrained multiobjective problem is
 \min_{\btheta\in\Theta_{\mathrm{proto}}}\quad
 &\mathbf f(\btheta)=
 \begin{bmatrix}
- t_c(\btheta)\\
- \Delta T_p(\btheta)\\
+ t_c(\btheta), 
+ \Delta T_p(\btheta),
  D_{\mathrm{chg}}(\btheta)
-\end{bmatrix},\\
-\mathrm{s.t.}\quad
-&I_{\min}\le I(t;\btheta)\le I_{\max},\\
-&s_0\le \mathrm{SOC}(t;\btheta)\le s_f,\\
-&V(t;\btheta)\le V_{\max},\\
-&T(t;\btheta)\le T_{\max},
-\qquad 0\le t\le t_c(\btheta).
+\end{bmatrix}
+% \mathrm{s.t.}\quad
+% &I_{\min}\le I(t;\btheta)\le I_{\max},
+% &s_0\le \mathrm{SOC}(t;\btheta)\le s_f,
+% &V(t;\btheta)\le V_{\max},\\
+% &T(t;\btheta)\le T_{\max},
+% \qquad 0\le t\le t_c(\btheta).
 \end{aligned}
 \label{eq:cmop}
 \end{equation}
@@ -94,16 +94,3 @@ The optimization target is therefore a feasible Pareto set that preserves these
 trade-offs rather than a single protocol selected using a fixed preference
 vector.
 
-\subsection{Expensive Black-Box Evaluation}
-
-For each candidate protocol, the battery model returns the objective vector and
-a feasibility indicator,
-\begin{equation}
-\bS(\btheta)\longrightarrow
-\bigl(\mathbf f(\btheta),\,\mathbb I_{\mathrm{feas}}(\btheta)\bigr).
-\label{eq:sim_map}
-\end{equation}
-Each call to $\bS$ requires a coupled electrochemical--thermal simulation and
-evaluation of the degradation proxy described in Section~\ref{sec:model_section}.
-The resulting optimization challenge is to approximate the feasible Pareto set
-with as few simulator calls as possible.

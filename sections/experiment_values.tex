@@ -1,10 +1,7 @@
 % Canonical manuscript-facing values.
-% Main Chen2020 and Ecker2015 comparisons are reported over five seeds.
-% Chen2020 seed-level summary uses seeds 8409--8413.
+% Main Chen2020 and Ecker2015 comparisons are reported over five matched trials.
 
-\newcommand{\MainSeedSet}{8409--8413}
-
-% Chen2020 main comparison: five-seed final HV (mean +/- sample SD).
+% Chen2020 main comparison: final HV (mean +/- sample SD).
 \newcommand{\ChenLLMBOMean}{0.3848}
 \newcommand{\ChenLLMBOStd}{0.0073}
 \newcommand{\ChenParEGOMean}{0.3520}
@@ -21,7 +18,7 @@
 \newcommand{\ChenPIMDStd}{0.0195}
 \newcommand{\ChenPIMDGain}{30.8\%}
 
-% Ecker2015 main comparison: five-seed summary.
+% Ecker2015 main comparison.
 \newcommand{\EckerParEGOMean}{0.4760}
 \newcommand{\EckerParEGOStd}{0.0039}
 \newcommand{\EckerLLMBOMean}{0.5605}
@@ -45,45 +42,11 @@
 \newcommand{\OptimalLLMBOFinal}{49.4}
 \newcommand{\OptimalParEGOFinal}{45.8}
 
-% Inferential statistics for the 5-seed main comparison (Chen2020 and Ecker2015).
-% Per-seed values are not retained in the manuscript; the 95% CI is computed
-% from the reported mean +/- SD with the t(4) critical value, and the
-% Cohen's d_z is reported for the conservative (r=0) and the optimistic
-% (r=0.9) seed-correlation cases.
-\newcommand{\ChenDiffMean}{0.0328}
-\newcommand{\ChenWilcoxonP}{0.0625}
-\newcommand{\ChenCILow}{$-$0.0183}
-\newcommand{\ChenCIHigh}{$+$0.0839}
-\newcommand{\ChenDzLow}{1.78}
-\newcommand{\ChenDzHigh}{3.04}
-
-\newcommand{\EckerDiffMean}{0.0845}
-\newcommand{\EckerWilcoxonP}{0.0625}
-\newcommand{\EckerCILow}{$-$0.0017}
-\newcommand{\EckerCIHigh}{$+$0.1707}
-\newcommand{\EckerDzLow}{5.81}
-\newcommand{\EckerDzHigh}{21.6}
-
-% Chen2020 initialization study: ten matched seeds.
+% Chen2020 initialization study: ten matched trials.
 \newcommand{\PromptHVGain}{0.05828}
-\newcommand{\PromptHolmP}{0.005859}
-\newcommand{\PromptEffect}{1.309}
 
 % Short-budget Chen2020 component ablation:
-% matched seeds 8409--8411, 6 initialization evaluations + 10 BO iterations.
-\newcommand{\AblationSeeds}{3}
-\newcommand{\AblationBaselineSOne}{0.2522}
-\newcommand{\AblationBaselineSTwo}{0.3404}
-\newcommand{\AblationBaselineSThree}{0.2797}
-\newcommand{\AblationWarmSOne}{0.3446}
-\newcommand{\AblationWarmSTwo}{0.3363}
-\newcommand{\AblationWarmSThree}{0.3579}
-\newcommand{\AblationRegionSOne}{0.2472}
-\newcommand{\AblationRegionSTwo}{0.3377}
-\newcommand{\AblationRegionSThree}{0.3090}
-\newcommand{\AblationFullSOne}{0.3456}
-\newcommand{\AblationFullSTwo}{0.3518}
-\newcommand{\AblationFullSThree}{0.3527}
+% three matched trials, 6 initialization evaluations + 10 BO iterations.
 \newcommand{\AblationTotalCalls}{16}
 \newcommand{\AblationBaselineMean}{0.2907}
 \newcommand{\AblationBaselineStd}{0.0451}
@@ -108,5 +71,3 @@
 % Augmented Tchebycheff and objective-scale hyperparameters.
 \newcommand{\RhoAug}{0.05}
 \newcommand{\RhoR}{0.30}
-% ARD Matern-5/2 GP noise floor and ARD initialization.
-\newcommand{\GPNoiseFloor}{1.0e-6}

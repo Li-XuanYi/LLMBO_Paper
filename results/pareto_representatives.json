@@ -1,5 +1,5 @@
 {
-  "selection_rule": "Pool feasible observations, remove duplicates, retain the global minimization nondominated set, sort by charging time, normalize all objectives, and select the records nearest cumulative front-arc fractions 0, 0.25, 0.50, 0.75, and 1.",
+  "selection_rule": "Pool feasible observations, remove duplicates, retain the global minimization nondominated set, sort by charging time, normalize all objectives, and select the records nearest cumulative front-arc fractions 0, 0.50, and 1.",
   "soc_target": 0.8,
   "source_databases": {
     "8409": "optimized_experiments/region_lift_force_pool_local_sweep_seed8409_2026_05_01/seed8409/wider_active16_ext32/database.json",
@@ -35,28 +35,6 @@
       "globally_nondominated": true
     },
     {
-      "seed": 8410,
-      "observation_index": 41,
-      "theta": [
-        3.4751915894389724,
-        3.6332775067688132,
-        3.0,
-        0.1,
-        0.21853023729214682
-      ],
-      "objectives": [
-        4490.0,
-        3.2920911428164916,
-        0.8259287242697939
-      ],
-      "source": "bo",
-      "database": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed8410/llmbo_mo/database.json",
-      "label": "B",
-      "dsoc3": 0.48146976270785324,
-      "feasible": true,
-      "globally_nondominated": true
-    },
-    {
       "seed": 8411,
       "observation_index": 25,
       "theta": [
@@ -73,30 +51,8 @@
       ],
       "source": "bo",
       "database": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed8411/llmbo_mo/database.json",
-      "label": "C",
+      "label": "B",
       "dsoc3": 0.4885442122008573,
-      "feasible": true,
-      "globally_nondominated": true
-    },
-    {
-      "seed": 8412,
-      "observation_index": 31,
-      "theta": [
-        2.0,
-        3.9416889122463425,
-        3.0,
-        0.4,
-        0.1
-      ],
-      "objectives": [
-        5857.0,
-        3.049069056965027,
-        0.5729905791846868
-      ],
-      "source": "bo",
-      "database": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed8412/llmbo_mo/database.json",
-      "label": "D",
-      "dsoc3": 0.30000000000000004,
       "feasible": true,
       "globally_nondominated": true
     },
@@ -117,7 +73,7 @@
       ],
       "source": "bo",
       "database": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed8413/llmbo_mo/database.json",
-      "label": "E",
+      "label": "C",
       "dsoc3": 0.4027635340412318,
       "feasible": true,
       "globally_nondominated": true

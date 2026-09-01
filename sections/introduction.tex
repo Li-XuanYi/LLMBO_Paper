@@ -141,7 +141,7 @@ The proposed method is built upon a decomposition-based multiobjective
 Bayesian optimization framework and uses an LLM as a provider of
 domain knowledge and search priors, while retaining BO as the primary
 numerical optimization mechanism.
-Specifically, an \emph{LLM-informed warm-start} strategy first uses
+Specifically, an \emph{LLM-informed initialization} strategy first uses
 battery-charging knowledge to generate promising and sufficiently diverse
 initial charging protocols, thereby improving the initial state of BO.
 Subsequently, a \emph{weight-conditioned regional guidance} mechanism
@@ -161,8 +161,8 @@ The main contributions of this paper are summarized as follows:
     framework, providing additional prior information for charging-protocol
     search under a limited evaluation budget.
 
-    \item We develop an \emph{LLM-informed warm-start} strategy that uses an
-    LLM to generate promising and decision-space-diverse initial charging
+    \item We develop an \emph{LLM-informed initialization} strategy that uses
+    an LLM to generate promising and decision-space-diverse initial charging
     protocols based on charging variables, physical constraints, and
     battery-domain knowledge.
     This strategy aims to improve the quality of the initial design compared
@@ -180,7 +180,7 @@ The main contributions of this paper are summarized as follows:
     experiments and compare LLMBO-MO with representative multiobjective BO
     methods.
     Ablation experiments are further performed to investigate the respective
-    contributions of the LLM-informed warm-start and
+    contributions of the LLM-informed initialization and
     weight-conditioned regional guidance mechanisms under a limited
     simulation-evaluation budget.
 \end{itemize}
@@ -191,7 +191,7 @@ and introduces the corresponding charging-protocol parameterization.
 Section~\ref{sec:model_section} presents the battery simulation model and the
 associated degradation model.
 Section~\ref{sec:method} develops the proposed LLMBO-MO framework, including
-the LLM-informed warm-start and weight-conditioned regional guidance
+the LLM-informed initialization and weight-conditioned regional guidance
 mechanisms.
 Section~\ref{sec:experiments} presents the experimental results and
 ablation studies.

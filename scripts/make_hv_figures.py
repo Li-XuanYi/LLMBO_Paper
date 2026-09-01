@@ -360,6 +360,59 @@ def _select_arc_representatives(front: list[dict[str, Any]]) -> list[dict[str, A
     return selected
 
 
+def _representative_annotation(selected: list[dict[str, Any]]) -> str:
+    """Render the design vector of each starred representative as a text block.
+
+    Times/DejaVu serif digits are tabular, so padding the numeric fields with
+    plain spaces keeps the columns aligned without a monospace font.
+    """
+    lines = [
+        r"        $I_1/I_2/I_3$ (A)        $\Delta s_1/\Delta s_2/\Delta s_3$"
+    ]
+    for record in selected:
+        currents = "/".join(f"{value:.2f}" for value in record["theta"][:3])
+        spans = "/".join(
+            f"{value:.2f}"
+            for value in (record["theta"][3], record["theta"][4], record["dsoc3"])
+        )
+        lines.append(f"  {record['label']}     {currents}       {spans}")
+    return "\n".join(lines)
+
+
+def _place_vertical_axis_title(fig: plt.Figure, ax: Any, text: str, fontsize: int) -> None:
+    """Draw the vertical-axis title as an ordinary Text child of the axes.
+
+    ``mpl_toolkits.mplot3d`` leaves axis titles out of the tight bounding box, so
+    a title produced by ``set_zlabel`` is cropped away by
+    ``savefig(bbox_inches="tight")`` whenever it lands outside the axes
+    rectangle.  A Text artist is part of the layout, so it always survives.
+    The anchor is measured from the drawn tick labels instead of being guessed.
+    Persistent ``Tick`` artists carry pre-projection positions, so the axis
+    tight bounding box is the only reliable source for that measurement.
+    """
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    tick_box = ax.zaxis.get_tightbbox(renderer)
+    axes_box = ax.get_window_extent(renderer)
+    axis_is_left = tick_box.x0 + 0.5 * tick_box.width < axes_box.x0 + 0.5 * axes_box.width
+    title_x = (
+        tick_box.x0 - 0.035 * axes_box.width
+        if axis_is_left
+        else tick_box.x1 + 0.035 * axes_box.width
+    )
+    x_axes = ax.transAxes.inverted().transform((title_x, 0.0))[0]
+    ax.text2D(
+        x_axes,
+        0.5,
+        text,
+        transform=ax.transAxes,
+        rotation=90,
+        ha="center",
+        va="center",
+        fontsize=fontsize,
+    )
+
+
 def make_pareto_protocols(
     database_specs: list[str], output_dir: Path, results_dir: Path
 ) -> dict[str, Any]:
@@ -406,8 +459,11 @@ def make_pareto_protocols(
         record["globally_nondominated"] = True
     _style()
     fig = plt.figure(figsize=(7.15, 6.30))
-    ax = fig.add_subplot(111, projection="3d")
+    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
 
+    # Match the reference orientation: temperature lies on the base plane and
+    # degradation is vertical, which exposes the bowed Pareto-front shape.
+    # objectives 的存储顺序仍为 (charging time, temperature rise, degradation)。
     all_values = np.asarray([record["objectives"] for record in deduplicated], dtype=float)
     ax.scatter(                              # 空心点 → 范例式的实心薰衣草紫圆点
         all_values[:, 0],
@@ -418,7 +474,10 @@ def make_pareto_protocols(
         alpha=0.65,
         linewidths=0,
         label="LLMBO-MO",
+        depthshade=False,
+        zorder=1,
     )
+    degradation_span = float(all_values[:, 2].max() - all_values[:, 2].min())
     for record in selected:
         time_value, temperature, degradation = record["objectives"]
         ax.scatter(
@@ -436,7 +495,7 @@ def make_pareto_protocols(
         ax.text(
             time_value,
             temperature,
-            degradation + 0.03,
+            degradation + 0.045 * degradation_span,
             record["label"],
             fontsize=16,                     # 字母标签加大加粗，同范例
             fontweight="bold",
@@ -448,26 +507,37 @@ def make_pareto_protocols(
         pane.set_facecolor("#f2f2f2")        # 浅暖灰 pane，模仿范例底色
         pane.set_edgecolor("#D9D9D9")
 
-    ax.set_xlabel("Charging Time / s", labelpad=12)    # 范例用 " / " 分隔单位
-    ax.set_ylabel("Temperature Rise / K", labelpad=12)
-    ax.set_zlabel("Degradation / a.u.", labelpad=10)
+    axis_label_size = 13                              # 与刻度字号一致，避免轴标题偏小
+    ax.set_xlabel("Charging Time / s", labelpad=14, fontsize=axis_label_size)
+    ax.set_ylabel("Temperature Rise / K", labelpad=14, fontsize=axis_label_size)
     ax.tick_params(labelsize=13, pad=5)               # 刻度字号加大
-    ax.view_init(elev=20, azim=302)
+    ax.view_init(elev=20, azim=240)
     ax.grid(True)
-    zinfo = ax.zaxis._axinfo
 
-    # tickdir 在 0 和 1 之间切换，z 轴刻度会在左右两条侧棱之间切换
-    zinfo['tickdir'] = 1   # 刻度切换到另一条侧棱
-    zinfo['juggled'] = (1, 2, 0)
-    print(ax.zaxis._axinfo)
-        # 获取当前 z 轴信息
-
+    ax.text2D(
+        0.005,
+        0.995,
+        _representative_annotation(selected),
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=11,
+        linespacing=1.55,
+        bbox={
+            "boxstyle": "round,pad=0.45",
+            "facecolor": "white",
+            "edgecolor": "#777777",
+            "linewidth": 0.8,
+        },
+        zorder=12,
+    )
     ax.legend(
         loc="upper right",
         fontsize=14,
         handlelength=1.0,
     )
     fig.tight_layout(pad=0.25)
+    _place_vertical_axis_title(fig, ax, "Degradation / a.u.", axis_label_size)
     outputs = _save(fig, output_dir, "pareto_protocols_ae")
 
 

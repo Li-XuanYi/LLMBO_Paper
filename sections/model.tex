@@ -1,83 +1,94 @@
 % ============================================================================
-% Section III: Battery Simulation Model
+% Section III: Electrochemical--Thermal--Aging Model
 % ============================================================================
-\section{Battery Simulation Model}
+\section{Electrochemical--Thermal--Aging Model}
 \label{sec:model_section}
 
-Each candidate protocol is evaluated by a common battery-model pipeline
-consisting of an electrochemical--thermal simulator and a protocol-level
-degradation proxy.
-Using the same evaluator for all optimization methods isolates differences
-caused by the search algorithms rather than by the objective model.
+To evaluate a charging protocol $\theta$, this work adopts the same
+electrochemical--thermal--aging model used in EIMO~\cite{refEIMO}. The model
+maps the applied current profile to the voltage, SOC, temperature, and
+charging-induced degradation required by the objectives and constraints in
+Section~\ref{sec:problem}. It is implemented in PyBaMM, and the terminal state
+of each charging stage is used as the initial state of the next stage.
 
-\subsection{Electrochemical--Thermal Model}
+\subsection{Electrochemical Model}
 \label{sec:model}
 
-The electrochemical dynamics are represented by a Single Particle Model with
-electrolyte dynamics (SPMe).
-The SPMe retains solid-phase diffusion, electrolyte transport, and interfacial
-reaction kinetics at substantially lower computational cost than a full
-porous-electrode model~\cite{ref6}.
-The implementation uses PyBaMM~\cite{ref7}.
-A spatially lumped thermal model is coupled to the electrochemical simulation.
-The thermal balance and the reported temperature-rise objective are
+The electrochemical dynamics are described by the Single Particle Model with
+electrolyte dynamics (SPMe). The SPMe retains solid-phase diffusion,
+electrolyte transport, and interfacial reaction kinetics while reducing the
+computational cost relative to a full porous-electrode model. The terminal
+voltage is calculated as
 \begin{equation}
-\begin{aligned}
-C_{\mathrm{th}}\frac{\mathrm dT}{\mathrm dt}
-&=\dot Q_{\mathrm{gen}}-hA(T-T_{\mathrm{amb}}),\\
-\Delta T_p(\btheta)
-&=\max_t T(t)-T_{\mathrm{init}},
-\end{aligned}
-\label{eq:thermal}
+U=U_{\mathrm{eq}}+\eta_r+\eta_d+\Delta\Phi,
+\label{eq:voltage}
 \end{equation}
-where $C_{\mathrm{th}}$ is the effective thermal capacitance,
-$\dot Q_{\mathrm{gen}}$ collects electrochemical, ohmic, and reversible heat,
-and $hA$ is the lumped heat-transfer coefficient.
-Because the thermal model is spatially lumped, $\Delta T_p$ represents the peak
-cell-level temperature rise and does not resolve local temperature gradients or
-thermomechanical loading.
+where $U$ is the terminal voltage, $U_{\mathrm{eq}}$ is the equilibrium
+potential, $\eta_r$ is the ohmic overpotential, $\eta_d$ is the concentration
+overpotential, and $\Delta\Phi$ is the average potential difference in the
+electrolyte. The SOC is obtained from the solid-phase lithium concentration
+predicted by the SPMe.
 
-The Chen2020 parameter set is used for the LG INR21700-M50 case~\cite{ref8},
-while Ecker2015 provides a second battery parameterization~\cite{ref9}.
-Cell-specific capacity, voltage, and temperature limits are applied, while the
-protocol representation and optimization procedure remain unchanged.
-Successive charging stages are simulated sequentially so that the terminal
-electrochemical and thermal state of one stage initializes the next.
+\subsection{Thermal Model}
 
-\subsection{Protocol-Level Degradation Model}
+The cylindrical cell is described by a lumped thermal model,
+\begin{equation}
+\rho_{\mathrm{eff}}\frac{\partial T}{\partial t}=\bar Q-\frac{hA}{V}(T-T_a),
+\label{eq:thermal_balance}
+\end{equation}
+where $\rho_{\mathrm{eff}}$ is the effective volumetric heat capacity, $T$ is
+the cell temperature, $\bar Q$ is the average heat-generation rate, $h$ is the
+heat-transfer coefficient, $A$ is the heat-dissipation area, $V$ is the cell
+volume, and $T_a$ is the ambient temperature. The effective volumetric heat
+capacity is
+\begin{equation}
+\rho_{\mathrm{eff}}=\frac{\sum_k\rho_kC_{p,k}L_k}{\sum_kL_k},
+\label{eq:rho_eff}
+\end{equation}
+where $\rho_k$, $C_{p,k}$, and $L_k$ are the density, specific heat capacity,
+and thickness of component $k$, respectively. The index $k$ covers the negative
+current collector, negative electrode, separator, positive electrode, and
+positive current collector.
+
+The thermal objective in Eq.~\eqref{eq:peak_temp} is the maximum temperature
+rise during charging,
+\begin{equation}
+T_p(\theta)=\max_{0\le t\le t_c(\theta)}[T(t)-T_0],
+\label{eq:peak_temp}
+\end{equation}
+where $T_0$ is the initial cell temperature.
+
+\subsection{Aging Model}
 \label{sec:aging}
 
-A single protocol simulation does not resolve long-horizon capacity fade.
-Accordingly, the third objective is a control-oriented degradation proxy rather
-than a direct prediction of capacity lost during one charge.
-Let $\bar s$, $\bar T$, and $\bar I$ denote the time-averaged SOC, temperature,
-and current over the completed charging trajectory.
-The implementation evaluates
+Charging-induced degradation is evaluated using the same semi-empirical aging
+model as EIMO. The normalized capacity-loss indicator is
 \begin{equation}
-\begin{aligned}
-\chi(\bar s,\bar T,\bar I)
-&=(a_s\bar s+b_s)
-\exp\!\left(\frac{\beta_I\bar I-E_a}{R\bar T}\right),\\
-D_{\mathrm{chg}}(\btheta)
-&=\kappa_D Q_{\mathrm{eff}}
-\left(\frac{\chi(\bar s,\bar T,\bar I)}{q_a}\right)^{1/\gamma}.
-\end{aligned}
+Q_s(\xi,Ah)=\sigma_{\mathrm{fun}}(\xi)Ah^z,
 \label{eq:aging}
 \end{equation}
-Here $a_s$, $b_s$, $\beta_I$, $E_a$, $R$, $q_a$, $\gamma$, and $\kappa_D$
-are fixed proxy coefficients shared by all optimization methods.
-The construction is related to the severity-factor family of control-oriented
-semi-empirical aging models~\cite{refSuri}.
+where $\xi=(\mathrm{SOC},I,T)$ contains the average SOC, current, and temperature
+during charging, $Ah$ is the charge throughput, $z$ is the power-law exponent,
+and $\sigma_{\mathrm{fun}}$ is the severity-factor function. The severity factor
+is
+\begin{equation}
+\sigma_{\mathrm{fun}}(\xi)=(\alpha\,\mathrm{SOC}+\beta)\exp\!\left(\frac{-E_a+\eta_a I}{R_{\mathrm{gas}}(273.15+T)}\right),
+\label{eq:severity}
+\end{equation}
+where $\alpha$ and $\beta$ describe the SOC dependence, $\eta_a$ describes the
+current dependence, $E_a$ is the activation energy, and $R_{\mathrm{gas}}$ is
+the universal gas constant.
 
-The scale factor $\kappa_D$ preserves the implemented objective scale; therefore
-$D_{\mathrm{chg}}$ is reported in arbitrary proxy units rather than as
-percentage capacity loss.
-Because the proxy uses trajectory averages, it does not separately resolve
-short high-SOC, high-current, or high-temperature excursions.
-This limitation is retained when interpreting the Pareto protocols.
+The quantity $Q_s$ is used as a relative degradation indicator for comparing
+charging protocols, rather than as a direct prediction of battery end-of-life.
+A smaller $Q_s$ therefore indicates a smaller degradation contribution from one
+charging process.
 
-In summary, the battery model maps each protocol $\btheta$ to
-$\mathbf f(\btheta)$ together with a feasibility flag.
-For BO, this mapping is treated as an expensive black box.
-Only simulator-evaluated objective values are used for surrogate fitting and
-Pareto-set construction.
+Together, the electrochemical, thermal, and aging models provide the objective
+values $\{t_c,T_p,Q_s\}$ and determine whether a protocol satisfies the voltage
+and temperature constraints. These simulator outputs are the only objective and
+feasibility information used by the optimizer. Since each new protocol requires
+one battery simulation, indiscriminate exploration is costly. This directly
+motivates the LLMBO-MO framework in the next section: Bayesian optimization
+remains responsible for numerical search, while the LLM is used only to improve
+where the limited simulation budget is spent.
