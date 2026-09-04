@@ -1,59 +1,47 @@
 % ============================================================================
 % Section VI: Conclusion
 % ============================================================================
+
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper presented LLMBO-MO, an LLM-guided extension of a ParEGO-style
-decomposition-based multiobjective Bayesian optimization framework for battery
-fast-charging protocol design under a limited simulation budget.
-The numerical MOBO backbone performs trade-off decomposition, GP surrogate
-modeling, expected-improvement optimization, simulator evaluation, and Pareto
-updating.
-LLM knowledge is introduced only through two search mechanisms:
-a protocol-domain-screened and diversity-aware initialization, and a
-weight-conditioned regional mechanism that supplies additional acquisition
-restarts during an early optimization window.
-All selected protocols are evaluated by the battery simulator before they are
-used for surrogate fitting or Pareto updating.
+This paper proposed LLMBO-MO for multiobjective battery fast-charging protocol
+design under a limited simulation budget. The method retains a
+decomposition-based multiobjective Bayesian optimization framework as the
+numerical optimizer and introduces LLM knowledge only during the data-scarce
+stage of the search. LLM-informed initialization converts battery-domain
+knowledge into a screened and diverse set of initial charging protocols, while
+the posterior-covariance Region-Lift mechanism uses an accepted,
+weight-conditioned regional preference to adjust acquisition ranking during
+the early BO iterations. In both mechanisms, the LLM affects only the search
+preference; objective values, feasibility, GP fitting, and Pareto updates are
+determined exclusively from battery-model evaluations.
 
-Under 56 simulator evaluations, LLMBO-MO attains a mean final HV of
-\ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020, compared with
-\ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for the backbone-matched
-ParEGO, corresponding to a \ChenFinalGain\ improvement; a
-\EckerFinalGain\ improvement is observed under the Ecker2015
-parameterization.
-LLMBO-MO also outperforms NSGA-II, DISK, and PIMD under the same
-budget.
-The matched initialization study localizes the source of the gain:
-battery-specific LLM information improves early search when simulator
-observations are scarce, whereas a domain-agnostic prompt of comparable
-detail does not.
-In the component ablation, LLM-informed initialization accounts for
-most of the improvement, and the complete framework achieves both the
-highest mean HV and the smallest dispersion, indicating that regional
-guidance acts as a secondary refinement of the early acquisition
-search.
-The resulting Pareto set spans interpretable operating compromises,
-from a speed-favouring staircase schedule to a durability-favouring
-uniform schedule.
-Overall, LLM knowledge is most reliably useful as early-stage search
-guidance within a numerical MOBO process.
+Under a budget of 56 simulator evaluations, LLMBO-MO achieves a mean final HV
+of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020, compared with
+\ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, corresponding to a
+\ChenFinalGain\ improvement. A similar advantage is observed under the
+Ecker2015 parameterization, where the final HV improves by
+\EckerFinalGain. LLMBO-MO also attains a higher final HV than NSGA-II, DISK,
+and PIMD under the same evaluation budget. The initialization study further
+shows that battery-specific prompt information provides a clear benefit over
+random initialization and a domain-agnostic prompt. The component ablation
+indicates that initialization accounts for most of the observed improvement,
+whereas the current experiments do not provide sufficient evidence to claim a
+separate systematic gain from Region-Lift. The representative Pareto protocols
+also exhibit the expected trade-offs among charging time, temperature rise,
+and the aging indicator. These results suggest that LLM knowledge is most
+useful as an early search prior, while the numerical BO process should remain
+responsible for the subsequent optimization.
 
-Two limitations should be kept in mind.
-The evaluation is simulation based: the SPMe electrochemical and lumped
-thermal model in Section~\ref{sec:model_section} captures the dominant
-dynamics of lithium-ion fast charging but does not resolve localized
-degradation, lithium plating, or thermal gradients, and the third
-objective is a trajectory-averaged control-oriented degradation proxy
-rather than a measured capacity-fade endpoint.
-In addition, the results are obtained with a single LLM backend on a
-single battery chemistry family, so they characterize the proposed
-framework rather than its sensitivity to the choice of language model
-or chemistry.
-
-Future work will extend the evaluation to stronger matched MOBO
-baselines (notably qEHVI and qNEHVI), controlled comparisons across
-LLM backends and prompt realizations, broader battery operating
-conditions, and physical-cell experiments with experimentally grounded
-degradation endpoints.
+The present study is limited to simulation-based evaluation. The adopted
+electrochemical--thermal--aging model captures the main charging dynamics but
+does not represent all spatially localized degradation and thermal effects, and
+$Q_s$ is a model-based aging indicator rather than a measured capacity-fade
+endpoint. In addition, the numerical validation covers two battery
+parameterizations, while the comparison across LLM backends is limited to a
+single-seed descriptive study. Future work will therefore focus on controlled
+multi-seed ablations of Region-Lift, broader studies of LLM backends and prompt
+designs, extension to a wider range of battery chemistries and operating
+conditions, and validation on physical cells with experimentally measured
+degradation.

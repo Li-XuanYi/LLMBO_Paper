@@ -18,6 +18,9 @@
 - Pareto representatives A--E are feasible, globally nondominated database
   records with seed and observation provenance in `results/`.
 - HV is interpreted only within one battery parameterization.
+- The current manuscript defines posterior-covariance Region-Lift as the
+  proposed online mechanism, but the retained historical main/component
+  archives are not treated as an isolated test of that mechanism.
 
 ## Claim closure
 
@@ -25,8 +28,8 @@
 |---|---|---|
 | LLM authority | Advisory candidate generation and ranking only | Pass |
 | Simulator authority | Sole objective oracle; only evaluated protocols train the GP | Pass |
-| Main Chen region mechanism | Candidate-pool expansion; posterior-mean shift disabled | Pass |
-| Optional coupling | Bounded in standardized target units and separated from main evidence | Pass |
+| Proposed Region-Lift mechanism | Uniform feasible anchors, posterior cross-covariance, bounded signed acquisition-time mean shift, unchanged predictive standard deviation | Pass |
+| Main Chen historical evidence | Candidate-pool/restart-era archive; no causal attribution to corrected mean shift | Pass with limitation |
 | Total budget | Six initialization plus 50 BO calls | Pass |
 | Chen result | \(0.3848\pm0.0073\) vs. \(0.3778\pm0.0169\), descriptive five-archive summary | Pass with limitation |
 | Ecker result | \(28.3\%\) at evaluation 30; \(17.8\%\) at evaluation 56 | Pass |
@@ -34,7 +37,7 @@
 | Optimal protocol set | Per-iteration archive-growth diagnostic, distinct from equal-call sample efficiency | Pass |
 | Pareto representatives | A--E figure labels and parameter table use identical database records | Pass |
 | Prompt mechanism | Ten-seed, short-budget controlled study | Pass |
-| Regional contribution | No systematic independent benefit claimed | Pass |
+| Regional contribution | No independent causal benefit claimed until a corrected matched coupling-on/off study is complete | Pass with limitation |
 | Physical validation | Not claimed; hardware photograph removed from the manuscript | Pass |
 
 ## Presentation closure

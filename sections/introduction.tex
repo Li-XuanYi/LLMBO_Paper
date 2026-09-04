@@ -144,12 +144,13 @@ numerical optimization mechanism.
 Specifically, an \emph{LLM-informed initialization} strategy first uses
 battery-charging knowledge to generate promising and sufficiently diverse
 initial charging protocols, thereby improving the initial state of BO.
-Subsequently, a \emph{weight-conditioned regional guidance} mechanism
-generates promising search regions according to the current multiobjective
-preference and the optimization state.
-These regions are then used to guide the early-stage optimization of the
-acquisition function, with the objective of reducing unnecessary exploration
-of low-quality regions.
+Subsequently, a \emph{posterior-covariance Region-Lift} mechanism elicits a
+promising region conditioned on the current multiobjective preference and BO
+state. The region is represented by feasible anchors, and the GP posterior
+cross-covariance propagates this structured language prior into a bounded
+acquisition-time mean adjustment. The resulting lifted EI changes candidate
+ranking during the early search while leaving the fitted GP posterior,
+uncertainty estimate, observations, and Pareto relation unchanged.
 
 The main contributions of this paper are summarized as follows:
 
@@ -169,19 +170,20 @@ The main contributions of this paper are summarized as follows:
     with uninformed initialization and thereby alleviate the cold-start
     problem of BO.
 
-    \item We introduce a \emph{weight-conditioned regional guidance}
-    mechanism that identifies promising regions according to the current
-    multiobjective decomposition direction and optimization state.
-    The resulting regional information is incorporated into early-stage
-    acquisition-function optimization to reduce unnecessary exploration of
-    low-quality regions.
+    \item We introduce a \emph{posterior-covariance Region-Lift} mechanism
+    that maps a weight-conditioned LLM region into a portfolio of feasible
+    anchors and uses GP posterior cross-covariance to construct a bounded,
+    early-stage acquisition mean shift. This provides an explicit mathematical
+    interface from a structured language prior to candidate ranking, with a
+    strict fallback to standard EI whenever the preference is unavailable,
+    inadmissible, or numerically degenerate.
 
     \item We conduct systematic multiobjective charging-optimization
     experiments and compare LLMBO-MO with representative multiobjective BO
     methods.
     Ablation experiments are further performed to investigate the respective
     contributions of the LLM-informed initialization and
-    weight-conditioned regional guidance mechanisms under a limited
+    posterior-covariance Region-Lift mechanisms under a limited
     simulation-evaluation budget.
 \end{itemize}
 
@@ -191,7 +193,7 @@ and introduces the corresponding charging-protocol parameterization.
 Section~\ref{sec:model_section} presents the battery simulation model and the
 associated degradation model.
 Section~\ref{sec:method} develops the proposed LLMBO-MO framework, including
-the LLM-informed initialization and weight-conditioned regional guidance
+the LLM-informed initialization and posterior-covariance Region-Lift
 mechanisms.
 Section~\ref{sec:experiments} presents the experimental results and
 ablation studies.

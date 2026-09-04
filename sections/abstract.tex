@@ -20,9 +20,10 @@ charging design.
 LLMBO-MO first employs an LLM-informed initialization strategy to generate
 promising and diverse initial charging protocols from battery-domain
 knowledge.
-It then introduces weight-conditioned regional guidance to steer the early
-search toward promising regions according to the current optimization state
-and multiobjective preference.
+It then introduces a posterior-covariance Region-Lift mechanism that converts
+weight-conditioned LLM regional preferences into bounded acquisition-time mean
+shifts, thereby changing candidate ranking without inserting pseudo-observations
+or altering GP uncertainty.
 Extensive experiments demonstrate that LLMBO-MO consistently outperforms
 conventional BO methods and achieves a 9.3\% higher final hypervolume than
 ParEGO.

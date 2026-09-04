@@ -1,192 +1,216 @@
 % ============================================================================
 % Section IV: Proposed LLMBO-MO
+% Rewritten for a tighter problem--method narrative and reduced formula load.
 % ============================================================================
+
 \section{Proposed LLMBO-MO}
 \label{sec:method}
 
-Section~\ref{sec:model_section} provides a simulator that maps each charging
-protocol $\theta$ to the three objectives $t_c$, $T_p$, and $Q_s$ while checking
-the operating constraints. Because every new protocol requires an
- electrochemical--thermal--aging simulation, only a limited number of
-candidate protocols can be evaluated in practice. The key issue is therefore
-not to increase the number of evaluations, but to allocate the available
-simulation budget to informative regions of the decision space.
-
-Bayesian optimization is well suited to this setting because it uses evaluated
-samples to construct a surrogate model and sequentially selects promising new
-protocols. Its early search, however, is sensitive to the initial design when
-only a few simulator observations are available. LLMBO-MO addresses this
-weakness by combining a decomposition-based multiobjective Bayesian
-optimization backbone with two LLM-assisted search mechanisms: an
-LLM-informed initial design and a weight-conditioned regional guidance
-mechanism. The LLM only suggests where the numerical optimizer should search;
-all objective values, feasibility decisions, surrogate updates, and Pareto
-relations are determined from simulator-evaluated data.
-
-\subsection{Overall Framework}
+\subsection{Framework}
 \label{sec:framework}
 
-The framework of LLMBO-MO is illustrated in Fig.~\ref{fig:framework}. Before
-sequential Bayesian optimization starts, the LLM generates a pool of candidate
-MCC protocols from the battery description, decision-variable bounds, and
-qualitative charging knowledge. After protocol-level screening and diversity
-selection, a subset of these candidates is combined with randomly generated
-valid protocols and evaluated by the battery simulator to form the initial
-dataset $D$.
+The battery model in Section~\ref{sec:model_section} makes it possible to
+evaluate a charging protocol, but each evaluation requires an
+electrochemical--thermal--aging simulation. The optimization problem is
+therefore governed by a limited simulation budget. Bayesian optimization (BO)
+is suitable for this setting because it uses previously evaluated protocols to
+guide subsequent sampling. Its main difficulty appears at the beginning of the
+search, when only a few task-specific observations are available and the
+surrogate is strongly affected by the initial design.
 
-At iteration $t$, a trade-off weight $\mathbf w^{(t)}$ is selected to define the
-current multiobjective preference. The three objectives are then scalarized,
-and a Gaussian process (GP) is fitted to the resulting scalar observations.
-Expected improvement (EI) is used to select the next protocol for simulation.
-During the early iterations, the LLM may additionally suggest a promising
-region conditioned on $\mathbf w^{(t)}$ and the current optimization state.
-Points sampled from this region are used only as additional starting points for
-numerical EI maximization. The original acquisition search and the full
-decision space are retained. The selected protocol is finally evaluated by the
-battery simulator, after which $D$ and the feasible Pareto archive $P$ are
-updated. This process continues until the simulation budget is exhausted.
+LLMBO-MO uses battery knowledge expressed in natural language to improve this
+early stage while retaining a numerical multiobjective BO procedure as the
+optimizer. The LLM is used in two places. Before sequential BO, it proposes
+candidate protocols for the initial design. After the initial database has
+been formed, it can provide a temporary preference over the decision space
+according to the current multiobjective trade-off. In both cases, the LLM
+affects only where the optimizer searches. Objective values, feasibility,
+surrogate fitting, and Pareto updates are always determined from
+simulator-evaluated protocols.
+
+The overall procedure is shown in Fig.~\ref{fig:framework}. An initial database
+$D$ is first constructed from a mixture of screened LLM proposals and random
+valid protocols. During iteration $t$, a trade-off weight $\mathbf w^{(t)}$
+defines the current scalar subproblem. A Gaussian process (GP) is fitted to
+the scalarized observations, and expected improvement (EI) is optimized to
+select the next protocol. During the first $T_{\mathrm L}$ iterations, an
+accepted LLM region can modify the acquisition ranking through the posterior
+covariance of the fitted GP. The selected protocol is then evaluated by the
+battery model and appended to $D$, after which the feasible Pareto archive
+$P$ is updated. This loop continues until the simulation budget is exhausted.
 
 \input{figures/fig_llambo_mo_framework}
 
-\subsection{Decomposition-Based Multiobjective Bayesian Optimization}
+\subsection{Decomposition-Based Multiobjective BO}
 \label{sec:parego_backbone}
 
-The numerical backbone follows a decomposition-based multiobjective Bayesian
-optimization strategy~\cite{ref4,refEIMO}. A set of nonnegative weight vectors
-$W$ is generated in advance to cover different trade-off directions. At
-iteration $t$, one weight vector
-$\mathbf w^{(t)}=[w_1^{(t)},w_2^{(t)},w_3^{(t)}]$ is selected from $W$, with
-$\sum_{i=1}^{3} w_i^{(t)}=1$. By changing $\mathbf w^{(t)}$ across iterations,
-the optimizer sequentially explores different parts of the Pareto front.
+The numerical backbone follows a decomposition-based multiobjective BO
+strategy~\cite{ref4,refEIMO}. A set of nonnegative weight vectors $W$ is
+generated in advance to represent different trade-offs among charging time,
+temperature rise, and aging. At iteration $t$, one vector
+$\mathbf w^{(t)}=[w_1^{(t)},w_2^{(t)},w_3^{(t)}]$ is selected from $W$, where
+$\sum_{i=1}^{3}w_i^{(t)}=1$.
 
-Because the three objectives have different numerical scales, the charging-time
-and degradation objectives are logarithmically transformed before
-scalarization,
+Because the three objectives have different numerical ranges, charging time
+and aging are first transformed,
 \begin{equation}
- y_1(\theta)=\log_{10}\!\frac{t_c(\theta)}{t_{\mathrm{ref}}},\qquad y_2(\theta)=T_p(\theta),\qquad y_3(\theta)=\log_{10}\!\frac{Q_s(\theta)}{Q_{\mathrm{ref}}}.
+y_1(\theta)=\log\!\frac{t_c(\theta)}{t_{\mathrm{ref}}}, 
+y_2(\theta)=T_p(\theta),
+y_3(\theta)=\log\!\frac{Q_s(\theta)}{Q_{\mathrm{ref}}}
 \label{eq:objective_transform}
 \end{equation}
 where $t_{\mathrm{ref}}$ and $Q_{\mathrm{ref}}$ are fixed positive reference
-values. A small positive floor is applied before the logarithm for numerical
-stability. For each objective, the scale $s_{i,t}$ is initially set to a fixed
-global range and is replaced by the observed range once the latter exceeds a
-prescribed fraction $\rho_R$ of the global range. This prevents the narrow
-objective range observed in the first few iterations from dominating the
-scalarization.
+values. A small positive floor is used before taking the logarithm. For each
+objective, the scaling factor $s_{i,t}$ is taken from a prescribed global
+range during the first few iterations and is replaced by the observed range
+once sufficient variation has been seen. This avoids over-amplifying an
+artificially narrow range at the start of the optimization.
 
-The scaled objective is defined as
+The normalized distance from the current best observation is
 \begin{equation}
- \bar f_{i,t}(\theta)=\frac{|y_i(\theta)-z_{i,t}^{*}|}{s_{i,t}},\qquad i=1,2,3,
+\bar f_{i,t}(\theta)=\frac{|y_i(\theta)-z_{i,t}^{*}|}{s_{i,t}}\qquad i=1,2,3
 \label{eq:objective_scaling}
 \end{equation}
 where $z_{i,t}^{*}$ is the best observed value of the $i$th transformed
-objective. The current multiobjective problem is then converted into a scalar
-subproblem using the augmented Tchebycheff function,
+objective. The three objectives are then combined using the augmented
+Tchebycheff function,
 \begin{equation}
- g_t(\theta)=\max_{i=1,2,3}\{w_i^{(t)}\bar f_{i,t}(\theta)\}+\rho\sum_{i=1}^{3}w_i^{(t)}\bar f_{i,t}(\theta),
+g_t(\theta)=\max_{i=1,2,3}\!\left\{w_i^{(t)}\bar f_{i,t}(\theta)\right\}
++\rho\sum_{i=1}^{3}w_i^{(t)}\bar f_{i,t}(\theta)
 \label{eq:tchebycheff}
 \end{equation}
-where $\rho>0$ is a small augmentation coefficient. All feasible observations
-are re-scalarized using the current weight vector at every iteration.
+where $\rho>0$ is a small augmentation coefficient. Changing
+$\mathbf w^{(t)}$ across iterations therefore directs the search toward
+different parts of the Pareto front.
 
-An ARD Mat\'ern-$5/2$ GP is fitted to the scalarized observations. For a
-candidate protocol $\theta$, let $\mu_t(\theta)$ and $\sigma_t(\theta)$ denote
-the GP posterior mean and standard deviation, respectively. For minimization,
-the expected improvement is
-\begin{equation}
- z_t(\theta)=\frac{g_t^{\mathrm{best}}-\mu_t(\theta)}{\sigma_t(\theta)},
-\label{eq:ei_z}
-\end{equation}
-\begin{equation}
- \mathrm{EI}_t(\theta)=\bigl(g_t^{\mathrm{best}}-\mu_t(\theta)\bigr)\Phi\!\bigl(z_t(\theta)\bigr)+\sigma_t(\theta)\phi\!\bigl(z_t(\theta)\bigr),
-\label{eq:ei}
-\end{equation}
-where $g_t^{\mathrm{best}}$ is the best scalar value among the evaluated
-protocols, and $\Phi(\cdot)$ and $\phi(\cdot)$ are the cumulative distribution
-and probability density functions of the standard normal distribution. The
-next protocol is selected by
-\begin{equation}
- \theta_{t+1}=\arg\max_{\theta}\mathrm{EI}_t(\theta).
-\label{eq:next_protocol}
-\end{equation}
-The selected protocol is evaluated by the battery simulator and appended to
-$D$, and the feasible Pareto archive $P$ is updated accordingly. This
-scalarization--GP--EI loop remains active throughout the complete simulation
-budget and forms the numerical backbone of LLMBO-MO.
+An ARD Mat\'ern-$5/2$ GP is fitted to the scalarized observations. Let
+$\mu_t(\theta)$ and $\sigma_t(\theta)$ denote its posterior mean and standard
+deviation. For the minimization problem, EI is written as
+\begin{align}
+    \mathrm{EI}_t(\theta) &= \bigl(g_t^{\mathrm{best}}-\mu_t(\theta)\bigr)\Phi(u_t)
+        +\sigma_t(\theta)\phi(u_t) \\
+    u_t &= \frac{g_t^{\mathrm{best}}-\mu_t(\theta)}{\sigma_t(\theta)}
+    \label{eq:ei}
+\end{align}
+where $g_t^{\mathrm{best}}$ is the best scalarized value among the evaluated
+protocols, and $\Phi(\cdot)$ and $\phi(\cdot)$ are the standard normal
+cumulative distribution and density functions. Maximizing
+$\mathrm{EI}_t(\theta)$ gives the next protocol to be evaluated. This
+scalarization--GP--EI loop is used throughout the complete simulation budget.
 
 \subsection{LLM-Informed Initialization}
 \label{sec:warm_start}
 
-The first LLM mechanism is introduced before sequential BO, when no
-simulator-based surrogate is yet available. Inspired by the use of LLMs as a
-natural-language interface to prior knowledge~\cite{refKuaiLLMBO}, the prompt
-provides the battery context, the MCC structure, the bounds of the decision
-variables, the optimization objectives, and qualitative knowledge about
-multistage charging. The LLM returns a pool of numerical protocol candidates
-together with a heuristic score used only for candidate ranking.
+Before the first GP is available, BO must rely on a small initial set of
+evaluated protocols. Random initialization provides broad coverage but does
+not use readily available knowledge about multistage charging. We therefore
+use the LLM to convert this qualitative knowledge into candidate protocols.
+The prompt specifies the battery context, MCC structure, decision-variable
+bounds, optimization objectives, and charging-related prior knowledge. The LLM
+returns a pool of numerical candidates together with a heuristic score used
+only for ranking.
 
-The raw LLM outputs are first checked against the protocol definition in
-Section~\ref{sec:problem}. Non-numerical, non-finite, and duplicate candidates
-are removed; bound violations are repaired; and candidates that cannot produce
-a valid terminal SOC interval are rejected. These checks only enforce the
-validity of the decision variables. Voltage and temperature feasibility are not
-inferred by the LLM and are determined only after battery simulation.
+The generated protocols are checked before any battery simulation is carried
+out. Non-numerical, non-finite, and duplicate outputs are removed; values
+outside the decision bounds are repaired; and protocols that cannot complete
+the prescribed SOC interval are rejected. These operations only verify the
+protocol representation. Voltage and temperature constraints are still
+determined by the battery model.
 
-To avoid selecting several similar LLM proposals, the initial portfolio is
-constructed by balancing candidate quality, protocol preference, and diversity,
+The remaining candidates are selected using
 \begin{equation}
- J(\theta)=h(\theta)-\omega_p p(\theta)+\omega_m m(\theta)+\omega_d d(\theta),
+J(\theta)=h(\theta)-\omega_p p(\theta)+\omega_m m(\theta)+\omega_d d(\theta)
 \label{eq:portfolio}
 \end{equation}
-where $h(\theta)\in[0,1]$ is the LLM score, $p(\theta)$ penalizes an
-undesirably small terminal SOC span, $m(\theta)$ rewards the preferred current
-ordering, and $d(\theta)$ measures the distance from the protocols already
-selected for the initial portfolio in normalized decision coordinates. The
-coefficients $\omega_p$, $\omega_m$, and $\omega_d$ control the corresponding
-terms. Randomly generated valid protocols are then added to preserve global
-coverage and reduce the risk of relying on an inaccurate prior.
+where $h(\theta)$ is the LLM ranking score, $p(\theta)$ penalizes an
+undesirably small terminal SOC span, $m(\theta)$ represents the preferred
+current ordering, and $d(\theta)$ measures diversity with respect to protocols
+already selected for the initial set. Random valid protocols are added to the
+selected LLM proposals so that the initial design does not depend entirely on
+the language prior.
 
-Every selected initial protocol is evaluated by the battery simulator before it
-is added to $D$. Consequently, the LLM changes only the locations at which the
-initial simulation budget is spent; it never supplies objective values to the
-GP or the Pareto archive.
+All initial protocols are then evaluated by the battery model. Only these
+simulator-evaluated records are added to $D$ and used for GP fitting and
+Pareto updating. Thus, the initialization mechanism changes the locations of
+the first evaluations without introducing LLM-generated objective values.
 
-\subsection{Weight-Conditioned Regional Guidance}
+\subsection{Posterior-Covariance Region Lift}
 \label{sec:region_pref}
 
-After the initial dataset has been established, LLMBO-MO uses a second LLM
-mechanism to refine acquisition optimization during the early sequential stage.
-At iteration $t$, the prompt contains the current trade-off weight
-$\mathbf w^{(t)}$, the observed objective ranges, the current best values,
-representative evaluated protocols, and a compact summary of the optimization
-state. Conditioning on $\mathbf w^{(t)}$ aligns the LLM suggestion with the
-same trade-off direction currently optimized by the numerical MOBO backbone.
+The initialization mechanism is used before sequential BO begins. Once the
+initial database has been formed, the LLM can also use the current optimization
+state to provide a short-lived regional preference. At iteration $t$, the
+prompt contains the active trade-off weight $\mathbf w^{(t)}$, the observed
+objective ranges, current best values, and representative evaluated protocols.
+The weight vector is included because the preferred region should change with
+the scalar subproblem currently being optimized.
 
-The LLM may return a candidate point, a bounded region, or no preference. A
-returned point is expanded to a local region, while a returned region is parsed
-and clipped to the valid decision-variable bounds. Invalid or excessively
-narrow or broad regions are discarded. When a valid region is obtained, a small
-number of anchor points are sampled from it and added to the starting points of
-numerical EI maximization.
+The LLM may return a point, a bounded region, or no preference. A returned
+point is expanded to a local region, while a returned region is clipped to the
+valid decision space. Invalid, excessively small, or excessively broad regions
+are ignored. The reported confidence $\widehat c_t$ is used only as a
+reliability weight; if it falls below a prescribed threshold, standard EI is
+used without modification.
 
-Importantly, the regional information does not modify the GP, the EI function,
-the objective values, or the Pareto dominance relation, nor does it restrict
-the search space to the LLM-recommended region. The original EI restarts and
-the full decision space are always retained. Therefore, an uninformative or
-invalid LLM response simply leaves the numerical acquisition search unchanged.
-Regional guidance is used only for $t\le T_{\mathrm L}$; after this early
-window, the optimization proceeds entirely with the numerical MOBO backbone.
+An accepted region is represented by $M$ Sobol anchors
+$\{\mathbf g_{1,t},\ldots,\mathbf g_{M,t}\}$ with equal weights
+$v_{j,t}=1/M$. These anchors are not evaluated by the battery model. Instead,
+the fitted GP determines how strongly an arbitrary candidate is related to the
+preferred region. Let $\widetilde{\boldsymbol\Sigma}_{GG,t}$ denote the
+posterior covariance among the anchors and
+$\widetilde{\boldsymbol\Sigma}_{\theta G,t}$ the posterior cross-covariance
+between a candidate $\theta$ and the anchor set, both in the standardized
+scalar-GP space. The variance associated with the regional anchor portfolio is
+\begin{equation}
+V_{G,t}=\mathbf v_t^{\top}\widetilde{\boldsymbol\Sigma}_{GG,t}\mathbf v_t
+\label{eq:region_variance}
+\end{equation}
+If $V_{G,t}$ is numerically negligible, the regional preference is discarded.
 
-\subsection{Overall Procedure}
-\label{sec:overall_procedure}
+The raw acquisition-time shift is then defined by
+\begin{equation}
+\delta_t^{(0)}(\theta)=
+\alpha_c\widehat c_t a_t\,
+\frac{\widetilde{\boldsymbol\Sigma}_{\theta G,t}\mathbf v_t}
+{\sqrt{V_{G,t}}},\quad
+a_t=\max\!\left(1-\frac{t-1}{T_{\mathrm L}},0\right)
+\label{eq:region_raw_shift}
+\end{equation}
+where $\alpha_c$ calibrates the strength of the regional preference and
+$a_t$ reduces its influence to zero by the end of the guidance window.
+The covariance term is signed: candidates positively correlated with the
+preferred region receive a favorable shift, whereas negatively correlated
+candidates are discouraged.
 
-Algorithm~\ref{alg:llmbo} summarizes LLMBO-MO. The method first constructs a
-simulator-validated initial dataset using LLM-informed and random protocols.
-It then repeatedly selects a trade-off direction, fits the scalar GP, maximizes
-EI, evaluates the selected protocol, and updates the Pareto archive. During the
-early iterations, weight-conditioned regional guidance provides additional EI
-restarts. The final output is the feasible Pareto set formed entirely by
-simulator-evaluated charging protocols.
+To prevent the regional preference from dominating the data-driven model, the
+raw shift is rescaled by
+\begin{equation}
+\kappa_t=\min\!\left\{1,\frac{B_{\mathrm{mean}}}{\bar\delta_t},
+\frac{B_{\max}}{\delta_t^{\max}}\right\}
+\label{eq:region_budget_scale}
+\end{equation}
+where $\bar\delta_t$ and $\delta_t^{\max}$ are, respectively, the mean and
+maximum absolute raw shifts evaluated at the anchors. The bounded shift is
+$\delta_t(\theta)=\operatorname{clip}(\kappa_t\delta_t^{(0)}(\theta),
+-B_{\max},B_{\max})$.
+
+The shift is used only when the acquisition function is evaluated. If
+$s_{g,t}$ denotes the standardization scale of the scalar GP target, the mean
+used for acquisition ranking is
+\begin{equation}
+\mu_t^{\mathrm L}(\theta)=\mu_t(\theta)-s_{g,t}\delta_t(\theta),\quad
+\sigma_t^{\mathrm L}(\theta)=\sigma_t(\theta)
+\label{eq:region_lifted_posterior}
+\end{equation}
+EI is then evaluated using $\mu_t^{\mathrm L}$ in place of $\mu_t$ in
+Eq.~\eqref{eq:ei}. The GP itself is not refitted, no pseudo-observations are
+introduced, and the posterior variance is unchanged. The full decision space
+also remains available to the acquisition optimizer. If the LLM abstains, the
+region fails the admissibility checks, its confidence is too low, or
+$V_{G,t}$ is degenerate, then $\delta_t(\theta)=0$ and the method reduces to
+standard EI. Standard EI is also used after $t>T_{\mathrm L}$.
+
+Algorithm~\ref{alg:llmbo} summarizes the complete procedure.
 
 \begin{algorithm}[!t]
 \caption{LLMBO-MO}
@@ -195,18 +219,20 @@ simulator-evaluated charging protocols.
 \begin{algorithmic}[1]
 \Require Battery simulator, LLM, total budget $N$, initial budget $n_0$, weight set $W$, guidance horizon $T_{\mathrm L}$
 \Ensure Feasible Pareto archive $P$
-\State Generate and screen LLM candidate protocols
-\State Select a diverse LLM portfolio and add random valid protocols
+\State Generate, screen, and rank LLM candidate protocols
+\State Combine selected LLM proposals with random valid protocols
 \State Evaluate the $n_0$ initial protocols; initialize $D$ and $P$
 \For{$t=1$ to $N-n_0$}
-    \State Select $\mathbf w^{(t)}\in W$ and compute $g_t$ using \eqref{eq:tchebycheff}
-    \State Fit the GP and construct $\mathrm{EI}_t$ using \eqref{eq:ei}
+    \State Select $\mathbf w^{(t)}\in W$ and compute $g_t$ using Eq.~\eqref{eq:tchebycheff}
+    \State Fit the GP and construct standard EI using Eq.~\eqref{eq:ei}
     \If{$t\le T_{\mathrm L}$}
         \State Query the LLM with $\mathbf w^{(t)}$ and the current BO state
-        \State Add valid regional anchors to the EI starting points
+        \If{an admissible region is returned}
+            \State Generate regional anchors and compute $\mu_t^{\mathrm L}$ using Eqs.~\eqref{eq:region_variance}--\eqref{eq:region_lifted_posterior}
+        \EndIf
     \EndIf
-    \State Select $\theta_{t+1}$ by maximizing EI
-    \State Evaluate $\theta_{t+1}$ with the battery simulator and append the result to $D$
+    \State Maximize the active EI over the full decision space and select $\theta_{t+1}$
+    \State Evaluate $\theta_{t+1}$ with the battery model and append the result to $D$
     \State Update the feasible Pareto archive $P$
 \EndFor
 \State \Return $P$

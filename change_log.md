@@ -1,5 +1,24 @@
 # Revision Change Log
 
+## Posterior-covariance Region-Lift restoration
+
+- Restored Region-Lift as the proposed online LLM--GP coupling mechanism in
+  the abstract, introduction, method, algorithm, experiment settings, and
+  conclusion.
+- Replaced the restart-only description with the implemented path:
+  accepted LLM region $\rightarrow$ feasible Sobol anchors $\rightarrow$
+  standardized GP posterior cross-covariance $\rightarrow$ bounded signed
+  acquisition-time mean shift $\rightarrow$ lifted EI.
+- Added numbered definitions for the regional latent variance, normalized
+  candidate--region correlation, confidence/early-window attenuation,
+  mean/max budget scaling, lifted ranking mean, and lifted EI.
+- Kept the fitted GP posterior, predictive standard deviation, simulator
+  observations, and Pareto dominance relation unchanged; invalid or
+  degenerate guidance falls back to standard EI.
+- Updated Algorithm 1 while preserving the established manuscript figure sequence.
+- Preserved the evidence boundary: archived restart/candidate-pool results are
+  not presented as causal evidence for the corrected covariance coupling.
+
 ## Current evidence-alignment pass
 
 - Centralized all reported experimental values in

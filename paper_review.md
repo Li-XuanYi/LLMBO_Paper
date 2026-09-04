@@ -6,8 +6,8 @@ Status meanings: **Pass**, **Pass with limitation**, and **Needs new experiment*
 
 | Reviewer question | Status | Assessment |
 |---|---|---|
-| Is the novelty clear? | Pass | The paper contributes an asymmetric LLM--BO interface: screened warm start and temporary candidate guidance without LLM-generated objective observations. |
-| Is the evaluated method distinguished from optional coupling? | Pass | The main Chen archive is described as warm start plus candidate-pool expansion under ordinary EI; bounded posterior-mean coupling is optional and assessed separately. |
+| Is the novelty clear? | Pass | The paper contributes an asymmetric LLM--BO interface: screened warm start plus a bounded posterior-covariance projection from semantic regions into acquisition-time candidate ranking. |
+| Is the proposed method distinguished from historical evidence? | Pass with limitation | Region-Lift is now the proposed online mechanism, while the text explicitly states that the retained restart-era archives do not isolate its causal contribution. |
 | Is the budget unambiguous? | Pass | Algorithm 1 defines \(N=n_0+n_{\mathrm{BO}}\), and the experiments use \(6+50=56\) simulator calls. |
 | Does fallback imply guaranteed performance? | Pass | The manuscript limits fallback claims to the affected numerical operator and explicitly rejects a guarantee that every guided trajectory improves. |
 
@@ -36,10 +36,10 @@ Status meanings: **Pass**, **Pass with limitation**, and **Needs new experiment*
 
 ## Submission-risk summary
 
-The revision closes the main editorial risks: numerical values are centralized,
-HV terminology is consistent, representative and multi-seed evidence are not
-conflated, unsupported coupling claims are removed, and no hardware evidence
-is implied.  Remaining risks are empirical:
+The revision makes the Region-Lift mechanism mathematically explicit and keeps
+the evidence boundary visible: numerical values are centralized, HV terminology
+is consistent, and the historical archives are not relabeled as a clean
+coupling-on experiment. Remaining risks are empirical:
 
 1. mixed historical archives in the Chen2020 summary;
 2. no matched qEHVI/qNEHVI result;
