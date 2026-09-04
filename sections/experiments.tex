@@ -13,8 +13,8 @@ representative Pareto-optimal charging protocols.
 \subsection{Experimental Setup}
 
 The Chen2020 parameterization of the LG INR21700-M50 cell~\cite{ref8} is used
-as the primary case, while Ecker2015~\cite{ref9} provides an additional battery
-parameterization. For each charging protocol, the three objectives are
+as the primary case, while Ecker2015~\cite{ref9} is additionally considered to assess robustness across battery parameterizations.
+For each charging protocol, the three objectives are
 charging time $t_c$, peak temperature rise $T_p$, and aging indicator $Q_s$.
 The main comparison uses six initial evaluations followed by 50 optimization
 iterations, giving 56 battery-model evaluations per run. Five matched trials
@@ -251,9 +251,8 @@ required to isolate the independent contribution of the finalized Region-Lift.
 \label{sec:llm_backends}
 
 A supplementary experiment compares three LLM backends under the same
-Chen2020 prompt and numerical BO settings. Because only one random seed is
-available, this comparison is descriptive rather than statistical.
-
+Chen2020 prompt and numerical BO settings. This comparison is intended as a 
+descriptive assessment of backend sensitivity rather than a statistical comparison.
 \begin{table}[!t]
 \caption{HV Obtained with Different LLM Backends}
 \label{tab:llm_backends}
