@@ -8,11 +8,8 @@ Bayesian optimization (BO) is well suited to such expensive black-box optimizati
 However, two limitations remain when observations are scarce.
 First, uninformed initialization can yield low-quality initial observations and prolong the cold-start phase.
 Second, the subsequent BO search lacks an explicit mechanism to exploit battery-domain knowledge about promising regions under the active multiobjective preference.
-In recent years, large language models (LLMs) have become popular,which can leverage domain knowledge and reason over the current optimization context, providing a natural source of task-specific prior information.
+Recent advances in large language models (LLMs) provide a potential means of incorporating task-specific prior knowledge into BO.
 Accordingly, this paper proposes LLMBO-MO, an LLM-guided multiobjective Bayesian optimization framework for lithium-ion battery charging design.
-Motivated by these advances, this paper proposes LLMBO-MO, an LLM-guided
-multiobjective Bayesian optimization framework for lithium-ion battery
-charging design.
 LLMBO-MO first employs an LLM-informed initialization strategy to generate
 promising and diverse initial charging protocols from battery-domain
 knowledge.

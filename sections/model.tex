@@ -7,11 +7,15 @@
 \subsection{Electrochemical Model}
 \label{sec:model}
 
-The electrochemical dynamics are described by the Single Particle Model with
-electrolyte dynamics (SPMe). The SPMe retains solid-phase diffusion,
-electrolyte transport, and interfacial reaction kinetics while reducing the
-computational cost relative to a full porous-electrode model. The terminal
-voltage is calculated as
+The battery electrochemical dynamics are described by the Single Particle
+Model with electrolyte dynamics (SPMe)~\cite{refSPMe}. The SPMe describes
+lithium-ion diffusion in the solid particles of the positive and negative
+electrodes, together with lithium-ion transport in the electrolyte across the
+cell. Compared with a full porous-electrode model, it retains the main
+electrochemical dynamics required for charging simulation at a lower
+computational cost.
+
+The terminal voltage is calculated as~\cite{refSPMe}
 \begin{equation}
 U=U_{\mathrm{eq}}+\eta_r+\eta_d+\Delta\Phi
 \label{eq:voltage}
@@ -19,8 +23,9 @@ U=U_{\mathrm{eq}}+\eta_r+\eta_d+\Delta\Phi
 where $U$ is the terminal voltage, $U_{\mathrm{eq}}$ is the equilibrium
 potential, $\eta_r$ is the ohmic overpotential, $\eta_d$ is the concentration
 overpotential, and $\Delta\Phi$ is the average potential difference in the
-electrolyte. The SOC is obtained from the solid-phase lithium concentration
-predicted by the SPMe.
+electrolyte. The state of charge (SOC) is obtained from the lithium-ion
+concentration in the solid phase. Further details of the SPMe formulation can
+be found in~\cite{refSPMe}.
 
 \subsection{Thermal Model}
 
@@ -54,8 +59,8 @@ where $T_0$ is the initial cell temperature.
 \subsection{Aging Model}
 \label{sec:aging}
 
-Charging-induced degradation is evaluated using the same semi-empirical aging
-model as EIMO. The normalized capacity-loss indicator is
+charging-induced degradation is evaluated
+using the semi-empirical capacity-loss model in~\cite{refAgingModel}
 \begin{equation}
 Q_s(\xi,Ah)=\sigma_{\mathrm{fun}}(\xi)Ah^z
 \label{eq:aging}
