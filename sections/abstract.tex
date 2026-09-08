@@ -4,15 +4,12 @@
 \begin{abstract}
 Lithium-ion batteries are widely used in electric vehicles and energy-storage systems, making efficient and reliable fast charging increasingly important.
 As charging requirements become more diverse, charging strategies must balance charging speed, safety, and battery degradation under different user preferences.
-Bayesian optimization (BO) has shown strong potential for battery charging
-design because it can identify high-quality solutions with a limited number
-of expensive evaluations.
-However, when observations are sparse, BO can suffer from uninformed
-initialization and insufficient task-specific guidance during early-stage
-search, leaving valuable battery-domain knowledge underutilized.
-Recent advances in large language models (LLMs), particularly their
-contextual reasoning, few-shot learning, and domain-knowledge capabilities,
-provide a promising means of complementing BO in such low-data regimes.
+Bayesian optimization (BO) is well suited to such expensive black-box optimization because it constructs a probabilistic surrogate model and uses an acquisition function to select informative candidates, thereby reducing the number of simulator evaluations required.
+However, two limitations remain when observations are scarce.
+First, uninformed initialization can yield low-quality initial observations and prolong the cold-start phase.
+Second, the subsequent BO search lacks an explicit mechanism to exploit battery-domain knowledge about promising regions under the active multiobjective preference.
+In recent years, large language models (LLMs) have become popular,which can leverage domain knowledge and reason over the current optimization context, providing a natural source of task-specific prior information.
+Accordingly, this paper proposes LLMBO-MO, an LLM-guided multiobjective Bayesian optimization framework for lithium-ion battery charging design.
 Motivated by these advances, this paper proposes LLMBO-MO, an LLM-guided
 multiobjective Bayesian optimization framework for lithium-ion battery
 charging design.
@@ -21,8 +18,7 @@ promising and diverse initial charging protocols from battery-domain
 knowledge.
 It then introduces a posterior-covariance Region-Lift mechanism that converts
 weight-conditioned LLM regional preferences into bounded acquisition-time mean
-shifts, thereby changing candidate ranking without inserting pseudo-observations
-or altering GP uncertainty.
+shifts, thereby changing candidate ranking.
 Extensive experiments demonstrate that LLMBO-MO consistently outperforms
 conventional BO methods and achieves a 9.3\% higher final hypervolume than
 ParEGO.

@@ -4,197 +4,127 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Lithium-ion batteries have been widely adopted in electric vehicles (EVs) and
-energy-storage systems due to their high energy density and long cycle life
-\cite{nref1}.
-With the rapid development of EVs, increasing demand has been placed on fast
-charging. However, increasing the charging current generally leads to greater
-heat generation and accelerated battery degradation, which can adversely
-affect both battery safety and service life.
-Therefore, achieving an appropriate balance among charging time, safety, and
-battery degradation has become an important problem in lithium-ion battery
-charging design \cite{nref2,nref3}.
-Such a design problem typically involves multiple conflicting objectives and
-is subject to operational constraints on charging current, voltage,
-temperature, state of charge (SOC), and other battery states.
-It can therefore be naturally formulated as a constrained multiobjective
-optimization problem (CMOP) \cite{nref2}.
+Fast charging of lithium-ion batteries requires balancing charging speed
+against thermal stress and degradation. For a prescribed amount of charge,
+shortening the charging time requires a higher average current. However,
+high charging rates increase polarization and heat generation and can
+promote degradation, with the response depending on temperature and state
+of charge (SOC)~\cite{refFastChargeReview}. Charging-protocol design therefore
+involves selecting how the current varies across charging stages while
+reaching a target SOC within prescribed current, voltage, and temperature
+limits. The competing objectives of charging time, thermal response, and
+battery health motivate a constrained multiobjective formulation that
+provides alternative protocols for different operating
+preferences~\cite{nref2,refGPA}.
 
-Various optimization methods have been developed for charging-strategy
-design.
-For example, deep reinforcement learning has been applied to multiobjective
-battery charging strategy design \cite{nref5}.
-Physics-based optimization methods describe the internal battery dynamics
-using electrochemical, thermal, and degradation models, and then optimize
-the charging strategy using numerical optimization or model predictive
-control (MPC).
-For example, Liu \emph{et al.} investigated multiobjective charging
-optimization using an electrochemical--thermal--aging model
-\cite{nref2}, while Hwang \emph{et al.} combined an enhanced single-particle
-model with MPC to optimize charging current while accounting for battery
-degradation mechanisms \cite{nref4}.
-Although these approaches provide physically interpretable optimization
-frameworks, they generally require repeated evaluations of the underlying
-battery model.
-High-fidelity electrochemical models can involve complex coupled dynamic
-equations, making large-scale searches computationally expensive.
-Consequently, the number of candidate protocols that can be evaluated within
-a practical computational budget is often limited.
+Evaluating these trade-offs is expensive. Physical charging and aging tests
+consume cells and laboratory time; in particular, directly measuring cycle
+life can require months of testing~\cite{nref3}. Battery models allow
+candidate protocols to be assessed in simulation, reducing reliance on
+physical experiments during the design stage. Nevertheless, electrochemical
+models require repeated numerical solution of coupled transport and reaction
+equations, often together with thermal and aging dynamics. Consequently,
+replacing experiments with simulation reduces the cost of each evaluation
+but does not eliminate the computational burden of searching across many
+protocols~\cite{nref7,nref8}. Reducing the number of simulator evaluations is
+therefore an important objective in charging-protocol optimization.
 
-Bayesian optimization (BO) is particularly suitable for expensive
-black-box optimization problems because it can identify promising solutions
-with relatively few evaluations of the true objective functions.
-BO typically constructs a probabilistic surrogate model, such as a Gaussian
-process (GP), to approximate the objective function and uses an acquisition
-function to balance exploitation and exploration \cite{nref6}.
-This property is well aligned with battery charging optimization, where the
-evaluation of a candidate charging protocol may require computationally
-expensive high-fidelity simulations or time-consuming battery experiments.
-Attia \emph{et al.} demonstrated that a closed-loop machine-learning
-framework based on BO can substantially reduce the number of experiments
-required for charging-protocol optimization \cite{nref3}.
-Jiang \emph{et al.} further applied BO to lithium-ion battery fast-charging
-design and demonstrated its ability to identify high-quality charging
-protocols with a limited number of evaluations \cite{nref7}.
-Wang and Jiang subsequently extended this line of research to multiobjective
-charging design by simultaneously considering charging time and battery
-degradation \cite{nref8}.
+Bayesian optimization (BO) addresses this evaluation cost through sequential
+surrogate modeling and acquisition-based sampling. A probabilistic
+surrogate, commonly a Gaussian process (GP), estimates both objective
+values and predictive uncertainty from evaluated candidates. An acquisition
+function combines these estimates to select the next candidate, allowing
+many alternatives to be compared using the inexpensive surrogate before
+one is evaluated by the battery simulator~\cite{nref6}. In this setting, BO
+treats the simulator as a black-box evaluator; it does not replace the
+underlying electrochemical model.
 
-Despite its sample efficiency, however, BO does not necessarily make
-effective use of a limited evaluation budget throughout the entire
-optimization process.
-In particular, during the initial stage, the surrogate model must be
-constructed from only a small number of initial observations.
-When these observations contain little useful task-specific prior
-information, BO may spend a substantial number of evaluations exploring
-low-quality regions before reaching promising parts of the search space,
-resulting in a pronounced \emph{cold-start phase}.
-Ramachandran \emph{et al.} showed that standard BO in relatively large
-search spaces may require exploration of multiple low-quality regions before
-approaching the optimum, and that prior knowledge regarding the location of
-high-quality solutions can effectively alleviate this issue \cite{nref9}.
-This limitation is particularly relevant to battery charging design because
-each unproductive evaluation may incur the cost of an additional
-high-fidelity simulation or physical experiment.
+Several studies have established the relevance of BO to fast charging.
+Attia \emph{et al.} combined early cycle-life prediction with BO to optimize
+fast-charging protocols experimentally, reducing both the duration and
+number of tests~\cite{nref3}. Jiang \emph{et al.} investigated BO for
+minimum-time charging subject to degradation-related constraints and
+compared acquisition functions for multistage
+protocols~\cite{nref7}. Wang and Jiang extended this approach to charging-time
+and cycle-life trade-offs using Chebyshev scalarization and constrained
+BO~\cite{nref8}. More recently, Zhu \emph{et al.} combined early degradation
+prediction with multiobjective BO to consider knee-point capacity and
+cycle life~\cite{refZhuMOBO}. GP-assisted evolutionary charging design has
+also addressed multiple user preferences while reducing simulation
+requirements~\cite{refGPA}. These studies establish a basis for evaluating
+charging trade-offs with limited observations.
 
-In addition to initialization, effectively restricting and guiding the
-subsequent search region is another important factor affecting BO efficiency.
-Conventional BO generally optimizes the acquisition function over the entire
-decision space.
-For complex search spaces, such global acquisition optimization can lead to
-excessive exploration of regions that are unlikely to contain high-quality
-solutions.
-To address this issue, Eriksson \emph{et al.} proposed TuRBO, which employs
-local probabilistic models and trust regions to concentrate the search on
-more promising regions and demonstrated improved efficiency on challenging
-black-box optimization problems \cite{nref10}.
-More recently, Namura and Takemori proposed Regional Expected Improvement
-(REI), which identifies regions that are more likely to contain the global
-optimum and uses them to determine the trust region for subsequent search
-\cite{nref11}.
-These studies suggest that if useful information about \emph{promising
-regions} can be obtained and incorporated into BO, unnecessary exploration
-can be reduced and optimization efficiency can be improved under a limited
-evaluation budget.
+An additional opportunity is to use battery-domain knowledge when deciding
+where to evaluate. Relationships between charging stages, thermal response,
+and degradation provide qualitative guidance before a new optimization run
+has collected many observations. Such information can complement the
+numerical input--output data used to fit a surrogate. Prior-guided BO has
+already been investigated for battery charging: Jeong \emph{et al.}
+incorporated a simplified aging model to guide the search for
+health-conscious protocols~\cite{refPriorCharging}. This work motivates a
+complementary question: how can qualitative knowledge expressed through
+charging-variable meanings and operating requirements be made usable by a
+multiobjective acquisition strategy?
 
-Recent advances in large language models (LLMs) provide a new opportunity to
-incorporate task-related prior knowledge into BO.
-LLMs have demonstrated strong capabilities in contextual understanding,
-few-shot learning, and knowledge utilization, enabling them to reason about
-candidate solutions from natural-language descriptions of a task.
-Unlike purely data-driven optimization, which relies primarily on numerical
-observations collected during optimization, an LLM can jointly consider
-domain descriptions, variable semantics, physical constraints, and previous
-optimization information when suggesting potentially promising candidates.
-Yang \emph{et al.} proposed Optimization by PROmpting (OPRO), which provides
-an LLM with historical candidates and their objective values and uses the LLM
-to iteratively generate new optimization candidates \cite{nref13}.
-More directly, Liu \emph{et al.} proposed LLAMBO, which integrates LLMs into
-BO and investigated their use for \emph{zero-shot warm starting}, surrogate
-modeling, and candidate sampling.
-Their results demonstrated the potential of LLM-derived prior information
-to improve BO performance, particularly during the early stage when only a
-small number of observations are available \cite{nref12}.
+Large language models (LLMs) offer a way to interpret these descriptions
+and propose candidates conditioned on the optimization context. Liu
+\emph{et al.} introduced LLAMBO and investigated LLM-based warm starting,
+surrogate modeling, and candidate sampling, with empirical results on
+hyperparameter optimization~\cite{nref12}. In the battery domain, Kuai
+\emph{et al.} applied LLM-enhanced BO to electrochemical parameter
+identification~\cite{refKuaiLLMBO}. These results motivate studying LLM
+assistance for charging design, where the decision variables specify an
+operating protocol and the objective is a set of feasible trade-offs among
+charging time, temperature rise, and aging.
 
-Despite these developments, the use of LLMs to assist BO for lithium-ion
-battery charging design remains insufficiently explored.
-Compared with generic black-box or hyperparameter optimization problems,
-battery charging protocols have explicit physical meanings, while the
-relationships among different charging stages and multiple optimization
-objectives contain substantial domain knowledge.
-For example, battery-domain knowledge can provide useful information about
-plausible charging-current profiles, SOC allocation across charging stages,
-and trade-offs among charging time, thermal behavior, and degradation.
-How to exploit such knowledge to improve the \emph{initial search quality}
-of BO, and further use it to provide \emph{region-level guidance} according
-to the current optimization state, remains an open research question.
-Under a limited evaluation budget, these two aspects correspond to two
-distinct sources of inefficiency: the \emph{cold-start problem} at the
-beginning of BO and potentially excessive exploration during the subsequent
-global search.
+Two aspects of incorporating such knowledge are relevant under a small
+simulation budget. First, an initial design based only on variable bounds
+does not explicitly use charging knowledge to select the first evaluated
+protocols. Incorporating that knowledge requires balancing the expected
+quality of LLM proposals with diversity in the initial design. Second,
+during sequential optimization, a qualitative preference for a region must
+be related to both the currently emphasized objective trade-off and the GP
+learned from observations. A useful integration mechanism should translate
+this preference into an acquisition-ranking adjustment and limit its
+influence when the language prior is unreliable. These two requirements
+concern the use of additional prior information at initialization and
+during subsequent candidate selection.
 
-To address these issues, this paper proposes
-\emph{LLM-guided Multiobjective Bayesian Optimization (LLMBO-MO)}, a
-framework for multiobjective charging-protocol design of lithium-ion
-batteries.
-The proposed method is built upon a decomposition-based multiobjective
-Bayesian optimization framework and uses an LLM as a provider of
-domain knowledge and search priors, while retaining BO as the primary
-numerical optimization mechanism.
-Specifically, an \emph{LLM-informed initialization} strategy first uses
-battery-charging knowledge to generate promising and sufficiently diverse
-initial charging protocols, thereby improving the initial state of BO.
-Subsequently, a \emph{posterior-covariance Region-Lift} mechanism elicits a
-promising region conditioned on the current multiobjective preference and BO
-state. The region is represented by feasible anchors, and the GP posterior
-cross-covariance propagates this structured language prior into a bounded
-acquisition-time mean adjustment. The resulting lifted EI changes candidate
-ranking during the early search while leaving the fitted GP posterior,
-uncertainty estimate, observations, and Pareto relation unchanged.
-
-The main contributions of this paper are summarized as follows:
+This paper proposes \emph{LLM-guided Multiobjective Bayesian Optimization
+(LLMBO-MO)} for multistage battery charging. The method combines
+LLM-informed initialization with a posterior-covariance Region-Lift
+mechanism in a decomposition-based BO framework. The Region-Lift design is
+inspired by the region-lifted preference mechanism of LGBO
+\cite{ref5}, and is adapted here to provide bounded,
+weight-conditioned regional guidance for multiobjective charging optimization.
+The LLM provides candidate protocols and regional preferences, while the
+battery simulator determines objective values and feasibility. The main
+contributions are as follows:
 
 \begin{itemize}
-    \item We propose \emph{LLMBO-MO}, an LLM-guided multiobjective Bayesian
-    optimization framework for lithium-ion battery charging-protocol design.
-    The framework incorporates battery-domain knowledge encoded in an LLM
-    into the BO process while preserving BO as the main numerical optimization
-    framework, providing additional prior information for charging-protocol
-    search under a limited evaluation budget.
+    \item We develop an LLM-informed initialization strategy that uses
+    charging-variable definitions, operating constraints, and battery-domain
+    knowledge to propose initial protocols. Candidate screening and
+    diversity-aware selection are combined with random valid protocols to
+    construct the initial simulation design.
 
-    \item We develop an \emph{LLM-informed initialization} strategy that uses
-    an LLM to generate promising and decision-space-diverse initial charging
-    protocols based on charging variables, physical constraints, and
-    battery-domain knowledge.
-    This strategy aims to improve the quality of the initial design compared
-    with uninformed initialization and thereby alleviate the cold-start
-    problem of BO.
+    \item We introduce a posterior-covariance Region-Lift mechanism that
+    represents an LLM-proposed region by anchors and uses GP posterior
+    cross-covariance to adjust expected-improvement ranking under the active
+    objective weights. The adjustment is bounded, decays during early
+    iterations, and falls back to standard expected improvement when the
+    regional preference cannot be used.
 
-    \item We introduce a \emph{posterior-covariance Region-Lift} mechanism
-    that maps a weight-conditioned LLM region into a portfolio of feasible
-    anchors and uses GP posterior cross-covariance to construct a bounded,
-    early-stage acquisition mean shift. This provides an explicit mathematical
-    interface from a structured language prior to candidate ranking, with a
-    strict fallback to standard EI whenever the preference is unavailable,
-    inadmissible, or numerically degenerate.
-
-    \item We conduct systematic multiobjective charging-optimization
-    experiments and compare LLMBO-MO with representative multiobjective BO
-    methods.
-    Ablation experiments are further performed to investigate the respective
-    contributions of the LLM-informed initialization and
-    posterior-covariance Region-Lift mechanisms under a limited
-    simulation-evaluation budget.
+    \item We evaluate LLMBO-MO on the Chen2020 and Ecker2015 battery
+    parameterizations under limited simulation budgets. Comparisons with
+    BO and other multiobjective optimizers, initialization experiments,
+    system-level ablations, and charging-trajectory analysis assess
+    optimization performance and the practical effect of LLM assistance.
 \end{itemize}
 
 The remainder of this paper is organized as follows.
-Section~\ref{sec:problem} formulates the multiobjective fast-charging problem
-and introduces the corresponding charging-protocol parameterization.
-Section~\ref{sec:model_section} presents the battery simulation model and the
-associated degradation model.
-Section~\ref{sec:method} develops the proposed LLMBO-MO framework, including
-the LLM-informed initialization and posterior-covariance Region-Lift
-mechanisms.
-Section~\ref{sec:experiments} presents the experimental results and
-ablation studies.
-Finally, Section~\ref{sec:conclusion} concludes the paper.
+Sections~\ref{sec:problem} and~\ref{sec:model_section} present the charging
+problem and battery model, respectively.
+Section~\ref{sec:method} describes LLMBO-MO.
+Section~\ref{sec:experiments} reports the experiments, and
+Section~\ref{sec:conclusion} concludes the paper.

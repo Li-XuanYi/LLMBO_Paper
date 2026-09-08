@@ -18,6 +18,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from eimo_figure_style import EIMO_STYLE
 
 
 COLORS = {
@@ -61,12 +62,16 @@ def _style() -> None:
     )
 
 
-def _save(fig: plt.Figure, output_dir: Path, stem: str) -> list[str]:
+def _save(fig: plt.Figure, output_dir: Path, stem: str, dpi: int = 400) -> list[str]:
     outputs: list[str] = []
     for suffix in ("pdf", "png"):
         path = output_dir / f"{stem}.{suffix}"
-        fig.savefig(path, dpi=400, bbox_inches="tight")
+        fig.savefig(path, dpi=dpi, bbox_inches="tight")
         outputs.append(str(path))
+    if dpi == 600:
+        highres = output_dir / f"{stem}_600dpi.png"
+        highres.write_bytes((output_dir / f"{stem}.png").read_bytes())
+        outputs.append(str(highres))
     plt.close(fig)
     return outputs
 
@@ -97,6 +102,7 @@ def _band_line(
     )
 
 
+@plt.rc_context(EIMO_STYLE)
 def make_chen(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
     x = np.asarray([row["eval_index"] for row in rows])
     fig, ax = plt.subplots(figsize=(7.15, 5.15))
@@ -124,9 +130,10 @@ def make_chen(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
     ax.grid(True)
     ax.legend(loc="lower right", frameon=True, fancybox=False, edgecolor="#777777")
     fig.tight_layout(pad=0.45)
-    return {"outputs": _save(fig, output_dir, "chen2020_hv_5way"), "evaluations": 56}
+    return {"outputs": _save(fig, output_dir, "chen2020_hv_5way", dpi=600), "evaluations": 56}
 
 
+@plt.rc_context(EIMO_STYLE)
 def make_ecker(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
     """Reproduce the supplied Ecker curve on its common manuscript HV scale."""
     x = np.asarray([row["eval_index"] for row in rows])
@@ -148,7 +155,6 @@ def make_ecker(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]
     fig, ax = plt.subplots(figsize=(7.15, 5.15))
     _band_line(ax, x, parego_mean, parego_sd, label="ParEGO", marker="s")
     _band_line(ax, x, llmbo_mean, llmbo_sd, label="LLMBO-MO", marker="o")
-    ax.axvline(30, color="#666666", linestyle="--", linewidth=0.9)
     ax.set_xlim(0, 56)
     ax.set_ylim(0.08, 0.60)
     ax.set_xlabel("Cumulative simulator evaluations")
@@ -158,7 +164,7 @@ def make_ecker(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]
     fig.tight_layout(pad=0.45)
 
     return {
-        "outputs": _save(fig, output_dir, "ecker2015_hv"),
+        "outputs": _save(fig, output_dir, "ecker2015_hv", dpi=600),
         "evaluations": 56,
         "seeds": 5,
         "uncertainty": "sample standard deviation",

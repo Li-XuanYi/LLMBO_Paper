@@ -48,11 +48,11 @@
   "outputs": {
     "png": {
       "path": "D:/Users/aa133/Desktop/Paper/figures/ablation_hv_box.png",
-      "sha256": "54dbcfc32c085577f751c08be17b33fb40cf070ea1cd58b87df3f14344c296e5"
+      "sha256": "0ccc5c961021741848fead687cb8989bdd9ddfcf0c74bf2319a308c2fc64de38"
     },
     "pdf": {
       "path": "D:/Users/aa133/Desktop/Paper/figures/ablation_hv_box.pdf",
-      "sha256": "5e6186c7fe0617e06d926ba6ecf31a8ba8a195c474880bafd2d748770bce7347"
+      "sha256": "1b53a6c35def1e1bd6e530d5575904502214ee23c37439904a19d49760070558"
     }
   }
 }

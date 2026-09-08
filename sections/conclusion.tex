@@ -6,42 +6,23 @@
 \label{sec:conclusion}
 
 This paper proposed LLMBO-MO for multiobjective battery fast-charging protocol
-design under a limited simulation budget. The method retains a
-decomposition-based multiobjective Bayesian optimization framework as the
-numerical optimizer and introduces LLM knowledge only during the data-scarce
-stage of the search. LLM-informed initialization converts battery-domain
-knowledge into a screened and diverse set of initial charging protocols, while
-the posterior-covariance Region-Lift mechanism uses an accepted,
-weight-conditioned regional preference to adjust acquisition ranking during
-the early BO iterations. In both mechanisms, the LLM affects only the search
-preference; objective values, feasibility, GP fitting, and Pareto updates are
-determined exclusively from battery-model evaluations.
+design under a limited simulation budget. The framework combines
+decomposition-based multiobjective Bayesian optimization with LLM-informed
+initialization and a posterior-covariance Region-Lift mechanism, while
+retaining battery-model evaluations as the sole source of objective values,
+feasibility, GP fitting, and Pareto updates.
 
-Under a budget of 56 simulator evaluations, LLMBO-MO achieves a mean final HV
-of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020, compared with
-\ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, corresponding to a
-\ChenFinalGain\ improvement. A similar advantage is observed under the
-Ecker2015 parameterization, where the final HV improves by
-\EckerFinalGain. LLMBO-MO also attains a higher final HV than NSGA-II, DISK,
-and PIMD under the same evaluation budget. The initialization study further
-shows that battery-specific prompt information provides a clear benefit over
-random initialization and a domain-agnostic prompt. The component ablation
-indicates that initialization accounts for most of the observed improvement,
-whereas the current experiments do not provide sufficient evidence to claim a
-separate systematic gain from Region-Lift. The representative Pareto protocols
-also exhibit the expected trade-offs among charging time, temperature rise,
-and the aging indicator. These results suggest that LLM knowledge is most
-useful as an early search prior, while the numerical BO process should remain
-responsible for the subsequent optimization.
+Under a budget of 56 simulator evaluations, LLMBO-MO achieved a mean final HV
+of \ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd\ on Chen2020, outperforming ParEGO by
+\ChenFinalGain, with a similar advantage observed on Ecker2015. Ablation
+results further show that battery-specific LLM-informed initialization is the
+main source of the observed improvement, whereas the independent contribution
+of Region-Lift requires further controlled validation. These results indicate
+that LLM knowledge is most effective as an early-stage search prior, while BO
+should remain the primary numerical optimizer.
 
-The present study is limited to simulation-based evaluation. The adopted
-electrochemical--thermal--aging model captures the main charging dynamics but
-does not represent all spatially localized degradation and thermal effects, and
-$Q_s$ is a model-based aging indicator rather than a measured capacity-fade
-endpoint. In addition, the numerical validation covers two battery
-parameterizations, while the comparison across LLM backends is limited to a
-single-seed descriptive study. Future work will therefore focus on controlled
-multi-seed ablations of Region-Lift, broader studies of LLM backends and prompt
-designs, extension to a wider range of battery chemistries and operating
-conditions, and validation on physical cells with experimentally measured
-degradation.
+The current study is limited to simulation-based evaluation with two battery
+parameterizations. Future work will therefore investigate Region-Lift through
+controlled multi-seed experiments, extend the framework to broader battery
+chemistries and operating conditions, and validate the proposed method on
+physical cells with experimentally measured degradation.

@@ -45,7 +45,7 @@ $P$ is updated. This loop continues until the simulation budget is exhausted.
 \label{sec:parego_backbone}
 
 The numerical backbone follows a decomposition-based multiobjective BO
-strategy~\cite{ref4,refEIMO}. A set of nonnegative weight vectors $W$ is
+strategy~\cite{ref4}. A set of nonnegative weight vectors $W$ is
 generated in advance to represent different trade-offs among charging time,
 temperature rise, and aging. At iteration $t$, one vector
 $\mathbf w^{(t)}=[w_1^{(t)},w_2^{(t)},w_3^{(t)}]$ is selected from $W$, where
@@ -95,9 +95,7 @@ deviation. For the minimization problem, EI is written as
 where $g_t^{\mathrm{best}}$ is the best scalarized value among the evaluated
 protocols, and $\Phi(\cdot)$ and $\phi(\cdot)$ are the standard normal
 cumulative distribution and density functions. Maximizing
-$\mathrm{EI}_t(\theta)$ gives the next protocol to be evaluated. This
-scalarization--GP--EI loop is used throughout the complete simulation budget.
-
+$\mathrm{EI}_t(\theta)$ gives the next protocol to be evaluated.
 \subsection{LLM-Informed Initialization}
 \label{sec:warm_start}
 
@@ -149,8 +147,8 @@ The LLM may return a point, a bounded region, or no preference. A returned
 point is expanded to a local region, while a returned region is clipped to the
 valid decision space. Invalid, excessively small, or excessively broad regions
 are ignored. The reported confidence $\widehat c_t$ is used only as a
-reliability weight; if it falls below a prescribed threshold, standard EI is
-used without modification.
+guidance-strength multiplier rather than as a calibrated probability; if it
+falls below a prescribed threshold, standard EI is used without modification.
 
 An accepted region is represented by $M$ Sobol anchors
 $\{\mathbf g_{1,t},\ldots,\mathbf g_{M,t}\}$ with equal weights
@@ -160,14 +158,18 @@ preferred region. Let $\widetilde{\boldsymbol\Sigma}_{GG,t}$ denote the
 posterior covariance among the anchors and
 $\widetilde{\boldsymbol\Sigma}_{\theta G,t}$ the posterior cross-covariance
 between a candidate $\theta$ and the anchor set, both in the standardized
-scalar-GP space. The variance associated with the regional anchor portfolio is
+scalar-GP space. The posterior variance of the weighted regional aggregate is
 \begin{equation}
-V_{G,t}=\mathbf v_t^{\top}\widetilde{\boldsymbol\Sigma}_{GG,t}\mathbf v_t
+V_{G,t}=
+\mathbf v_t^{\top}
+\widetilde{\boldsymbol\Sigma}_{GG,t}
+\mathbf v_t
 \label{eq:region_variance}
 \end{equation}
 If $V_{G,t}$ is numerically negligible, the regional preference is discarded.
 
-The raw acquisition-time shift is then defined by
+Using the GP posterior cross-covariance to propagate the regional preference
+\cite{ref5}, the raw regional mean shift is defined by
 \begin{equation}
 \delta_t^{(0)}(\theta)=
 \alpha_c\widehat c_t a_t\,
@@ -177,39 +179,50 @@ a_t=\max\!\left(1-\frac{t-1}{T_{\mathrm L}},0\right)
 \label{eq:region_raw_shift}
 \end{equation}
 where $\alpha_c$ calibrates the strength of the regional preference and
-$a_t$ reduces its influence to zero by the end of the guidance window.
-The covariance term is signed: candidates positively correlated with the
-preferred region receive a favorable shift, whereas negatively correlated
-candidates are discouraged.
+$a_t$ linearly decreases its influence during the guidance window and becomes
+zero for $t>T_{\mathrm L}$. The covariance term is signed: candidates
+positively correlated with the preferred region receive a favorable shift,
+whereas negatively correlated candidates are discouraged.
 
 To prevent the regional preference from dominating the data-driven model, the
 raw shift is rescaled by
 \begin{equation}
-\kappa_t=\min\!\left\{1,\frac{B_{\mathrm{mean}}}{\bar\delta_t},
-\frac{B_{\max}}{\delta_t^{\max}}\right\}
+\kappa_t=
+\min\!\left\{
+1,
+\frac{B_{\mathrm{mean}}}{\bar\delta_t+\epsilon_\delta},
+\frac{B_{\max}}{\delta_t^{\max}+\epsilon_\delta}
+\right\}
 \label{eq:region_budget_scale}
 \end{equation}
 where $\bar\delta_t$ and $\delta_t^{\max}$ are, respectively, the mean and
-maximum absolute raw shifts evaluated at the anchors. The bounded shift is
-$\delta_t(\theta)=\operatorname{clip}(\kappa_t\delta_t^{(0)}(\theta),
+maximum absolute raw shifts evaluated at the anchors, and
+$\epsilon_\delta>0$ is a small numerical constant used to avoid division by
+zero. The bounded shift is
+$\delta_t(\theta)=
+\operatorname{clip}(\kappa_t\delta_t^{(0)}(\theta),
 -B_{\max},B_{\max})$.
 
 The shift is used only when the acquisition function is evaluated. If
-$s_{g,t}$ denotes the standardization scale of the scalar GP target, the mean
-used for acquisition ranking is
+$s_{g,t}$ denotes the standardization scale of the scalar GP target, the
+acquisition-adjusted mean is
 \begin{equation}
-\mu_t^{\mathrm L}(\theta)=\mu_t(\theta)-s_{g,t}\delta_t(\theta),\quad
-\sigma_t^{\mathrm L}(\theta)=\sigma_t(\theta)
+\mu_t^{\mathrm L}(\theta)
+=
+\mu_t(\theta)-s_{g,t}\delta_t(\theta),\quad
+\sigma_t^{\mathrm L}(\theta)
+=
+\sigma_t(\theta)
 \label{eq:region_lifted_posterior}
 \end{equation}
 EI is then evaluated using $\mu_t^{\mathrm L}$ in place of $\mu_t$ in
-Eq.~\eqref{eq:ei}. The GP itself is not refitted, no pseudo-observations are
-introduced, and the posterior variance is unchanged. The full decision space
-also remains available to the acquisition optimizer. If the LLM abstains, the
-region fails the admissibility checks, its confidence is too low, or
-$V_{G,t}$ is degenerate, then $\delta_t(\theta)=0$ and the method reduces to
-standard EI. Standard EI is also used after $t>T_{\mathrm L}$.
-
+Eq.~\eqref{eq:ei}. The adjustment is used only for acquisition ranking: the
+GP itself is not refitted, no pseudo-observations are introduced, and the
+posterior variance is unchanged. The full decision space also remains
+available to the acquisition optimizer. If the LLM abstains, the region fails
+the admissibility checks, its confidence is too low, or $V_{G,t}$ is
+degenerate, then $\delta_t(\theta)=0$ and the method reduces to standard EI.
+Standard EI is also used after $t>T_{\mathrm L}$.
 Algorithm~\ref{alg:llmbo} summarizes the complete procedure.
 
 \begin{algorithm}[!t]

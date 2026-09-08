@@ -13,7 +13,7 @@ electrolyte transport, and interfacial reaction kinetics while reducing the
 computational cost relative to a full porous-electrode model. The terminal
 voltage is calculated as
 \begin{equation}
-U=U_{\mathrm{eq}}+\eta_r+\eta_d+\Delta\Phi,
+U=U_{\mathrm{eq}}+\eta_r+\eta_d+\Delta\Phi
 \label{eq:voltage}
 \end{equation}
 where $U$ is the terminal voltage, $U_{\mathrm{eq}}$ is the equilibrium
@@ -26,7 +26,7 @@ predicted by the SPMe.
 
 The cylindrical cell is described by a lumped thermal model,
 \begin{equation}
-\rho_{\mathrm{eff}}\frac{\partial T}{\partial t}=\bar Q-\frac{hA}{V}(T-T_a),
+\rho_{\mathrm{eff}}\frac{\partial T}{\partial t}=\bar Q-\frac{hA}{V}(T-T_a)
 \label{eq:thermal_balance}
 \end{equation}
 where $\rho_{\mathrm{eff}}$ is the effective volumetric heat capacity, $T$ is
@@ -35,7 +35,7 @@ heat-transfer coefficient, $A$ is the heat-dissipation area, $V$ is the cell
 volume, and $T_a$ is the ambient temperature. The effective volumetric heat
 capacity is
 \begin{equation}
-\rho_{\mathrm{eff}}=\frac{\sum_k\rho_kC_{p,k}L_k}{\sum_kL_k},
+\rho_{\mathrm{eff}}=\frac{\sum_k\rho_kC_{p,k}L_k}{\sum_kL_k}
 \label{eq:rho_eff}
 \end{equation}
 where $\rho_k$, $C_{p,k}$, and $L_k$ are the density, specific heat capacity,
@@ -46,7 +46,7 @@ positive current collector.
 The thermal objective in Eq.~\eqref{eq:peak_temp} is the maximum temperature
 rise during charging,
 \begin{equation}
-T_p(\theta)=\max_{0\le t\le t_c(\theta)}[T(t)-T_0],
+T_p(\theta)=\max_{0\le t\le t_c(\theta)}[T(t)-T_0]
 \label{eq:peak_temp}
 \end{equation}
 where $T_0$ is the initial cell temperature.
@@ -57,7 +57,7 @@ where $T_0$ is the initial cell temperature.
 Charging-induced degradation is evaluated using the same semi-empirical aging
 model as EIMO. The normalized capacity-loss indicator is
 \begin{equation}
-Q_s(\xi,Ah)=\sigma_{\mathrm{fun}}(\xi)Ah^z,
+Q_s(\xi,Ah)=\sigma_{\mathrm{fun}}(\xi)Ah^z
 \label{eq:aging}
 \end{equation}
 where $\xi=(\mathrm{SOC},I,T)$ contains the average SOC, current, and temperature
@@ -65,7 +65,7 @@ during charging, $Ah$ is the charge throughput, $z$ is the power-law exponent,
 and $\sigma_{\mathrm{fun}}$ is the severity-factor function. The severity factor
 is
 \begin{equation}
-\sigma_{\mathrm{fun}}(\xi)=(\alpha\,\mathrm{SOC}+\beta)\exp\!\left(\frac{-E_a+\eta_a I}{R_{\mathrm{gas}}(273.15+T)}\right),
+\sigma_{\mathrm{fun}}(\xi)=(\alpha\,\mathrm{SOC}+\beta)\exp\!\left(\frac{-E_a+\eta_a I}{R_{\mathrm{gas}}(273.15+T)}\right)
 \label{eq:severity}
 \end{equation}
 where $\alpha$ and $\beta$ describe the SOC dependence, $\eta_a$ describes the

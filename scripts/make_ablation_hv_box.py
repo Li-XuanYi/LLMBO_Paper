@@ -13,6 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from eimo_figure_style import EIMO_STYLE
 
 
 PAPER_ROOT = Path(__file__).resolve().parents[1]
@@ -73,21 +74,7 @@ def make_figure(
     colors = [str(group["color"]) for group in groups]
     data = [np.asarray(group["values"], dtype=float) for group in groups]
 
-    plt.rcParams.update(
-        {
-            "font.family": "serif",
-            "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
-            "font.size": 10,
-            "axes.labelsize": 11,
-            "xtick.labelsize": 9,
-            "ytick.labelsize": 9,
-            "pdf.fonttype": 42,
-            "ps.fonttype": 42,
-            "figure.facecolor": "white",
-            "axes.facecolor": "white",
-            "savefig.facecolor": "white",
-        }
-    )
+    plt.rcParams.update(EIMO_STYLE)
     fig, ax = plt.subplots(figsize=(7.15, 4.2))
     positions = np.arange(1, len(data) + 1)
     box = ax.boxplot(

@@ -21,28 +21,27 @@ corresponding SOC increment $\Delta s_k$. The battery is charged from the
 initial SOC $s_0$ to the target SOC $s_f$. The independent decision variables
 are collected in
 \begin{equation}
-\theta=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top ,
+\theta=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top 
 \label{eq:protocol}
 \end{equation}
 where the SOC increment of the final stage is determined by
 \begin{equation}
-\Delta s_K=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k .
+\Delta s_K=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k 
 \label{eq:terminal_soc}
 \end{equation}
 Each current and SOC increment is restricted to a prescribed interval, and
 $\Delta s_K$ is required to remain above a small positive lower bound so that
 the final charging stage is well defined.
 
-Following previous BO-based charging studies~\cite{nref7,nref8,refEIMO}, SOC
+Following previous BO-based charging studies~\cite{nref7,nref8}, SOC
 increments are optimized instead of stage durations. Once $I_k$ and
 $\Delta s_k$ are specified, the duration of stage $k$ is determined by the
 delivered charge. The total charging time is therefore
 \begin{equation}
-t_c(\theta)=3600Q_{\mathrm{eff}}\sum_{k=1}^{K}\frac{\Delta s_k}{I_k},
+t_c(\theta)=3600Q_{\mathrm{eff}}\sum_{k=1}^{K}\frac{\Delta s_k}{I_k}
 \label{eq:charging_time}
 \end{equation}
-where $Q_{\mathrm{eff}}$ is the effective cell capacity in Ah and the factor
-$3600$ converts hours to seconds. The experiments use $K=3$.
+where $Q_{\mathrm{eff}}$ is the effective cell capacity in Ah. The experiments use $K=3$.
 
 \subsection{Constrained Multiobjective Charging Design}
 
@@ -51,16 +50,16 @@ time $t_c(\theta)$, peak temperature rise $T_p(\theta)$, and aging indicator
 $Q_s(\theta)$:
 \begin{equation}
 \min_{\theta}\quad
-\mathbf f(\theta)=[t_c(\theta),\,T_p(\theta),\,Q_s(\theta)]^\top .
+\mathbf f(\theta)=[t_c(\theta),\,T_p(\theta),\,Q_s(\theta)]^\top 
 \label{eq:cmop}
 \end{equation}
 The latter two objectives are defined by the battery model in
 Section~\ref{sec:model_section}. In addition to the decision-variable bounds,
 the simulated charging trajectory must satisfy
 \begin{equation}
-U(t;\theta)\le U_{\max},\qquad
-T(t;\theta)\le T_{\max},\qquad
-0\le t\le t_c(\theta),
+U(t;\theta)\le U_{\max},\quad
+T(t;\theta)\le T_{\max},\quad
+0\le t\le t_c(\theta)
 \label{eq:operating_constraints}
 \end{equation}
 where $U_{\max}$ and $T_{\max}$ are the prescribed voltage and temperature

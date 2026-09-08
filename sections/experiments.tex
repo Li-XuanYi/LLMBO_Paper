@@ -95,7 +95,7 @@ end of the 56-evaluation budget.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.99\columnwidth]{chen2020_hv_5way_600dpi.png}
+\includegraphics[width=0.99\columnwidth]{chen2020_hv_5way.pdf}
 \caption{HV trajectories of the five methods on Chen2020.}
 \label{fig:chen_hv_5way}
 \end{figure}
@@ -130,16 +130,14 @@ task-specific observations are available.
 
 To determine whether the advantage over ParEGO is specific to Chen2020, the
 comparison is repeated using Ecker2015. Figure~\ref{fig:ecker_hv} and
-Table~\ref{tab:ecker_results} show the results. At evaluation 30, the mean HV
-values of LLMBO-MO and ParEGO are \EckerMidLLMBO\ and \EckerMidParEGO,
-respectively. At evaluation 56, they reach
+Table~\ref{tab:ecker_results} show the results.At evaluation 56, they reach
 \EckerLLMBOMean\,$\pm$\,\EckerLLMBOStd\ and
 \EckerParEGOMean\,$\pm$\,\EckerParEGOStd. The advantage over ParEGO is
 therefore also observed under the Ecker2015 parameterization.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.99\columnwidth]{ecker2015_hv_600dpi.png}
+\includegraphics[width=0.99\columnwidth]{ecker2015_hv.pdf}
 \caption{HV trajectories of LLMBO-MO and ParEGO on Ecker2015.}
 \label{fig:ecker_hv}
 \end{figure}
@@ -152,11 +150,11 @@ therefore also observed under the Ecker2015 parameterization.
 \setlength{\tabcolsep}{4.0pt}
 \begin{tabular}{@{}lcc@{}}
 \toprule
-Method & Evaluation 30 & Evaluation 56 \\
+Method & Evaluation 56 \\
 \midrule
-ParEGO & \EckerMidParEGO &
+ParEGO &
 \EckerParEGOMean\,$\pm$\,\EckerParEGOStd \\
-LLMBO-MO & \textbf{\EckerMidLLMBO} &
+LLMBO-MO &
 \textbf{\EckerLLMBOMean\,$\pm$\,\EckerLLMBOStd} \\
 \bottomrule
 \end{tabular}
@@ -215,7 +213,7 @@ gain from the posterior-covariance lift itself.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.99\columnwidth]{ablation_hv_box.png}
+\includegraphics[width=0.99\columnwidth]{ablation_hv_box.pdf}
 \caption{Final HV of the four ablation variants on Chen2020.}
 \label{fig:ablation_hv_box}
 \end{figure}

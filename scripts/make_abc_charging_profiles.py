@@ -20,6 +20,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from eimo_figure_style import EIMO_STYLE
 
 
 PAPER_ROOT = Path(__file__).resolve().parents[1]
@@ -121,15 +122,16 @@ def _replay_protocols(
 
 
 def _configure_style() -> None:
+    plt.rcParams.update(EIMO_STYLE)
     plt.rcParams.update(
         {
             "font.family": "serif",
             "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
-            "font.size": 9.0,
-            "axes.labelsize": 10.0,
-            "legend.fontsize": 8.5,
-            "xtick.labelsize": 8.5,
-            "ytick.labelsize": 8.5,
+            "font.size": 16.0,
+            "axes.labelsize": 17.0,
+            "legend.fontsize": 16.0,
+            "xtick.labelsize": 15.0,
+            "ytick.labelsize": 15.0,
             "axes.linewidth": 0.75,
             "lines.linewidth": 1.55,
             "pdf.fonttype": 42,
@@ -148,7 +150,7 @@ def _plot_profiles(
     dpi: int,
 ) -> tuple[Path, Path]:
     _configure_style()
-    fig, axes = plt.subplots(2, 2, figsize=(7.15, 5.15))
+    fig, axes = plt.subplots(2, 2, figsize=(7.15, 5.75))
     voltage_ax, temperature_ax, current_ax, soc_ax = axes.ravel()
 
     for protocol in protocols:
@@ -187,20 +189,19 @@ def _plot_profiles(
         axis.set_xlabel("Time / s")
         axis.set_ylabel(ylabel)
         axis.grid(True, color="#D9D9D9", linewidth=0.55, alpha=0.55)
-        axis.spines["top"].set_visible(False)
-        axis.spines["right"].set_visible(False)
-        axis.tick_params(direction="out", length=3.0, width=0.7)
+        axis.tick_params(direction="in", length=3.0, width=0.7)
         axis.text(
             0.5,
-            -0.30,
+            -0.38,
             panel_label,
             transform=axis.transAxes,
             ha="center",
             va="top",
-            fontsize=10.0,
+            fontsize=16.0,
         )
 
     voltage_ax.set_ylim(2.7, 4.4)
+    voltage_ax.set_yticks([3.0, 3.5, 4.0])
     voltage_ax.axhline(
         4.3,
         color="#D62728",
@@ -216,17 +217,21 @@ def _plot_profiles(
         2.0 * np.floor(float(temperature_values.min()) / 2.0),
         2.0 * np.ceil((float(temperature_values.max()) + 0.4) / 2.0),
     )
+    temperature_ax.set_yticks(np.arange(*temperature_ax.get_ylim(), 2.0))
     current_ax.set_ylim(1.5, 6.5)
     soc_ax.set_ylim(0.0, 0.85)
-    voltage_ax.legend(loc="lower right", frameon=True, fancybox=False)
+    soc_ax.set_yticks(np.arange(0.0, 0.81, 0.2))
+    handles, labels = voltage_ax.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.54, 1.0),
+               ncol=3, frameon=False, handlelength=1.8, columnspacing=1.1)
 
     fig.subplots_adjust(
-        left=0.095,
+        left=0.12,
         right=0.985,
-        bottom=0.13,
-        top=0.98,
-        wspace=0.30,
-        hspace=0.58,
+        bottom=0.15,
+        top=0.90,
+        wspace=0.53,
+        hspace=0.80,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     pdf_path = output_dir / "abc_charging_profiles.pdf"
