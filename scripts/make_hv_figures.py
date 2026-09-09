@@ -49,6 +49,7 @@ def _style() -> None:
     plt.rcParams.update(
         {
             "font.family": "serif",
+            "mathtext.fontset": "stix",
             "font.serif": ["Times New Roman", "DejaVu Serif"],
             "font.size": 10,
             "axes.labelsize": 11,
