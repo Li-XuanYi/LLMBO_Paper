@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "revision_policy": {
+    "new_simulator_runs": false,
+    "new_llm_calls": false,
+    "uncertainty": "sample standard deviation unless explicitly identified as a visualization proxy",
+    "metric_label": "HV"
+  },
+  "chen2020": {
+    "budget": 56,
+    "archive_note": "Five archived seeds assembled from compatible historical runs; descriptive, not a synchronized batch.",
+    "displayed_figure": {
+      "source": "Compare_Exp/experiment_records/（HV）05-03/curve_data/hv_convergence_5way_plotted_curves.csv",
+      "llmbo_mo_center_line": "archived seed 8409 trajectory",
+      "parego_center_line": "archived seed 8409 trajectory",
+      "llmbo_mo_final": 0.38482555920297173,
+      "parego_final": 0.3523110937014429,
+      "relative_difference_percent": 9.2274873071,
+      "band_note": "LLMBO-MO and ParEGO bands are stored visualization envelopes, not across-run standard deviations."
+    },
+    "llmbo_mo": {
+      "values": {
+        "8409": 0.38482555920297173,
+        "8410": 0.382604888270038,
+        "8411": 0.39391512431537407,
+        "8412": 0.3886212393270976,
+        "8413": 0.3741890250159762
+      },
+      "mean": 0.384831167226292,
+      "sample_sd": 0.00733304955647989,
+      "sources": {
+        "8409": "optimized_experiments/region_lift_force_pool_local_sweep_seed8409_2026_05_01/seed8409/wider_active16_ext32/summary.json",
+        "8410-8413": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed{seed}/llmbo_mo/summary.json"
+      }
+    },
+    "parego": {
+      "values": {
+        "8409": 0.3523110937014429,
+        "8410": 0.37609783087818255,
+        "8411": 0.3994554477734361,
+        "8412": 0.37929761034100756,
+        "8413": 0.3820582167849328
+      },
+      "mean": 0.3778440398958,
+      "sample_sd": 0.0168960475529247,
+      "sources": {
+        "8409": "optimized_experiments/parego_matlab_reference_seed8409_50iter_2026_05_05/seed8409/parego_matlab_reference/summary.json",
+        "8410-8413": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed{seed}/parego/summary.json"
+      }
+    },
+    "additional_baselines": {
+      "NSGA-II": {
+        "mean": 0.32651977703347534,
+        "sample_sd": 0.02203487991624898,
+        "source": "optimized_experiments/nsga2_5seeds_56evals_2026_05_07"
+      },
+      "DISK": {
+        "mean": 0.30846575630037015,
+        "sample_sd": 0.02672665631231668,
+        "source": "Compare_Exp/experiment_records/disk_python_Chen2020_5seeds_50evals_2026_05_11"
+      },
+      "PIMD": {
+        "mean": 0.29410674148779614,
+        "sample_sd": 0.019543442927426158,
+        "source": "Compare_Exp/experiment_records/pimd_python_Chen2020_5seeds_50evals_2026_05_11"
+      }
+    },
+    "figure_source": "Compare_Exp/experiment_records/（HV）05-03/curve_data/hv_convergence_5way_plotted_curves.csv"
+  },
+  "ecker2015": {
+    "budget": 56,
+    "seeds": [8409, 8410, 8411, 8412, 8413],
+    "reporting_scale_factor": 0.3,
+    "evaluation_30": {
+      "parego_mean": 0.433281647909872,
+      "llmbo_mo_mean": 0.555882273209921,
+      "relative_difference_percent": 28.295798124471
+    },
+    "evaluation_56": {
+      "parego_mean": 0.47596880929374,
+      "parego_sample_sd": 0.003897745018355,
+      "llmbo_mo_mean": 0.560525167001916,
+      "llmbo_mo_sample_sd": 0.000819188383969,
+      "relative_difference_percent": 17.765105682718
+    },
+    "source": "Compare_Exp/experiment_records/Ecker2015_HV05-12/curve_data/hv_convergence_parego_vs_llmbo.csv",
+    "interpretation": "Secondary battery-parameterization comparison; not an isolated transfer claim."
+  },
+  "objective_preprocessing": {
+    "benchmark": "Chen2020",
+    "budget": 56,
+    "seeds": 5,
+    "evaluation_30": {
+      "min_max_mean": 0.3355175492,
+      "z_score_mean": 0.3919738965,
+      "no_normalization_mean": 0.3255400945
+    },
+    "evaluation_56": {
+      "min_max": {"mean": 0.4146460929, "sample_sd": 0.0067477785},
+      "z_score": {"mean": 0.4121532055, "sample_sd": 0.0078462095},
+      "no_normalization": {"mean": 0.3825539222, "sample_sd": 0.0358229734}
+    },
+    "source": "scalarization_Exp/images/llmbomo_normalization_hv/llmbomo_normalization_hv.csv"
+  },
+  "optimal_protocols": {
+    "benchmark": "Chen2020",
+    "iterations": 50,
+    "seeds": 5,
+    "definition": "Feasible Pareto-nondominated entries in the current archive.",
+    "final_mean": {"llmbo_mo": 49.4, "parego": 45.8},
+    "source_manifest": "Compare_Exp/reports/2026-05-06_five_seed_optimal_protocols/manifest.json",
+    "interpretation": "Per-iteration Pareto-archive growth only; not an equal-simulator-call sample-efficiency comparison."
+  },
+  "pareto_representatives": {
+    "benchmark": "Chen2020",
+    "source": "results/pareto_representatives.json",
+    "labels": ["A", "B", "C", "D", "E"],
+    "selection_rule": "Pool feasible observations across seeds 8409-8413, deduplicate, retain the global minimization nondominated set, normalize objectives, order by charging time, and select cumulative front-arc fractions 0, 0.25, 0.50, 0.75, and 1.00.",
+    "soc_span_sum": 0.8
+  },
+  "prompt_study": {
+    "benchmark": "Chen2020",
+    "budget": 26,
+    "seeds": 10,
+    "random": {"mean": 0.31062, "sample_sd": 0.04303},
+    "detailed_prompt": {"mean": 0.31371, "sample_sd": 0.04675},
+    "experimental_prompt": {"mean": 0.36890, "sample_sd": 0.00824},
+    "experimental_minus_random": 0.05828,
+    "holm_p": 0.005859,
+    "cohen_dz": 1.309
+  },
+  "component_study": {
+    "benchmark": "Chen2020",
+    "budget": 16,
+    "seeds": [8409, 8410, 8411],
+    "plain_bo": {
+      "values": [0.2521761643, 0.3403689248, 0.2796859484],
+      "mean": 0.2907,
+      "sample_sd": 0.0451
+    },
+    "warm_start": {
+      "values": [0.3446119372, 0.3362575816, 0.3578656785],
+      "mean": 0.3462,
+      "sample_sd": 0.0109
+    },
+    "regional_guidance": {
+      "values": [0.2472222861, 0.3376794767, 0.3089611369],
+      "mean": 0.2980,
+      "sample_sd": 0.0462
+    },
+    "complete": {
+      "values": [0.3456075643, 0.3518496031, 0.3526592342],
+      "mean": 0.3500,
+      "sample_sd": 0.0039
+    },
+    "source": "Ablation_Exp/experiment_records/ablation_4way_3seeds_10iter_deepseek_v3_codex_2026_05_17",
+    "interpretation": "Matched short-budget component study with six initialization evaluations and ten BO iterations."
+  }
+}

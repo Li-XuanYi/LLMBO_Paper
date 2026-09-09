@@ -1,0 +1,82 @@
+% Canonical manuscript-facing values.
+% Main Chen2020 and Ecker2015 comparisons are reported over five matched trials.
+
+% Chen2020 main comparison: final HV (mean +/- sample SD).
+\newcommand{\ChenLLMBOMean}{0.3848}
+\newcommand{\ChenLLMBOStd}{0.0073}
+\newcommand{\ChenParEGOMean}{0.3520}
+\newcommand{\ChenParEGOStd}{0.0169}
+\newcommand{\ChenFinalGain}{9.3\%}
+
+\newcommand{\ChenNSGAMean}{0.3265}
+\newcommand{\ChenNSGAStd}{0.0220}
+\newcommand{\ChenNSGAGain}{17.9\%}
+\newcommand{\ChenDISKMean}{0.3085}
+\newcommand{\ChenDISKStd}{0.0267}
+\newcommand{\ChenDISKGain}{24.8\%}
+\newcommand{\ChenPIMDMean}{0.2941}
+\newcommand{\ChenPIMDStd}{0.0195}
+\newcommand{\ChenPIMDGain}{30.8\%}
+
+% Ecker2015 main comparison.
+\newcommand{\EckerParEGOMean}{0.4760}
+\newcommand{\EckerParEGOStd}{0.0039}
+\newcommand{\EckerLLMBOMean}{0.5605}
+\newcommand{\EckerLLMBOStd}{0.0008}
+\newcommand{\EckerMidParEGO}{0.4333}
+\newcommand{\EckerMidLLMBO}{0.5559}
+\newcommand{\EckerMidGain}{28.3\%}
+\newcommand{\EckerFinalGain}{17.8\%}
+
+% Objective-preprocessing diagnostic.
+\newcommand{\NormMinMaxMean}{0.4146}
+\newcommand{\NormMinMaxStd}{0.0067}
+\newcommand{\NormZScoreMean}{0.4122}
+\newcommand{\NormZScoreStd}{0.0078}
+\newcommand{\NormNoneMean}{0.3826}
+\newcommand{\NormNoneStd}{0.0358}
+\newcommand{\NormMidMinMax}{0.3355}
+\newcommand{\NormMidZScore}{0.3920}
+\newcommand{\NormMidNone}{0.3255}
+
+\newcommand{\OptimalLLMBOFinal}{49.4}
+\newcommand{\OptimalParEGOFinal}{45.8}
+
+% Chen2020 initialization study: ten matched trials.
+\newcommand{\PromptHVGain}{0.05828}
+\newcommand{\PromptHolmP}{0.005859}
+\newcommand{\PromptEffect}{1.309}
+
+% Short-budget Chen2020 component ablation:
+% three matched trials, 6 initialization evaluations + 10 BO iterations.
+\newcommand{\AblationTotalCalls}{16}
+\newcommand{\AblationBaselineMean}{0.2907}
+\newcommand{\AblationBaselineStd}{0.0451}
+\newcommand{\AblationWarmMean}{0.3462}
+\newcommand{\AblationWarmStd}{0.0109}
+\newcommand{\AblationRegionMean}{0.2980}
+\newcommand{\AblationRegionStd}{0.0462}
+\newcommand{\AblationFullMean}{0.3500}
+\newcommand{\AblationFullStd}{0.0039}
+\newcommand{\AblationWarmGain}{+0.0555}
+\newcommand{\AblationRegionGain}{+0.0072}
+\newcommand{\AblationFullGain}{+0.0593}
+
+% LLM-informed initialization portfolio hyperparameters.
+% The weights balance the LLM heuristic score, the soft terminal-span
+% penalty, the monotonicity indicator, and the decision-space diversity.
+\newcommand{\OmegaPenalty}{0.20}
+\newcommand{\OmegaMonotone}{0.10}
+\newcommand{\OmegaDiversity}{0.30}
+\newcommand{\SoftDeltaSK}{0.10}
+\newcommand{\SoftWidth}{0.10}
+% Posterior-covariance Region-Lift hyperparameters (standardized scalar-GP units).
+\newcommand{\RegionHorizon}{12}
+\newcommand{\RegionAnchors}{32}
+\newcommand{\RegionConfidenceThreshold}{0.60}
+\newcommand{\RegionConfidenceScale}{0.25}
+\newcommand{\RegionMeanBudget}{0.05}
+\newcommand{\RegionMaxShift}{0.15}
+% Augmented Tchebycheff and objective-scale hyperparameters.
+\newcommand{\RhoAug}{0.05}
+\newcommand{\RhoR}{0.30}

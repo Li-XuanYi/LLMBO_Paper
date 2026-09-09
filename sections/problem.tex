@@ -1,108 +1,73 @@
 % ============================================================================
-% Section III: Fast-Charging Optimization Problem
+% Section II: Problem Formulation
 % ============================================================================
-\section{Fast-Charging Optimization Problem}
+\section{Problem Formulation}
 \label{sec:problem}
 
-This section defines the protocol parameterization, the three competing
-objectives, and the physical constraints that together form the constrained
-multiobjective optimization problem.
-The coupled electrochemical--thermal simulator that evaluates each candidate
-protocol is described in Sections~\ref{sec:model} and~\ref{sec:aging}.
-Figure~\ref{fig:charging_problem} summarizes the formulation: protocol-feasible
-coordinates are mapped through the battery simulator to objective values and
-constraint checks, and a constrained Pareto search updates the protocol
-proposal.
+The fast-charging design problem is formulated as a constrained
+multiobjective optimization problem. A candidate solution is a multistage
+constant-current (MCC) charging protocol, and its performance is evaluated in
+terms of charging time, thermal response, and charging-induced aging.
+Fig.~\ref{fig:charging_problem} summarizes the decision variables, objectives,
+and operating constraints.
+
 \input{figures/fig_charging_design_problem}
 
-\subsection{SOC-Domain Multistage Protocol Representation}
+\subsection{Multistage Constant-Current Protocol}
 
-A charging protocol is a sequence of constant-current stages that takes the
-battery from an initial state of charge $s_0$ to a target $s_f$.
-Following established practice in BO-based charging design~\cite{ref14,ref13},
-each stage is parameterized by its current level and the SOC span it delivers,
-rather than by a fixed duration.
-The SOC-domain representation makes switching boundaries explicit: the
-delivered capacity in each stage depends on the current level, so stage
-duration is a dependent quantity determined by transferred charge rather than
-an independent decision variable.
-This avoids the coupling between current and time that would complicate
-constraint handling and numerical stability in a time-domain representation.
-
-For a $K$-stage protocol, let $I_k$ and $\Delta s_k$ denote the current and
-SOC span of stage $k$.
-The independent decision vector, the dependent terminal span, and the total
-charging time are
+A $K$-stage MCC protocol divides the charging process into $K$ constant-current
+stages. Stage $k$ is described by the charging current $I_k$ and the
+corresponding SOC increment $\Delta s_k$. The battery is charged from the
+initial SOC $s_0$ to the target SOC $s_f$. The independent decision variables
+are collected in
 \begin{equation}
-\begin{aligned}
-\btheta
-&=[I_1,\ldots,I_K,\;\Delta s_1,\ldots,\Delta s_{K-1}]^\top,\\[2pt]
-\Delta s_K
-&=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k,\\[2pt]
-t_c(\btheta)&=\kappa_t\,Q_{\mathrm{eff}}
-\sum_{k=1}^{K}\frac{\Delta s_k}{I_k^{\mathrm{cell}}},
-\end{aligned}
+\theta=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top 
 \label{eq:protocol}
 \end{equation}
-where $Q_{\mathrm{eff}}$ is the effective cell capacity,
-$I_k^{\mathrm{cell}}=\phi_{\mathrm{cell}}(I_k)$ maps a protocol-level current
-coordinate to the physical cell current via a fixed, cell-specific convention,
-and $\kappa_t$ converts charge to time units.
-The protocol domain $\Theta_{\mathrm{proto}}$ contains all box-feasible current
-and SOC-span coordinates satisfying $\Delta s_K\geq\Delta s_K^{\min}$, which
-excludes degenerate terminal stages while guaranteeing completion of the
-prescribed SOC interval.
-A stricter preferred span $\Delta s_K^{\mathrm{soft}}$ is used only during LLM
-warm-start candidate ranking (Section~\ref{sec:method}) and does not enter the
-simulator constraint set.
-
-This indexed representation accommodates any finite $K$; the optimization
-method does not depend on a particular stage count.
-Following~\cite{ref14,ref13}, $K=3$ is used in all experiments.
-
-\subsection{Objectives and Constraints}
-
-Three competing quantities are minimized.
-\textbf{Charging time} $t_c(\btheta)$ is computed analytically from the
-protocol coordinates via~\eqref{eq:protocol}.
-\textbf{Peak temperature rise} $\Delta T_p(\btheta)$ is the maximum cell
-temperature during the charge minus the initial temperature, obtained from the
-coupled SPMe--thermal simulation (Section~\ref{sec:model}).
-\textbf{Degradation proxy} $D_{\mathrm{chg}}(\btheta)$ is a control-oriented
-algebraic severity factor evaluated on trajectory-averaged SOC, temperature,
-and current; its construction is detailed in Section~\ref{sec:aging}.
-Smaller values of $D_{\mathrm{chg}}$ indicate less severe average operating
-conditions under the common proxy, not a prediction of capacity loss in
-absolute units.
-
-The constrained multiobjective problem is
+where the SOC increment of the final stage is determined by
 \begin{equation}
-\begin{aligned}
-\min_{\btheta\in\Theta_{\mathrm{proto}}}\quad
-&\mathbf f(\btheta)=
-\begin{bmatrix}
-t_c(\btheta)\\[2pt]
-\Delta T_p(\btheta)\\[2pt]
-D_{\mathrm{chg}}(\btheta)
-\end{bmatrix},\\
-\mathrm{s.t.}\quad
-&V_{\mathrm{peak}}(\btheta)\le V_{\max},\\
-&T_{\mathrm{peak}}(\btheta)\le T_{\max}.
-\end{aligned}
+\Delta s_K=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k 
+\label{eq:terminal_soc}
+\end{equation}
+Each current and SOC increment is restricted to a prescribed interval, and
+$\Delta s_K$ is required to remain above a small positive lower bound so that
+the final charging stage is well defined.
+
+Following previous BO-based charging studies~\cite{nref7,nref8}, SOC
+increments are optimized instead of stage durations. Once $I_k$ and
+$\Delta s_k$ are specified, the duration of stage $k$ is determined by the
+delivered charge. The total charging time is therefore
+\begin{equation}
+t_c(\theta)=3600Q_{\mathrm{eff}}\sum_{k=1}^{K}\frac{\Delta s_k}{I_k}
+\label{eq:charging_time}
+\end{equation}
+where $Q_{\mathrm{eff}}$ is the effective cell capacity in Ah. The experiments use $K=3$.
+
+\subsection{Constrained Multiobjective Charging Design}
+
+For a charging protocol $\theta$, the three minimized objectives are charging
+time $t_c(\theta)$, peak temperature rise $T_p(\theta)$, and aging indicator
+$Q_s(\theta)$:
+\begin{equation}
+\min_{\theta}\quad
+\mathbf f(\theta)=[t_c(\theta),\,T_p(\theta),\,Q_s(\theta)]^\top 
 \label{eq:cmop}
 \end{equation}
-The protocol domain $\Theta_{\mathrm{proto}}$ enforces current bounds and
-completion of $[s_0,s_f]$.
-The simulator checks the path-dependent voltage and temperature limits
-$V_{\max}$ and $T_{\max}$, which are fixed for each cell parameterization.
-A protocol that violates either limit or fails to complete the SOC interval
-is marked infeasible and excluded from the evaluated Pareto set.
+The latter two objectives are defined by the battery model in
+Section~\ref{sec:model_section}. In addition to the decision-variable bounds,
+the simulated charging trajectory must satisfy
+\begin{equation}
+U(t;\theta)\le U_{\max},\quad
+T(t;\theta)\le T_{\max},\quad
+0\le t\le t_c(\theta)
+\label{eq:operating_constraints}
+\end{equation}
+where $U_{\max}$ and $T_{\max}$ are the prescribed voltage and temperature
+limits. A protocol that violates either limit or fails to reach $s_f$ is
+treated as infeasible and is excluded from the Pareto set.
 
-The three objectives are inherently conflicting.
-Higher currents reduce $t_c$ but increase both $\Delta T_p$ (through Joule
-heating) and $D_{\mathrm{chg}}$ (through accelerated degradation kinetics at
-elevated temperature and SOC).
-The Pareto front therefore represents the set of protocols for which no
-objective can be improved without worsening another, and the optimization
-goal is to approximate this front under a tightly limited number of simulator
-evaluations.
+The three objectives are conflicting. Increasing the charging current can
+reduce $t_c$, but generally increases the thermal and aging costs. The desired
+trade-off also depends on the operating requirement. The optimization target
+is therefore a feasible Pareto set rather than a single charging protocol
+defined by a fixed preference.

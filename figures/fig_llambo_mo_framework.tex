@@ -1,13 +1,6 @@
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-% Editable Draw.io source:
-% C:/Users/aa133/Documents/WeChat Files/wxid_j2m5wuoxq2ag22/FileStorage/File/2026-07/手搓的流程图-Page-9.drawio.svg
-\includegraphics[width=0.72\textwidth]{fig_llambo_mo_framework_drawio.pdf}
-\caption{Unified LLMBO-MO workflow. \emph{A:} domain-informed LLM candidates
-and numerical initialization points are repaired against the protocol domain
-and evaluated by the simulator. \emph{B:} the numerical multiobjective BO loop
-performs scalarization, GP fitting, EI optimization, and simulator evaluation.
-The LLM enters only through the two advisory touchpoints; rejected guidance
-recovers plain EI, and only simulator outputs update the optimization state.}
+\includegraphics[width=\columnwidth]{fig_llambo_mo_framework.png}
+\caption{Structure of the proposed LLMBO-MO framework}
 \label{fig:framework}
-\end{figure*}
+\end{figure}

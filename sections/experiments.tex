@@ -1,285 +1,321 @@
-% ============================================================================
-% Section V: Numerical Validation and Discussion
-% ============================================================================
 \section{Numerical Validation and Discussion}
 \label{sec:experiments}
 
-\subsection{Evaluation Setup}
+This section evaluates LLMBO-MO on the fast-charging problem defined in
+Section~\ref{sec:problem}. We first compare the complete method with
+representative multiobjective optimizers under the same simulation budget.
+We then examine the effect of LLM-informed initialization and regional
+guidance, followed by a comparison across LLM backends and an analysis of
+representative Pareto-optimal charging protocols.
 
-All quantitative results are simulation-based.
-The SPMe formulation in Section~\ref{sec:model} is evaluated with the Chen2020
-and Ecker2015 parameter sets~\cite{ref8,ref9}.
-Every protocol is scored by charging time $t_c$, peak temperature rise
-$\Delta T_p$, and the degradation proxy $D_{\mathrm{chg}}$
-(Section~\ref{sec:aging}).
-Each run uses six initialization evaluations followed by 50 BO iterations,
-giving a fixed budget of 56 simulator calls.
-Both parameterizations use seeds 8409--8413.
+\subsection{Experimental Setup}
 
-Final hypervolume (HV) is the performance metric; higher is better.
-Within each parameterization, every method uses the same transformed objectives
-and the same benchmark-specific ideal and reference box
-(Section~\ref{sec:parego_backbone}).
-HV values are compared within, not across, parameterizations.
-Reported uncertainty is the sample standard deviation over the five seeds.
+The Chen2020 parameterization of the LG INR21700-M50 cell~\cite{ref8} is used
+as the primary case, while Ecker2015~\cite{ref9} is additionally considered to
+assess robustness across battery parameterizations. For each charging protocol,
+the three objectives are charging time $t_c$, peak temperature rise $T_p$, and
+aging indicator $Q_s$. The main comparison uses six initial evaluations
+followed by 50 BO iterations, giving 56 battery-model evaluations per run. Five
+matched trials are used for all methods in the main comparison.
 
-ParEGO is the primary comparator because it shares the
-scalarization--GP--EI backbone with LLMBO-MO~\cite{ref4}.
-Using a common backbone isolates the effect of the LLM advisory touchpoints
-from confounding differences in surrogate modeling or acquisition strategy.
-Direct hypervolume methods such as qEHVI and qNEHVI~\cite{refQEHVI,refQNEHVI}
-optimize a fundamentally different acquisition surface and require a distinct
-computational budget model; a matched comparison is deferred to future work.
-NSGA-II and surrogate-assisted evolutionary algorithms~\cite{ref5,refDISK,refPIMD}
-operate under population-based budgets that are not directly comparable to the
-sequential 56-evaluation regime studied here.
+Hypervolume (HV) is adopted as the main multiobjective performance metric. A
+larger HV indicates a better nondominated set under the same objective
+definitions and reference point. Within each battery parameterization, all
+methods use the same simulation budget and HV calculation. The battery and main
+experimental settings are summarized in Tables~\ref{tab:battery_settings} and
+\ref{tab:algorithm_settings}.
 
-The comparison holds the simulator, objectives, random-seed range, number of
-initial evaluations, BO budget, and HV definition fixed.
-The initialization composition differs by design: LLMBO-MO uses three screened
-LLM proposals and three random points, whereas ParEGO uses six random
-protocol-domain-valid points.
-The main results therefore evaluate the complete configurations rather than
-isolating a single coupling term; the component study
-(Section~\ref{sec:component}) separates these effects.
-
-\begin{table}[H]
-\caption{Fixed-Budget Protocol and Core LLMBO-MO Settings}
-\label{tab:protocol_settings}
+\begin{table}[!t]
+\caption{Battery and Simulator Settings}
+\label{tab:battery_settings}
 \centering
-\scriptsize
-\setlength{\tabcolsep}{2.7pt}
-\begin{tabular}{@{}
->{\raggedright\arraybackslash}p{0.37\columnwidth}
->{\raggedright\arraybackslash}p{0.27\columnwidth}
->{\raggedright\arraybackslash}p{0.27\columnwidth}@{}}
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.58\columnwidth}
+                    >{\raggedright\arraybackslash}p{0.34\columnwidth}@{}}
 \toprule
-Setting & Chen2020 & Ecker2015 \\
+Parameter & Value \\
 \midrule
-Seeds & 8409--8413 & 8409--8413 \\
-Initialization / BO calls & 6 / 50 & 6 / 50 \\
-Total simulator calls & 56 & 56 \\
-Primary comparator & ParEGO & ParEGO \\
-LLMBO-MO initialization & 3 LLM + 3 random & 3 LLM + 3 random \\
-ParEGO initialization & 6 random & 6 random \\
-LLM backend & GPT-4.1-nano & DeepSeek-V3-thinking \\
-Horizon / anchors $(T_{\mathrm L}/M)$ & 16 / 64 & 16 / 64 \\
-Anchor weights $(\eta_{\mathrm{EI}},\eta_\sigma,\eta_n)$ & \multicolumn{2}{c}{(0.60, 0.25, 0.15)} \\
-Softmax temperature / quality weight $(T_v/\eta_H)$ & \multicolumn{2}{c}{0.35 / 0.55} \\
-Trust initialization / update rate $(\tau_1/\beta)$ & \multicolumn{2}{c}{0.70 / 0.20} \\
-Strength / shift cap $(\lambda_{\max}/\delta_{\max})$ & \multicolumn{2}{c}{0.20 / 0.25} \\
-Covariance floors $(\varepsilon_K/\varepsilon_v)$ &
-\multicolumn{2}{c}{$10^{-6}/10^{-12}$} \\
+Primary parameterization & Chen2020, LG INR21700-M50 \\
+Additional parameterization & Ecker2015 \\
+Chen2020 nominal capacity & 5.0 Ah \\
+Chen2020 cell voltage range & 2.50--4.20 V \\
+Chen2020 cell format & 21700 cylindrical, 70 $\times$ 21 mm \\
+Initial/ambient temperature & 298.15 K \\
+Maximum cell temperature & 328.15 K \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Two different LLM backends are used across the two parameterizations
-(GPT-4.1-nano for Chen2020, DeepSeek-V3-thinking for Ecker2015).
-This choice is intentional: it demonstrates that the framework operates with
-distinct LLM providers and does not depend on a specific model's
-characteristics.
-The same backend is used for both warm-start and regional guidance within each
-parameterization.
-
-\begin{figure}[H]
+\begin{table}[!t]
+\caption{Main Experimental Settings}
+\label{tab:algorithm_settings}
 \centering
-\includegraphics[width=0.96\columnwidth]{experiment_platform.jpg}
-\caption{Laboratory charging-control platform prepared for physical replay of
-selected protocols. The host computer coordinates current actuation and
-voltage/temperature acquisition; hardware validation lies outside the scope of
-the present study.}
-\label{fig:experiment_platform}
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.62\columnwidth}
+                    >{\raggedright\arraybackslash}p{0.30\columnwidth}@{}}
+\toprule
+Setting & Value \\
+\midrule
+Total simulator budget & 56 \\
+Initial evaluations & 6 \\
+Number of matched trials & 5 \\
+Initial LLM candidate pool & 15 \\
+Regional-guidance horizon $T_{\mathrm L}$ & \RegionHorizon \\
+Number of regional anchors $M$ & \RegionAnchors \\
+Tchebycheff coefficient $\rho_{\mathrm{aug}}$ & \RhoAug \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Four competitors are considered. ParEGO is the primary BO baseline because it
+shares the decomposition--GP structure of the numerical backbone used in
+LLMBO-MO~\cite{ref4}. DISK and PIMD are included as recent surrogate-assisted
+multiobjective optimizers~\cite{refDISK,refPIMD}, while NSGA-II provides a
+classical evolutionary baseline~\cite{refNSGAII}. All methods are compared
+under the same simulator-evaluation budget.
+
+\subsection{Performance Comparison}
+
+Figure~\ref{fig:chen_hv_5way} shows the HV trajectories on Chen2020, and
+Table~\ref{tab:chen_results} reports the final values. LLMBO-MO separates from
+the competing methods during the early stage of optimization and maintains the
+largest mean HV through the remainder of the evaluation budget.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.99\columnwidth]{chen2020_hv_5way.pdf}
+\caption{HV trajectories of the five methods on Chen2020.}
+\label{fig:chen_hv_5way}
 \end{figure}
 
-The experimental platform shown in Fig.~\ref{fig:experiment_platform} defines
-the intended deployment interface.
-The host computer routes current commands to the power-supply channels and
-collects independent voltage and auxiliary-temperature measurements.
-Physical replay of optimized protocols will use separately approved protection
-limits and is not included in the quantitative evaluation reported here.
-
-\subsection{Main Fixed-Budget Results}
-
-\begin{table}[H]
-\caption{Five-Seed Final Hypervolume After 56 Simulator Evaluations}
-\label{tab:fixed_budget}
+\begin{table}[!t]
+\caption{Final HV on Chen2020}
+\label{tab:chen_results}
 \centering
-\scriptsize
-\setlength{\tabcolsep}{2.4pt}
-\begin{tabular}{@{}llccc@{}}
+\footnotesize
+\setlength{\tabcolsep}{4.0pt}
+\begin{tabular}{@{}lc@{}}
 \toprule
-Cell model & Method & Final HV $\uparrow$ & $\Delta$ HV & Wins \\
+Method & Final HV (mean $\pm$ SD) $\uparrow$ \\
 \midrule
-\multirow{2}{*}{Chen2020}
-& ParEGO & 0.3853 $\pm$ 0.0094 & -- & -- \\
-& LLMBO-MO & \textbf{0.3885 $\pm$ 0.0088} & +0.84\% & 3/5 \\
-\midrule
-\multirow{2}{*}{Ecker2015}
-& ParEGO & 0.5540 $\pm$ 0.0121 & -- & -- \\
-& LLMBO-MO & \textbf{0.5660 $\pm$ 0.0104} & +2.18\% & 4/5 \\
+LLMBO-MO & \textbf{\ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd} \\
+ParEGO & \ChenParEGOMean\,$\pm$\,\ChenParEGOStd \\
+NSGA-II & \ChenNSGAMean\,$\pm$\,\ChenNSGAStd \\
+DISK & \ChenDISKMean\,$\pm$\,\ChenDISKStd \\
+PIMD & \ChenPIMDMean\,$\pm$\,\ChenPIMDStd \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:fixed_budget} reports the five-seed final HV after the full
-56-evaluation budget.
-LLMBO-MO attains the higher mean on both parameterizations.
-On Chen2020, the mean improvement is 0.84\% with three of five seeds favoring
-LLMBO-MO in paired comparison.
-On Ecker2015, the mean improvement is 2.18\% with four of five paired wins.
-The sample dispersions are comparable for the two methods on Chen2020 and lower
-for LLMBO-MO on Ecker2015.
+After 56 evaluations, LLMBO-MO achieves a mean HV of
+\ChenLLMBOMean\,$\pm$\,\ChenLLMBOStd, compared with
+\ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, corresponding to a
+\ChenFinalGain\ improvement. Its final mean HV is also higher than those of
+NSGA-II, DISK, and PIMD.
 
-These gains are modest in absolute terms, which is consistent with the
-deliberately conservative design of the LLM interface.
-The method is engineered to avoid degradation relative to standard BO; the
-observed outcomes meet this criterion while providing a small but systematic
-advantage.
-The results do not by themselves identify which advisory touchpoint drives the
-improvement; this is addressed by the component study below.
+A similar trend is observed on Ecker2015. As shown in
+Fig.~\ref{fig:ecker_hv}, LLMBO-MO remains above ParEGO over most of the search
+and reaches \EckerLLMBOMean\,$\pm$\,\EckerLLMBOStd\ at evaluation 56,
+compared with \EckerParEGOMean\,$\pm$\,\EckerParEGOStd\ for ParEGO
+(Table~\ref{tab:ecker_results}).
 
-\subsection{Pareto Protocol and Trajectory Interpretation}
-
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\begin{minipage}[t]{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{pareto_protocols.pdf}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.49\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{charging_profiles.pdf}
-\end{minipage}
-\caption{Chen2020 protocol interpretation. \emph{Left:} evaluated LLMBO-MO
-protocols in the three-objective space (pooled across five runs for
-visualization only); markers A--E label representative points along the
-trade-off surface. \emph{Right:} simulator trajectories of a selected LLMBO-MO
-protocol, a warm-start-only variant, and the ParEGO baseline, showing
-current, voltage, temperature, and SOC evolution over the charge.}
-\label{fig:pareto_profiles}
-\end{figure*}
+\includegraphics[width=0.99\columnwidth]{ecker2015_hv.pdf}
+\caption{HV trajectories of LLMBO-MO and ParEGO on Ecker2015.}
+\label{fig:ecker_hv}
+\end{figure}
 
-Figure~\ref{fig:pareto_profiles} links the objective-space envelope to
-time-domain behavior.
-In the left panel, point A marks the fastest protocol, which exhibits the
-largest temperature rise and degradation-proxy value.
-Point B achieves the lowest degradation proxy among the marked candidates.
-Point C lies near the visible time--temperature knee.
-Points D and E trade longer charging duration for reduced temperature rise.
-The three objectives are visibly conflicting: no single protocol simultaneously
-minimizes all three.
+\begin{table}[!t]
+\caption{HV Comparison on Ecker2015}
+\label{tab:ecker_results}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4.0pt}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Method & Evaluation 56 \\
+\midrule
+ParEGO & \EckerParEGOMean\,$\pm$\,\EckerParEGOStd \\
+LLMBO-MO & \textbf{\EckerLLMBOMean\,$\pm$\,\EckerLLMBOStd} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The trajectory panel (right) illustrates how these trade-offs arise in the time
-domain.
-The selected LLMBO-MO schedule employs a brief high-current interval and
-reaches the target SOC earlier than the two alternatives, with a correspondingly
-larger temperature excursion.
-The voltage trace remains below the model-specific operational limit throughout
-the charge.
-These are simulated trajectories and should not be interpreted as measured
-lifetime or protection-system performance.
+\subsection{Ablation Study}
 
-\subsection{Component Study}
-\label{sec:component}
+The main comparison evaluates the complete LLMBO-MO framework. We next examine
+how the two forms of LLM assistance contribute to the observed behavior.
 
-The component study separates the contributions of the two LLM touchpoints.
-Four variants are compared on the Chen2020 parameterization under the same
-56-evaluation budget and seed range:
+\subsubsection{LLM-Informed Initialization}
 
-\noindent\textbf{Baseline} (ParEGO): six random initial points, standard EI
-throughout, no LLM involvement.\\
-\textbf{WarmStart}: three screened LLM proposals plus three random initial
-points, followed by standard EI with no regional guidance.\\
-\textbf{Regional Guidance}: six random initial points, with bounded regional
-guidance active during the early window ($T_{\mathrm L}=16$).
-Because the warm-start screening pipeline is absent, this variant uses a
-simplified anchor mechanism with uniform weighting and a mean-absolute-shift
-budget $B_\delta$ in place of the full coupling in
-\eqref{eq:bounded_coupling}.\\
-\textbf{Complete LLMBO-MO}: both touchpoints active (three LLM + three random
-initialization, plus the full bounded regional coupling during the guidance
-window).
+The first study compares random initialization, a detailed generic prompt, and
+a battery-specific prompt. Ten matched trials are used, and all three variants
+follow the same numerical BO procedure after initialization. The final HV
+values under a 26-evaluation budget are reported in
+Table~\ref{tab:prompt_study}.
 
-The first three variants were executed in one matched five-seed batch; the
-Complete variant is a five-seed follow-up using the identical seed range and BO
-budget.
+\begin{table}[!t]
+\caption{Effect of Different Initialization Strategies}
+\label{tab:prompt_study}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4.0pt}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Initialization & Final HV (mean $\pm$ SD) $\uparrow$ \\
+\midrule
+Random & 0.31062 $\pm$ 0.04303 \\
+Generic prompt & 0.31371 $\pm$ 0.04675 \\
+Battery-specific prompt & \textbf{0.36890 $\pm$ 0.00824} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\begin{table}[H]
-\caption{Five-Seed Chen2020 Component Study at 50 BO Iterations}
+The generic prompt performs similarly to random initialization. In contrast,
+the battery-specific prompt increases the mean final HV by \PromptHVGain\ and
+substantially reduces the variation among trials. The paired comparison remains
+significant after Holm correction ($p=\PromptHolmP$). This result indicates
+that the improvement is associated with battery-specific context rather than
+with LLM prompting alone.
+
+\subsubsection{Regional Guidance}
+
+The second study compares four variants under the same short budget: the
+numerical BO backbone without LLM assistance, LLM-informed initialization only,
+regional guidance only, and the complete LLMBO-MO framework. Each run contains
+six initial evaluations followed by ten BO iterations.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.99\columnwidth]{ablation_hv_box.pdf}
+\caption{Final HV distributions of the four ablation variants on Chen2020.}
+\label{fig:ablation_hv_box}
+\end{figure}
+
+\begin{table}[!t]
+\caption{Ablation Results on Chen2020}
 \label{tab:ablation}
 \centering
 \footnotesize
-\setlength{\tabcolsep}{2.6pt}
-\begin{tabular}{@{}lccc@{}}
+\setlength{\tabcolsep}{4.0pt}
+\begin{tabular}{@{}lc@{}}
 \toprule
-Variant & Final HV $\uparrow$ & $\Delta$ HV & Wins \\
+Variant & Final HV (mean $\pm$ SD) $\uparrow$ \\
 \midrule
-Baseline (ParEGO) & 0.3836 $\pm$ 0.0101 & -- & -- \\
-WarmStart & 0.3902 $\pm$ 0.0078 & +0.0066 & 4/5 \\
-Regional Guidance & 0.3862 $\pm$ 0.0112 & +0.0026 & 4/5 \\
-Complete LLMBO-MO & \textbf{0.3932 $\pm$ 0.0117}
-& \textbf{+0.0096} & 3/5 \\
+No LLM & \AblationBaselineMean\,$\pm$\,\AblationBaselineStd \\
++ WarmStart & \AblationWarmMean\,$\pm$\,\AblationWarmStd \\
++ Regional guidance & \AblationRegionMean\,$\pm$\,\AblationRegionStd \\
+LLMBO-MO & \textbf{\AblationFullMean\,$\pm$\,\AblationFullStd} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:ablation} reports the component-level decomposition.
-The WarmStart variant provides the larger and more consistent individual gain
-($+0.0066$ mean HV, four of five paired wins over Baseline).
-Regional Guidance alone yields a smaller improvement ($+0.0026$, also four of
-five wins) with greater seed-to-seed dispersion.
-The Complete configuration achieves the highest mean HV ($+0.0096$) but with
-three of five wins, indicating that the two touchpoints do not combine
-uniformly across seeds.
-The combined gain ($+0.0096$) is approximately the sum of the individual gains
-($+0.0092$), suggesting that warm-starting and regional guidance operate
-through largely independent mechanisms at this budget.
+Figure~\ref{fig:ablation_hv_box} and Table~\ref{tab:ablation} show that
+LLM-informed initialization accounts for most of the improvement in this
+short-budget study. Adding initialization increases the mean HV from
+\AblationBaselineMean\ to \AblationWarmMean, whereas regional guidance alone
+produces a smaller change to \AblationRegionMean. Combining both components
+gives the highest mean HV of \AblationFullMean\ and the smallest dispersion
+among the four variants. These results suggest that domain-informed
+initialization is the dominant empirical source of the observed gain, while
+regional guidance plays a complementary role during sequential search.
 
-These results support two conclusions.
-First, the screened LLM warm-start is the primary performance driver,
-consistent with the intuition that informative initialization matters most when
-the total evaluation budget is small.
-Second, bounded regional guidance provides a consistent but smaller
-complementary benefit; its value is most apparent when the warm-start
-portfolio already places the search in a favorable region of the protocol
-space.
+\subsection{Comparison Across LLM Backends}
+\label{sec:llm_backends}
 
-\subsection{Limitations and Deployment Context}
+A supplementary experiment compares three LLM backends under the same
+Chen2020 prompt and numerical BO settings. The values are reported
+descriptively because this comparison uses a single run per backend.
 
-The evidence reported in this section is subject to several scope limitations,
-each of which defines a direction for further work.
+\begin{table}[!t]
+\caption{HV Obtained with Different LLM Backends}
+\label{tab:llm_backends}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Backend & Initial HV & HV at 15 & Final HV \\
+\midrule
+DeepSeek-V4-Flash & 0.341225 & \textbf{0.373845} & 0.385986 \\
+DeepSeek-V4-Pro & 0.345274 & 0.372526 & \textbf{0.387931} \\
+GLM-5.3-Flash & \textbf{0.346248} & 0.372527 & 0.385324 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\begin{enumerate}
-\item \textbf{Simulation-only validation.} All quantitative results are
-obtained from the SPMe simulator. No physical-cell cycling data are included,
-and the reported HV values do not measure calibrated capacity fade or lifetime
-improvement. Physical replay on the platform in
-Fig.~\ref{fig:experiment_platform} is the natural next step.
+The three backends produce similar final HV values, ranging from 0.385324 to
+0.387931, indicating that the observed behavior is not specific to a single LLM
+backend in this comparison.
 
-\item \textbf{Limited parameterization coverage.} Two SPMe parameter sets
-(Chen2020 and Ecker2015) with a common five-seed range. Broader validation
-across additional cell chemistries, aging levels, and seed ranges would
-strengthen the generality claim.
+\subsection{Analysis of Pareto-Optimal Charging Protocols}
 
-\item \textbf{ParEGO-centered comparison.} The fixed-budget protocol uses
-ParEGO as the sole numerical baseline. Matched-budget comparisons with direct
-hypervolume methods (qEHVI, qNEHVI) and surrogate-assisted evolutionary
-algorithms are needed to position LLMBO-MO within the wider multiobjective BO
-landscape.
+HV summarizes the overall quality of the nondominated set, whereas the
+practical output of the optimizer is a collection of charging protocols. We
+therefore select three representative solutions from the Chen2020 Pareto set to
+connect the objective-space trade-offs with their charging trajectories.
+Figure~\ref{fig:pareto_profiles} shows their locations in the three-objective
+space, and Table~\ref{tab:representative_protocols} lists the corresponding
+protocol parameters.
 
-\item \textbf{Trajectory-averaged degradation proxy.} $D_{\mathrm{chg}}$
-uses time-averaged SOC, temperature, and current and does not resolve
-short-duration excursions (high SOC, high current, high temperature) that
-contribute disproportionately to degradation in physical cells.
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{pareto_protocols_ae.pdf}
+\caption{Representative Pareto-optimal charging protocols on Chen2020.}
+\label{fig:pareto_profiles}
+\end{figure}
 
-\item \textbf{LLM backend variability.} Different LLM backends were used for
-the two parameterizations. While this demonstrates provider independence, a
-systematic backend comparison under controlled conditions would clarify how
-LLM capability affects guidance quality.
+\begin{table*}[!t]
+\caption{Representative Pareto-Optimal Charging Protocols}
+\label{tab:representative_protocols}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5.0pt}
+\begin{tabular}{@{}c l r r r@{}}
+\toprule
+Protocol & $I_1/I_2/I_3/\Delta s_1/\Delta s_2/\Delta s_3$ &
+$t_c$ (s) & $T_p$ (K) & $Q_s$ \\
+\midrule
+A & 6.000/5.000/3.000/0.400/0.300/0.100 & 2880 & 7.567 & 1.261 \\
+B & 2.782/2.000/3.000/0.211/0.100/0.489 & 5199 & 3.069 & 0.680 \\
+C & 2.000/2.000/2.000/0.245/0.153/0.403 & 7200 & 1.528 & 0.640 \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
-\item \textbf{Initialization composition.} LLMBO-MO and ParEGO use different
-numbers of LLM-sourced initial points (3 vs.\ 0). A pure acquisition-phase
-comparison with matched initialization would isolate the regional guidance
-effect more precisely.
-\end{enumerate}
+Protocol A lies at the fast-charging end of the Pareto set. Its high early-stage
+currents produce the shortest charging time, but also the largest temperature
+rise and degradation indicator among the three representative solutions.
+Protocol C uses a constant 2~A current and exhibits the opposite behavior, with
+the longest charging time and the smallest temperature rise. Protocol B lies
+between these two extremes and provides an intermediate compromise. This
+ordering is visible directly in the three-objective distribution in
+Fig.~\ref{fig:pareto_profiles}.
+
+The corresponding voltage, temperature, current, and SOC trajectories are shown
+in Fig.~\ref{fig:abc_charging_profiles}. Protocol A reaches the target SOC
+first and exhibits the largest temperature increase, whereas Protocol C charges
+more slowly and maintains the lowest temperature. Protocol B gives an
+intermediate response. All three protocols remain below the prescribed voltage
+limit. These trajectories are consistent with the charging-time, thermal, and
+degradation trade-offs formulated in Section~\ref{sec:problem}.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{abc_charging_profiles.pdf}
+\caption{Charging trajectories of protocols A--C on Chen2020.}
+\label{fig:abc_charging_profiles}
+\end{figure}
+
+Taken together, the numerical results support three observations. First,
+LLMBO-MO achieves the highest final mean HV among the five methods compared on
+Chen2020, and its advantage over ParEGO is also observed on Ecker2015. Second,
+the initialization experiments show that battery-specific context is the main
+empirical source of improvement over generic or random initialization. Third,
+the resulting Pareto protocols exhibit physically interpretable trade-offs
+between charging time, temperature rise, and degradation, while regional
+guidance provides a complementary mechanism for using LLM preferences during
+the early sequential search.
