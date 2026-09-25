@@ -150,10 +150,39 @@ contributions of initialization and regional guidance.
 \subsubsection{LLM-Informed Initialization}
 
 We compare random initialization, a detailed generic prompt, and a
-battery-specific prompt. All three variants use the same numerical BO
+battery-specific prompt (Figs.~\ref{fig:prompt_generic}
+and~\ref{fig:prompt_warmstart}). All three variants use the same numerical BO
 procedure after initialization. Each run has a budget of 26 evaluations,
 and the results are computed over ten matched trials
 (Table~\ref{tab:prompt_study}).
+
+\begin{figure}[!t]
+\centering
+\promptbox{\footnotesize
+You are an expert in lithium-ion battery fast-charging optimization. Task:
+design $15$ diverse initial charging protocols for a multi-objective
+Bayesian optimization workflow.\\
+Decision variables and bounds: $I_1\in[2.0,6.0]$~A,
+$I_2\in[2.0,5.0]$~A, $I_3\in[2.0,3.0]$~A,
+$\Delta s_1\in[0.10,0.40]$, $\Delta s_2\in[0.10,0.30]$; hard constraint
+$\Delta s_1+\Delta s_2<0.70$.\\
+Objectives: minimize charging time, peak temperature rise, and capacity
+fade.\\
+Guidance: multi-objective optimization requires exploring different
+trade-off directions (fast charging vs.\ thermal safety vs.\ aging
+minimization); a good initial set should be well dispersed across the
+five-dimensional decision space;
+\textcolor{red!70!black}{consider leveraging physical relationships
+between decision variables}; points near the boundary of the feasible
+region can help maximize Pareto coverage, while interior points help model
+the response surface in the central region. Respond with only a JSON
+array.}
+\caption{Generic prompt used in the initialization study of
+Table~\ref{tab:prompt_study}. Unlike the battery-specific prompt in
+Fig.~\ref{fig:prompt_warmstart}, it contains no battery-specific domain
+knowledge.}
+\label{fig:prompt_generic}
+\end{figure}
 
 \begin{table}[!t]
 \caption{Effect of Different Initialization Strategies}

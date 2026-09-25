@@ -78,8 +78,10 @@ functions.
 The first GP is fitted to a small initial data set. To make these evaluations
 more informative for charging design, the LLM is given the battery context,
 MCC protocol structure, decision-variable bounds, objectives, and domain
-knowledge about charging. It returns numerical candidate protocols and a
-preference ranking.
+knowledge about charging (Fig.~\ref{fig:prompt_warmstart}). It returns
+numerical candidate protocols and a preference ranking.
+
+\input{figures/fig_llm_prompts}
 
 The candidate pool is screened before simulation. Entries with non-numerical
 or non-finite values, duplicates, and invalid protocol representations are
@@ -96,7 +98,8 @@ Initialization introduces LLM suggestions before sequential optimization
 begins. During the search, the relevant trade-off changes with the scalarization
 weights. At an early iteration $t$, the LLM therefore receives the current
 weights $\mathbf w^{(t)}$ and the observed optimization state, and returns a
-preferred region $R_t$ for that subproblem. Restricting the search to $R_t$
+preferred region $R_t$ for that subproblem
+(Fig.~\ref{fig:prompt_region}). Restricting the search to $R_t$
 would exclude all candidates outside the proposed region. Instead, Region-Lift
 uses GP posterior cross-covariance to adjust their acquisition values. This
 extends LGBO's region-lifted preference mechanism~\cite{ref5} to the current

@@ -1,0 +1,52 @@
+% Prompt exhibits for the two LLM touchpoints.
+% Typeset in the style of boxed prompt figures: gray panel, thin frame,
+% domain-knowledge phrases highlighted in red.
+\newcommand{\promptbox}[1]{%
+  \fcolorbox{black}{gray!10}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{#1}}}
+
+\begin{figure}[!t]
+\centering
+\promptbox{\footnotesize
+You are an expert in \textcolor{red}{lithium-ion battery fast-charging
+optimization}. Cell: LG INR21700-M50 (5~Ah, NMC811/graphite); the charging
+window is 0\% to 80\% SOC.\\
+Decision variables and bounds: $I_1\in[2.0,6.0]$~A,
+$I_2\in[2.0,5.0]$~A, $I_3\in[2.0,3.0]$~A,
+$\Delta s_1\in[0.10,0.40]$, $\Delta s_2\in[0.10,0.30]$.\\
+Constraints: keep $\Delta s_1+\Delta s_2\le 0.65$ whenever possible
+(practical hard limit $0.70$).
+\textcolor{red}{A decreasing current profile $I_1\ge I_2\ge I_3$ is
+recommended, since high currents at low SOC carry a lower risk of lithium
+plating than the same currents near full charge.}\\
+Objectives: minimize charging time, peak temperature rise, and capacity
+fade.\\
+Generate $15$ \textcolor{red}{diverse} protocols that
+\textcolor{red}{cover multiple trade-off directions instead of clustering
+around one style}. Respond with only a JSON array.}
+\caption{Prompt for LLM-informed warm-start initialization.}
+\label{fig:prompt_warmstart}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\promptbox{\footnotesize
+You are guiding a battery charging Bayesian optimization loop.\\
+Iteration $t$ of $T$; weight vector
+$\mathbf w^{(t)}=(w_1,w_2,w_3)$; current best scalarized value
+$g_t^{\mathrm{best}}$. Decision variables and bounds as in
+Fig.~\ref{fig:prompt_warmstart}; hard constraint
+$\Delta s_1+\Delta s_2<0.70$.\\
+Return exactly one JSON object with one of two structures:\\
+\hspace*{1em}\texttt{"point"}: \texttt{\{I1, I2, I3, dSOC1, dSOC2,
+confidence\}}\\
+\hspace*{1em}\texttt{"region"}: \texttt{\{lb: \{...\}, ub: \{...\},
+confidence\}}\\
+Guidelines: \textcolor{red}{use a point when confident about a specific
+location; use a region when the promising area is uncertain} (region width
+$5$--$20\%$ of the range per dimension). The confidence lies in $[0,1]$ and
+\textcolor{red}{reflects your certainty}. All values must respect the
+parameter bounds and the $\Delta s$ constraint. Output JSON only.}
+\caption{Prompt for iteration-level region-preference guidance.}
+\label{fig:prompt_region}
+\end{figure}
+
