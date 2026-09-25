@@ -1,73 +1,68 @@
-% ============================================================================
-% Section II: Problem Formulation
-% ============================================================================
 \section{Problem Formulation}
 \label{sec:problem}
 
-The fast-charging design problem is formulated as a constrained
-multiobjective optimization problem. A candidate solution is a multistage
-constant-current (MCC) charging protocol, and its performance is evaluated in
-terms of charging time, thermal response, and charging-induced aging.
-Fig.~\ref{fig:charging_problem} summarizes the decision variables, objectives,
-and operating constraints.
+We consider multistage constant-current (MCC) charging from an initial SOC to
+a prescribed target. Each protocol is evaluated by its charging time, peak
+temperature rise, and charging-induced degradation. Figure~\ref{fig:charging_problem}
+summarizes the decision variables, objectives, and constraints.
 
 \input{figures/fig_charging_design_problem}
 
 \subsection{Multistage Constant-Current Protocol}
 
-A $K$-stage MCC protocol divides the charging process into $K$ constant-current
-stages. Stage $k$ is described by the charging current $I_k$ and the
-corresponding SOC increment $\Delta s_k$. The battery is charged from the
-initial SOC $s_0$ to the target SOC $s_f$. The independent decision variables
-are collected in
+A $K$-stage protocol applies a current $I_k$ over an SOC increment $\Delta s_k$
+at stage $k$. The initial and target SOCs are $s_0$ and $s_f$, respectively.
+The independent decision variables are
 \begin{equation}
-\theta=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top 
+\theta=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top
 \label{eq:protocol}
 \end{equation}
-where the SOC increment of the final stage is determined by
+and the final SOC increment is
 \begin{equation}
-\Delta s_K=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k 
+\Delta s_K=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k
 \label{eq:terminal_soc}
 \end{equation}
-Each current and SOC increment is restricted to a prescribed interval, and
-$\Delta s_K$ is required to remain above a small positive lower bound so that
-the final charging stage is well defined.
+Each current and SOC increment is restricted to its prescribed interval. The
+last increment must also exceed a positive lower bound so that every stage has
+nonzero duration.
+% AUTHOR_CHECK P1: Supply the actual current/SOC bounds, terminal lower bound,
+% initial and target SOCs, and effective capacities from the experiment configs.
 
-Following previous BO-based charging studies~\cite{nref7,nref8}, SOC
-increments are optimized instead of stage durations. Once $I_k$ and
-$\Delta s_k$ are specified, the duration of stage $k$ is determined by the
-delivered charge. The total charging time is therefore
+Following~\cite{nref7,nref8}, we optimize SOC increments rather than stage
+durations. The current and charge delivered in each stage determine its
+duration, giving the total charging time
 \begin{equation}
 t_c(\theta)=3600Q_{\mathrm{eff}}\sum_{k=1}^{K}\frac{\Delta s_k}{I_k}
 \label{eq:charging_time}
 \end{equation}
-where $Q_{\mathrm{eff}}$ is the effective cell capacity in Ah. The experiments use $K=3$.
+where $Q_{\mathrm{eff}}$ is the effective cell capacity in Ah and current is
+measured in A. The experiments use $K=3$, giving five independent decision
+variables.
 
 \subsection{Constrained Multiobjective Charging Design}
 
-For a charging protocol $\theta$, the three minimized objectives are charging
-time $t_c(\theta)$, peak temperature rise $T_p(\theta)$, and aging indicator
-$Q_s(\theta)$:
+The three objectives are minimized jointly:
 \begin{equation}
 \min_{\theta}\quad
-\mathbf f(\theta)=[t_c(\theta),\,T_p(\theta),\,Q_s(\theta)]^\top 
+\mathbf f(\theta)=[t_c(\theta),\,T_p(\theta),\,Q_s(\theta)]^\top
 \label{eq:cmop}
 \end{equation}
-The latter two objectives are defined by the battery model in
-Section~\ref{sec:model_section}. In addition to the decision-variable bounds,
-the simulated charging trajectory must satisfy
+Here, $T_p$ is the peak temperature rise and $Q_s$ is the aging indicator
+defined in Section~\ref{sec:model_section}. In addition to the bounds on the
+decision variables, the charging trajectory must satisfy
 \begin{equation}
 U(t;\theta)\le U_{\max},\quad
 T(t;\theta)\le T_{\max},\quad
 0\le t\le t_c(\theta)
 \label{eq:operating_constraints}
 \end{equation}
-where $U_{\max}$ and $T_{\max}$ are the prescribed voltage and temperature
-limits. A protocol that violates either limit or fails to reach $s_f$ is
-treated as infeasible and is excluded from the Pareto set.
+where $U_{\max}$ and $T_{\max}$ are the voltage and temperature limits. A
+protocol is infeasible if it violates either limit or fails to reach $s_f$;
+such protocols are excluded from the Pareto archive.
+% AUTHOR_CHECK P2: Exclusion from the Pareto archive does not specify how
+% infeasible/failed simulations are represented in the GP or acquisition.
 
-The three objectives are conflicting. Increasing the charging current can
-reduce $t_c$, but generally increases the thermal and aging costs. The desired
-trade-off also depends on the operating requirement. The optimization target
-is therefore a feasible Pareto set rather than a single charging protocol
-defined by a fixed preference.
+Higher charging currents reduce charging time but generally increase the
+thermal and aging costs. We therefore seek a set of feasible nondominated
+protocols, allowing the charging-time, temperature, and degradation trade-off
+to be chosen for the operating requirement.

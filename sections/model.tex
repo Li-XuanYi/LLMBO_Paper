@@ -1,55 +1,49 @@
-% ============================================================================
-% Section III: Electrochemical--Thermal--Aging Model
-% ============================================================================
 \section{Electrochemical--Thermal--Aging Model}
 \label{sec:model_section}
 
 \subsection{Electrochemical Model}
 \label{sec:model}
 
-The battery electrochemical dynamics are described by the Single Particle
-Model with electrolyte dynamics (SPMe)~\cite{refSPMe}. The SPMe describes
-lithium-ion diffusion in the solid particles of the positive and negative
-electrodes, together with lithium-ion transport in the electrolyte across the
-cell. Compared with a full porous-electrode model, it retains the main
-electrochemical dynamics required for charging simulation at a lower
-computational cost.
+The single particle model with electrolyte dynamics (SPMe) describes the
+battery's electrochemical response~\cite{refSPMe}. It accounts for lithium
+diffusion in representative solid particles of both electrodes and transport
+through the electrolyte. This reduced model retains the electrochemical
+dynamics needed for charging simulation at a lower computational cost than a
+full porous-electrode model.
 
 The terminal voltage is calculated as~\cite{refSPMe}
 \begin{equation}
 U=U_{\mathrm{eq}}+\eta_r+\eta_d+\Delta\Phi
 \label{eq:voltage}
 \end{equation}
-where $U$ is the terminal voltage, $U_{\mathrm{eq}}$ is the equilibrium
-potential, $\eta_r$ is the ohmic overpotential, $\eta_d$ is the concentration
-overpotential, and $\Delta\Phi$ is the average potential difference in the
-electrolyte. The state of charge (SOC) is obtained from the lithium-ion
-concentration in the solid phase. Further details of the SPMe formulation can
-be found in~\cite{refSPMe}.
+where $U_{\mathrm{eq}}$ is the equilibrium potential, $\eta_r$ is the ohmic
+overpotential, $\eta_d$ is the concentration overpotential, and $\Delta\Phi$
+is the average potential difference in the electrolyte. SOC is obtained from
+the solid-phase lithium concentration. The SPMe equations and their derivation
+are given in~\cite{refSPMe}.
+% AUTHOR_CHECK M1: Verify the voltage decomposition and the meanings/signs of
+% eta_r, eta_d, and DeltaPhi against the model actually implemented.
 
 \subsection{Thermal Model}
 
-The cylindrical cell is described by a lumped thermal model,
+A lumped thermal model gives the cell temperature:
 \begin{equation}
 \rho_{\mathrm{eff}}\frac{\partial T}{\partial t}=\bar Q-\frac{hA}{V}(T-T_a)
 \label{eq:thermal_balance}
 \end{equation}
-where $\rho_{\mathrm{eff}}$ is the effective volumetric heat capacity, $T$ is
-the cell temperature, $\bar Q$ is the average heat-generation rate, $h$ is the
+Here, $\rho_{\mathrm{eff}}$ is the effective volumetric heat capacity,
+$\bar Q$ is the average volumetric heat-generation rate, $h$ is the
 heat-transfer coefficient, $A$ is the heat-dissipation area, $V$ is the cell
-volume, and $T_a$ is the ambient temperature. The effective volumetric heat
-capacity is
+volume, and $T_a$ is the ambient temperature. The effective heat capacity is
 \begin{equation}
 \rho_{\mathrm{eff}}=\frac{\sum_k\rho_kC_{p,k}L_k}{\sum_kL_k}
 \label{eq:rho_eff}
 \end{equation}
-where $\rho_k$, $C_{p,k}$, and $L_k$ are the density, specific heat capacity,
-and thickness of component $k$, respectively. The index $k$ covers the negative
-current collector, negative electrode, separator, positive electrode, and
-positive current collector.
+where $\rho_k$, $C_{p,k}$, and $L_k$ denote density, specific heat capacity,
+and thickness. The sum includes the two current collectors, the two
+electrodes, and the separator.
 
-The thermal objective in Eq.~\eqref{eq:peak_temp} is the maximum temperature
-rise during charging,
+The thermal objective is the maximum temperature rise during charging:
 \begin{equation}
 T_p(\theta)=\max_{0\le t\le t_c(\theta)}[T(t)-T_0]
 \label{eq:peak_temp}
@@ -59,34 +53,25 @@ where $T_0$ is the initial cell temperature.
 \subsection{Aging Model}
 \label{sec:aging}
 
-charging-induced degradation is evaluated
-using the semi-empirical capacity-loss model in~\cite{refAgingModel}
+Charging-induced degradation is evaluated with the semi-empirical
+capacity-loss model of Suri and Onori~\cite{refAgingModel}:
 \begin{equation}
 Q_s(\xi,Ah)=\sigma_{\mathrm{fun}}(\xi)Ah^z
 \label{eq:aging}
 \end{equation}
-where $\xi=(\mathrm{SOC},I,T)$ contains the average SOC, current, and temperature
-during charging, $Ah$ is the charge throughput, $z$ is the power-law exponent,
-and $\sigma_{\mathrm{fun}}$ is the severity-factor function. The severity factor
-is
+The vector $\xi=(\mathrm{SOC},I,T)$ contains the average SOC, current, and
+temperature during charging; $Ah$ is the charge throughput; and $z$ is the
+power-law exponent. The severity factor is
+% AUTHOR_CHECK M2: The uploaded equation is preserved below. Its denominator
+% uses 273.15+T, whereas the thermal settings use kelvin. Verify the conversion
+% in the implementation before choosing a Celsius or kelvin notation here.
 \begin{equation}
 \sigma_{\mathrm{fun}}(\xi)=(\alpha\,\mathrm{SOC}+\beta)\exp\!\left(\frac{-E_a+\eta_a I}{R_{\mathrm{gas}}(273.15+T)}\right)
 \label{eq:severity}
 \end{equation}
-where $\alpha$ and $\beta$ describe the SOC dependence, $\eta_a$ describes the
-current dependence, $E_a$ is the activation energy, and $R_{\mathrm{gas}}$ is
-the universal gas constant.
-
-The quantity $Q_s$ is used as a relative degradation indicator for comparing
-charging protocols, rather than as a direct prediction of battery end-of-life.
-A smaller $Q_s$ therefore indicates a smaller degradation contribution from one
-charging process.
-
-Together, the electrochemical, thermal, and aging models provide the objective
-values $\{t_c,T_p,Q_s\}$ and determine whether a protocol satisfies the voltage
-and temperature constraints. These simulator outputs are the only objective and
-feasibility information used by the optimizer. Since each new protocol requires
-one battery simulation, indiscriminate exploration is costly. This directly
-motivates the LLMBO-MO framework in the next section: Bayesian optimization
-remains responsible for numerical search, while the LLM is used only to improve
-where the limited simulation budget is spent.
+where $\alpha$ and $\beta$ describe SOC dependence, $\eta_a$ describes current
+dependence, $E_a$ is the activation energy, and $R_{\mathrm{gas}}$ is the
+universal gas constant. We use $Q_s$ as a relative degradation indicator for
+one charging process, rather than as a prediction of battery end-of-life.
+% AUTHOR_CHECK M3: Supply the coefficients, averaging/aggregation rule, and
+% justification for using this aging model with each battery parameterization.
