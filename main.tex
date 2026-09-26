@@ -1,16 +1,12 @@
 % ============================================================================
 % IEEE Transactions on Transportation Electrification
-% LLMBO-MO: LLM-Augmented Multiobjective Bayesian Optimization
+% LLMBO-MO: LLM-Guided Multiobjective Bayesian Optimization
 % for Battery Fast-Charging Protocol Design
-% ----------------------------------------------------------------------------
-% ROOT FILE. Do NOT write section content here.
-% Each collaborator edits ONE file under sections/ to avoid merge conflicts.
-% Compile with:  latexmk -pdf main.tex
 % ============================================================================
-
 \documentclass[journal]{IEEEtran}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{mathptmx}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithm}
@@ -25,62 +21,45 @@
 \usepackage{multirow}
 \usepackage{array}
 \usepackage{url}
+\usepackage[hidelinks,bookmarksnumbered]{hyperref}
+\urlstyle{same}
+\renewcommand{\figureautorefname}{Figure}
+\renewcommand{\tableautorefname}{Table}
 
-% Search paths for split content
 \graphicspath{{figures/}}
-
 \hyphenation{op-tical net-works semi-conduc-tor}
 
-% ---- Math shorthands (shared across all sections) --------------------------
 \newcommand{\btheta}{\boldsymbol{\theta}}
 \newcommand{\bw}{\boldsymbol{w}}
-\newcommand{\bD}{\mathcal{D}}
-\newcommand{\bS}{\mathcal{S}}
-\newcommand{\bL}{\mathcal{L}}
-\newcommand{\bW}{\mathcal{W}}
-\newcommand{\bP}{\mathcal{P}}
-\newcommand{\bG}{\mathcal{G}}
-\newcommand{\R}{\mathbb{R}}
+\newcommand{\bD}{D}
+\newcommand{\bS}{S}
+\newcommand{\bL}{L}
+\newcommand{\bW}{W}
+\newcommand{\bP}{P}
+
+\input{sections/experiment_values}
 
 \begin{document}
 
-% ---- Title block -----------------------------------------------------------
-\title{
-LLMBO-MO: Large Language Model-Augmented Multiobjective Bayesian Optimization \\
-for Battery Fast-Charging Protocol Design
+\title{Battery Fast-Charging Protocol Design via\\
+Large Language Model-Guided Multiobjective Bayesian Optimization}
+
+\author{Anonymous~Authors%
 }
 
-\author{
-First~A.~Author,~\IEEEmembership{Member,~IEEE,}
-Second~B.~Author,~\IEEEmembership{Fellow,~OSA,}
-and~Third~C.~Author,~\IEEEmembership{Life~Fellow,~IEEE}%
-\thanks{Manuscript received Month Day, Year; revised Month Day, Year.
-This work was supported in part by ...}
-\thanks{First A. Author is with the ...}
-\thanks{Second B. Author is with the ...}
-\thanks{Third C. Author is with the ...}
-}
-
-\markboth{IEEE TRANSACTIONS ON TRANSPORTATION ELECTRIFICATION,~Vol.~XX, No.~XX, Month~2026}%
-{Author \MakeLowercase{\textit{et al.}}: LLMBO-MO: LLM-Augmented Multiobjective BO for Battery Fast-Charging}
+\markboth{Submitted to IEEE Transactions on Transportation Electrification}%
+{Anonymous Authors: LLM-Guided MOBO for Battery Fast Charging}
 
 \maketitle
-
-% ---- Abstract & Keywords ---------------------------------------------------
 \input{sections/abstract}
-
 \IEEEpeerreviewmaketitle
 
-% ---- Body ------------------------------------------------------------------
-\input{sections/introduction}   % Sec. I
-\input{sections/related_work}   % Sec. II
-\input{sections/problem}        % Sec. III
-\input{sections/model}          % continuation of Sec. III
-\input{sections/method}         % Sec. IV
-\input{sections/experiments}    % Sec. V
-\input{sections/conclusion}     % Sec. VI
-
-% ---- References ------------------------------------------------------------
+\input{sections/introduction}
+\input{sections/problem}
+\input{sections/model}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/conclusion}
 \input{sections/references}
 
 \end{document}

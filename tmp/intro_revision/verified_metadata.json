@@ -1,0 +1,457 @@
+[
+  {
+    "doi": "10.1109/TTE.2026.3610481",
+    "status": 404
+  },
+  {
+    "DOI": "10.1016/j.est.2025.119348",
+    "title": [
+      "Health-conscious charging of lithium-ion batteries using Bayesian optimization guided by a semi-empirical aging model"
+    ],
+    "author": [
+      {
+        "ORCID": "https://orcid.org/0000-0003-0634-2418",
+        "authenticated-orcid": false,
+        "given": "Woohyun",
+        "family": "Jeong",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0003-4658-2141",
+        "authenticated-orcid": false,
+        "given": "Seongmin",
+        "family": "Heo",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0001-6134-6118",
+        "authenticated-orcid": false,
+        "given": "Jay H.",
+        "family": "Lee",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "container-title": [
+      "Journal of Energy Storage"
+    ],
+    "published": {
+      "date-parts": [
+        [
+          2026,
+          1
+        ]
+      ]
+    },
+    "volume": "141",
+    "issue": null,
+    "page": "119348",
+    "article-number": "119348",
+    "abstract": null,
+    "URL": "https://doi.org/10.1016/j.est.2025.119348"
+  },
+  {
+    "DOI": "10.1016/j.est.2025.118198",
+    "title": [
+      "Large language model-enhanced Bayesian optimization for parameter identification of lithium-ion batteries"
+    ],
+    "author": [
+      {
+        "given": "Xiao",
+        "family": "Kuai",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Jia-Hui",
+        "family": "Ren",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-0234-2843",
+        "authenticated-orcid": false,
+        "given": "Bing-Chuan",
+        "family": "Wang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-6512-3293",
+        "authenticated-orcid": false,
+        "given": "Yun",
+        "family": "Feng",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "container-title": [
+      "Journal of Energy Storage"
+    ],
+    "published": {
+      "date-parts": [
+        [
+          2025,
+          11
+        ]
+      ]
+    },
+    "volume": "135",
+    "issue": null,
+    "page": "118198",
+    "article-number": "118198",
+    "abstract": null,
+    "URL": "https://doi.org/10.1016/j.est.2025.118198"
+  },
+  {
+    "doi": "10.1109/TTE.2025.3539853",
+    "status": 429
+  },
+  {
+    "DOI": "10.1109/jproc.2015.2494218",
+    "title": [
+      "Taking the Human Out of the Loop: A Review of Bayesian Optimization"
+    ],
+    "author": [
+      {
+        "given": "Bobak",
+        "family": "Shahriari",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Kevin",
+        "family": "Swersky",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Ziyu",
+        "family": "Wang",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Ryan P.",
+        "family": "Adams",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Nando",
+        "family": "de Freitas",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "container-title": [
+      "Proceedings of the IEEE"
+    ],
+    "published": {
+      "date-parts": [
+        [
+          2016,
+          1
+        ]
+      ]
+    },
+    "volume": "104",
+    "issue": "1",
+    "page": "148-175",
+    "article-number": null,
+    "abstract": null,
+    "URL": "https://doi.org/10.1109/jproc.2015.2494218"
+  },
+  {
+    "DOI": "10.1016/j.apenergy.2021.118244",
+    "title": [
+      "Fast charging design for Lithium-ion batteries via Bayesian optimization"
+    ],
+    "author": [
+      {
+        "given": "Benben",
+        "family": "Jiang",
+        "sequence": "first",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Marc D.",
+        "family": "Berliner",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Kun",
+        "family": "Lai",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Patrick A.",
+        "family": "Asinger",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Hongbo",
+        "family": "Zhao",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Patrick K.",
+        "family": "Herring",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Martin Z.",
+        "family": "Bazant",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "given": "Richard D.",
+        "family": "Braatz",
+        "sequence": "additional",
+        "affiliation": [],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "container-title": [
+      "Applied Energy"
+    ],
+    "published": {
+      "date-parts": [
+        [
+          2022,
+          2
+        ]
+      ]
+    },
+    "volume": "307",
+    "issue": null,
+    "page": "118244",
+    "article-number": "118244",
+    "abstract": null,
+    "URL": "https://doi.org/10.1016/j.apenergy.2021.118244"
+  },
+  {
+    "DOI": "10.1109/tii.2024.3388602",
+    "title": [
+      "Gaussian Process-Accelerated Multiobjective Evolutionary Design of Charging Process Considering Multiple User Preferences"
+    ],
+    "author": [
+      {
+        "ORCID": "https://orcid.org/0000-0002-0234-2843",
+        "authenticated-orcid": false,
+        "given": "Bing-Chuan",
+        "family": "Wang",
+        "sequence": "first",
+        "affiliation": [
+          {
+            "name": "School of Automation, Central South University, Changsha, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0009-0003-5860-8705",
+        "authenticated-orcid": false,
+        "given": "Yang-Yang",
+        "family": "Mao",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "School of Automation, Central South University, Changsha, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0001-7670-3958",
+        "authenticated-orcid": false,
+        "given": "Yong",
+        "family": "Wang",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "School of Automation, Central South University, Changsha, China"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      },
+      {
+        "ORCID": "https://orcid.org/0000-0002-0707-5940",
+        "authenticated-orcid": false,
+        "given": "Han-Xiong",
+        "family": "Li",
+        "sequence": "additional",
+        "affiliation": [
+          {
+            "name": "Department of Systems Engineering, City University of Hong Kong, Hong Kong"
+          }
+        ],
+        "role": [
+          {
+            "vocabulary": "crossref",
+            "role": "author"
+          }
+        ]
+      }
+    ],
+    "container-title": [
+      "IEEE Transactions on Industrial Informatics"
+    ],
+    "published": {
+      "date-parts": [
+        [
+          2024,
+          8
+        ]
+      ]
+    },
+    "volume": "20",
+    "issue": "8",
+    "page": "10123-10133",
+    "article-number": null,
+    "abstract": null,
+    "URL": "https://doi.org/10.1109/tii.2024.3388602"
+  }
+]

@@ -1,36 +1,33 @@
 % ============================================================================
-% Abstract (IEEE Transactions style) + Index Terms
+% Abstract (humanizer-informed revision; original narrative retained)
 % ============================================================================
 \begin{abstract}
-Fast-charging protocol design for lithium-ion batteries requires balancing
-charging time, peak temperature rise, and a degradation proxy under tightly
-limited evaluation budgets, because each candidate protocol must be assessed
-through costly electrochemical--thermal simulation.
-Bayesian optimization (BO) is well suited to this sample-scarce regime, but
-its cold-start phase---where only a few initial observations shape the
-surrogate---can waste precious evaluations on unpromising regions.
-Large language models (LLMs) encode broad domain knowledge that could inform
-early search decisions, yet their outputs are neither physical measurements
-nor feasibility guarantees, making direct reliance on LLM proposals risky in
-safety-constrained battery design.
-Our key insight is to treat the LLM as an advisory preference source while
-retaining the simulator as the sole arbiter of physical evidence.
-We propose LLMBO-MO, a multiobjective BO framework with two advisory
-touchpoints: a protocol-domain-screened warm-start that supplies diverse
-initial candidates, and bounded regional guidance whose influence reverts
-exactly to standard expected improvement when the LLM advice is invalid.
-Only simulator-evaluated protocols train the Gaussian-process surrogate.
-Under a matched budget of 56 simulator evaluations and five fixed seeds,
-LLMBO-MO yields consistent hypervolume improvement over ParEGO on two SPMe
-parameterizations, with a component study revealing that screened
-warm-starting provides the dominant gain while regional guidance offers a
-complementary benefit.
-The results demonstrate a conservative, risk-bounded interface for
-integrating language-model guidance into data-scarce battery optimization
-without treating generated text as physical evidence.
+Lithium-ion batteries are widely used in electric vehicles and energy-storage
+systems, making efficient and reliable fast charging increasingly important.
+As charging requirements become more diverse, charging strategies must balance
+charging speed, safety, and battery degradation under different user
+preferences. Bayesian optimization (BO) reduces the number of simulator
+evaluations by using a probabilistic surrogate model and an acquisition
+function to select candidate protocols. However, two challenges remain when
+observations are scarce. First, uninformed initialization does not use available
+battery-domain knowledge when selecting initial charging protocols. Second,
+incorporating such knowledge during sequential BO requires accounting for the
+changing trade-offs in multiobjective optimization. Large language models
+(LLMs) offer a way to incorporate task-specific prior knowledge into BO.
+Accordingly, this paper proposes LLMBO-MO, an LLM-guided multiobjective
+Bayesian optimization framework for lithium-ion battery charging design.
+LLMBO-MO first uses an LLM to propose initial charging protocols from
+battery-domain knowledge, followed by candidate screening and diversity-aware
+selection. During the early search, the LLM also proposes a preferred region
+for the current scalarization weights. Region-Lift uses Gaussian process (GP)
+posterior cross-covariance to apply bounded adjustments to the mean used in
+expected improvement. These adjustments alter the ranking of candidate
+protocols. Under a budget of 56 simulator evaluations, LLMBO-MO achieves a
+9.3\% higher mean final hypervolume than ParEGO on Chen2020. An advantage over
+ParEGO is also observed on Ecker2015.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Battery charging, Bayesian optimization, large language models, lithium-ion
-batteries, multiobjective optimization.
+Lithium-ion batteries, battery charging, Bayesian optimization,
+large language models, multiobjective optimization.
 \end{IEEEkeywords}

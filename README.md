@@ -1,60 +1,64 @@
 # LLMBO-MO Paper (IEEE TTE)
 
-Modular LaTeX source, split for **multi-author collaboration**. The rule: one
-person, one section file. Never edit `main.tex` in parallel.
+Canonical LaTeX source for the IEEE Transactions on Transportation
+Electrification review manuscript.
 
-## Layout
+## Structure
 
-```
-paper/
-├── main.tex              # ROOT: preamble + title + \input. Rarely edited.
-├── sections/
-│   ├── abstract.tex      # Abstract + keywords
-│   ├── introduction.tex  # Sec. I
-│   ├── problem.tex       # Sec. II  Problem Formulation (CMOP)
-│   ├── model.tex         # Sec. III Electrochemical-Thermal-Aging Model
-│   ├── method.tex        # Sec. IV  Proposed LLMBO-MO Framework
-│   ├── experiments.tex   # Sec. V   Experiments
-│   ├── conclusion.tex    # Sec. VI  Conclusion
-│   └── references.tex    # thebibliography (hand-written, no .bib)
-├── figures/              # figure assets, e.g. fig_llambo_mo_framework.tex
-├── IEEEtran.cls          # journal class (keep)
-├── balance.sty           # column balancing (keep)
-├── .gitignore            # ignores build artifacts
-├── .context/             # non-paper material (notes, old drafts, PDFs)
-└── .trash/               # abandoned drafts
+```text
+main.tex                         Root document and shared macros
+sections/experiment_values.tex  Single source of reported numerical values
+sections/*.tex                  Manuscript sections and references
+figures/                        Vector and raster figure assets
+scripts/make_hv_figures.py      Deterministic HV figure generator
+claim_evidence_matrix.md        Reviewer-facing claim/evidence audit
+revision_audit.md               Reproducibility and presentation audit
 ```
 
-Tables live inside their owning section file (each author edits their own
-tables). Figures go in `figures/`; `\graphicspath{{figures/}}` is set in
-`main.tex`, so reference them by filename only.
+The title block is anonymized for review. Replace `Anonymous Authors` with the
+final author, affiliation, correspondence, and funding metadata before a
+non-anonymous submission.
 
 ## Build
 
-```bash
-latexmk -pdf main.tex     # produces main.pdf
-latexmk -c                # clean aux files
+```powershell
+latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 ```
 
-References are hand-written `\bibitem`s in `sections/references.tex` — **no
-BibTeX/biber step needed**. To add a citation, append a `\bibitem{refN}` there
-and cite with `\cite{refN}`.
+References are maintained as `\bibitem` entries in
+`sections/references.tex`; no BibTeX or biber step is required.
 
-## Collaboration rules
+## Experimental values and figures
 
-- Edit only your assigned `sections/*.tex`; leave `main.tex` alone unless adding
-  a new section input or package.
-- Keep `\label{...}` names stable — other sections `\ref{}` them
-  (`sec:`, `eq:`, `tab:`, `alg:` prefixes).
-- New shared math macros go in the `main.tex` preamble, not inline.
+Do not type result values independently into individual sections. Update
+`sections/experiment_values.tex` and regenerate the manuscript so the
+abstract, introduction, tables, and conclusion remain synchronized.
 
-## `.context/`
+The HV figures are generated from archived curve CSV files:
 
-Non-paper-body material kept for reference, out of the compile path:
-`IEEE_TTE_Paper_Structure.tex/.pdf` (original monolithic source before the
-split), `LLMBO_experiment_report.md`, `ppt_warmstart_llm_region_algorithm.md`,
-`project_intro.md`, `source.md`, and the old `IEEE-LaTeX/` draft.
+```powershell
+python scripts/make_hv_figures.py `
+  --chen-csv <chen-five-way-curve.csv> `
+  --ecker-csv <ecker-five-seed-curve.csv> `
+  --normalization-csv <normalization-five-seed-curve.csv> `
+  --optimal-manifest <optimal-protocol-source-manifest.json> `
+  --pareto-database <seed=database.json> `
+  --output-dir figures
+```
 
-## `.trash/`
+`figures/hv_figure_manifest.json` records the sources used for the current
+assets. The Chen figure intentionally mixes two visualization conventions:
+LLMBO-MO and ParEGO use representative seed-8409 centers with proxy envelopes,
+whereas NSGA-II, DISK, and PIMD use five-run mean/standard-deviation curves.
+Formal final statistics are reported in the manuscript tables.
+The same generator produces the Ecker2015, objective-preprocessing, optimal-
+protocol-archive, and A--E Pareto figures.  The selected protocol records and
+their seed/observation provenance are written to `results/`.
 
-`main.tex` — the previous abandoned draft. Kept for safety; delete when sure.
+## Evidence boundary
+
+The revision uses existing archives only; no new simulator or LLM calls were
+made. The Chen five-seed summary combines compatible historical archives and
+is descriptive. The manuscript does not claim matched qEHVI/qNEHVI results,
+an independently isolated regional-coupling effect, calibrated capacity fade,
+or physical-cell validation.
