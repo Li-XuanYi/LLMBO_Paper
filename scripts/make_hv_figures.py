@@ -465,17 +465,20 @@ def make_pareto_protocols(
         record["feasible"] = True
         record["globally_nondominated"] = True
     _style()
-    fig = plt.figure(figsize=(7.15, 6.30))
+    fig = plt.figure(figsize=(8.0, 5.80))
     ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
 
     # Match the reference orientation: temperature lies on the base plane and
     # degradation is vertical, which exposes the bowed Pareto-front shape.
     # objectives 的存储顺序仍为 (charging time, temperature rise, degradation)。
     all_values = np.asarray([record["objectives"] for record in deduplicated], dtype=float)
+    # Display degradation in percent; keep archived objective values unchanged.
+    plot_values = all_values.copy()
+
     ax.scatter(                              # 空心点 → 范例式的实心薰衣草紫圆点
-        all_values[:, 0],
-        all_values[:, 1],
-        all_values[:, 2],
+        plot_values[:, 0],
+        plot_values[:, 1],
+        plot_values[:, 2],
         s=24,
         c="#8484CC",
         alpha=0.65,
@@ -484,13 +487,14 @@ def make_pareto_protocols(
         depthshade=False,
         zorder=1,
     )
-    degradation_span = float(all_values[:, 2].max() - all_values[:, 2].min())
+    degradation_span = float(plot_values[:, 2].max() - plot_values[:, 2].min())
     for record in selected:
         time_value, temperature, degradation = record["objectives"]
+        degradation_percent = degradation
         ax.scatter(
             [time_value],
             [temperature],
-            [degradation],
+            [degradation_percent],
             marker="*",
             s=400,                           # 星标加大，范例中很醒目
             c="#D62728",
@@ -502,7 +506,7 @@ def make_pareto_protocols(
         ax.text(
             time_value,
             temperature,
-            degradation + 0.045 * degradation_span,
+            degradation_percent + 0.045 * degradation_span,
             record["label"],
             fontsize=16,                     # 字母标签加大加粗，同范例
             fontweight="bold",
@@ -511,40 +515,30 @@ def make_pareto_protocols(
         )
 
     for pane in (ax.xaxis.pane, ax.yaxis.pane, ax.zaxis.pane):
-        pane.set_facecolor("#f2f2f2")        # 浅暖灰 pane，模仿范例底色
-        pane.set_edgecolor("#D9D9D9")
+        pane.set_facecolor("#fbfbfb")
+        pane.set_edgecolor("#E2E2E2")
 
-    axis_label_size = 13                              # 与刻度字号一致，避免轴标题偏小
-    ax.set_xlabel("Charging Time / s", labelpad=14, fontsize=axis_label_size)
-    ax.set_ylabel("Temperature Rise / K", labelpad=14, fontsize=axis_label_size)
-    ax.tick_params(labelsize=13, pad=5)               # 刻度字号加大
+    axis_label_size = 13
+    for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
+        axis.line.set_color("#666666")
+        axis.line.set_linewidth(0.8)
+        axis._axinfo["grid"].update({"color": (0.80, 0.80, 0.80, 0.32), "linewidth": 0.55})
+    ax.set_xlabel("Charging Time / s", labelpad=8, fontsize=axis_label_size)
+    ax.set_ylabel("Temperature Rise / K", labelpad=8, fontsize=axis_label_size)
+    ax.set_zticks(np.round(np.arange(0.6, 1.31, 0.1), 1))
+    ax.set_zlim(0.55, 1.35)
+    ax.tick_params(labelsize=11, pad=3)
+    ax.set_box_aspect((1.10, 1.0, 0.62))
     ax.view_init(elev=20, azim=240)
     ax.grid(True)
 
-    ax.text2D(
-        0.005,
-        0.995,
-        _representative_annotation(selected),
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=11,
-        linespacing=1.55,
-        bbox={
-            "boxstyle": "round,pad=0.45",
-            "facecolor": "white",
-            "edgecolor": "#777777",
-            "linewidth": 0.8,
-        },
-        zorder=12,
-    )
     ax.legend(
         loc="upper right",
         fontsize=14,
         handlelength=1.0,
     )
-    fig.tight_layout(pad=0.25)
-    _place_vertical_axis_title(fig, ax, "Degradation / a.u.", axis_label_size)
+    fig.subplots_adjust(left=0.08, right=0.96, bottom=0.16, top=0.98)
+    _place_vertical_axis_title(fig, ax, "Degradation / %", axis_label_size)
     outputs = _save(fig, output_dir, "pareto_protocols_ae")
 
 

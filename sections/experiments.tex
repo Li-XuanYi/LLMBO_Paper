@@ -354,23 +354,23 @@ increments.
 \label{fig:pareto_profiles}
 \end{figure}
 
-\begin{table*}[!t]
+\begin{table}[!t]
 \caption{Representative Pareto-Optimal Charging Protocols}
 \label{tab:representative_protocols}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{5.0pt}
-\begin{tabular}{@{}c l r r r@{}}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}c c c r r r@{}}
 \toprule
-Protocol & $I_1/I_2/I_3/\Delta s_1/\Delta s_2/\Delta s_3$ &
-$t_c$ (s) & $T_p$ (K) & $Q_s$ \\
+Protocol & Currents ($I_1/I_2/I_3$, A) & $\Delta s_1/\Delta s_2/\Delta s_3$ &
+$t_c$ (s) & $T_p$ (K) & $Q_s$ (\%) \\
 \midrule
-A & 6.000/5.000/3.000/0.400/0.300/0.100 & 2880 & 7.567 & 1.261 \\
-B & 2.782/2.000/3.000/0.211/0.100/0.489 & 5199 & 3.069 & 0.680 \\
-C & 2.000/2.000/2.000/0.245/0.153/0.403 & 7200 & 1.528 & 0.640 \\
+A & 6.000/5.000/3.000 & 0.400/0.300/0.100 & 2880 & 7.567 & 1.261 \\
+B & 2.782/2.000/3.000 & 0.211/0.100/0.489 & 5199 & 3.069 & 0.680 \\
+C & 2.000/2.000/2.000 & 0.245/0.153/0.403 & 7200 & 1.528 & 0.640 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 Protocol A applies higher currents early in charging and reaches the target
 SOC in 2880~s. It is the fastest of the three, but has the largest peak
