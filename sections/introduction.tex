@@ -11,13 +11,13 @@ requires balancing charging speed against thermal stress and degradation. For a
 prescribed amount of charge, shortening the charging time requires a higher
 average current. However, high charging rates increase polarization and heat
 generation and can promote degradation, with the response depending on
-temperature and state of charge (SOC)~\cite{refFastChargeReview}.
+temperature and state of charge (SOC)~\cite{refFastChargeReview,refTuXFC}.
 Charging-protocol design therefore involves selecting how the current varies
 across charging stages while reaching a target SOC within prescribed current,
 voltage, and temperature limits. The competing objectives of charging time,
 thermal response, and battery health motivate a constrained multiobjective
 formulation that provides alternative protocols for different operating
-preferences~\cite{nref2,refGPA}.
+preferences~\cite{nref2,refFanReview,refHuMulti}.
 
 Evaluating these trade-offs is expensive. Physical charging and aging tests
 consume cells and laboratory time; in particular, directly measuring cycle
@@ -46,7 +46,9 @@ of tests~\cite{nref3}. Jiang \emph{et al.} investigated BO for minimum-time
 charging subject to degradation-related constraints and compared acquisition
 functions for multistage protocols~\cite{nref7}. Wang and Jiang extended this
 approach to charging-time and cycle-life trade-offs using Tchebycheff
-scalarization and constrained BO~\cite{nref8}. More recently,
+scalarization and constrained BO~\cite{nref8}. Dong \emph{et al.} developed a
+data-driven BO scheme for minimum-time charging with fast convergence and
+explicit safety constraints~\cite{refDongBO}. More recently,
 Zhu \emph{et al.} combined early degradation prediction with multiobjective BO
 to consider knee-point capacity and cycle life~\cite{refZhuMOBO}.
 GP-assisted evolutionary charging design has also addressed multiple user
@@ -71,7 +73,8 @@ Large language models (LLMs) can interpret such descriptions and generate
 candidate suggestions conditioned on the optimization context. Liu \emph{et al.}
 introduced LLAMBO and investigated LLM-based warm starting, surrogate modeling,
 and candidate sampling, with empirical results on hyperparameter
-optimization~\cite{nref12}. In the battery domain, Kuai \emph{et al.} applied
+optimization~\cite{nref12}. In the battery domain, LLMs have been adapted to
+state-of-charge estimation~\cite{refBianLLM}, and Kuai \emph{et al.} applied
 LLM-enhanced BO to electrochemical parameter identification~\cite{refKuaiLLMBO}.
 These studies suggest that LLMs can provide task-specific prior information when
 numerical observations are scarce. For multiobjective charging design, however,
