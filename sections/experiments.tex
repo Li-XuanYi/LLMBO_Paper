@@ -82,7 +82,7 @@ LLMBO-MO obtains the highest final mean HV among the five methods on Chen2020
 \ChenParEGOMean\,$\pm$\,\ChenParEGOStd\ for ParEGO, a
 \ChenFinalGain\ increase. NSGA-II, DISK, and PIMD reach mean HV values of
 \ChenNSGAMean, \ChenDISKMean, and \ChenPIMDMean, respectively.
-Figure~\ref{fig:chen_hv_5way} shows that the lead over ParEGO develops early
+Fig.~\ref{fig:chen_hv_5way} shows that the lead over ParEGO develops early
 in the search and persists to the end of the budget.
 
 \begin{figure}[!t]
@@ -150,8 +150,8 @@ contributions of initialization and regional guidance.
 \subsubsection{LLM-Informed Initialization}
 
 We compare random initialization, a detailed generic prompt, and a
-battery-specific prompt (Figs.~\ref{fig:prompt_generic}
-and~\ref{fig:prompt_warmstart}). All three variants use the same numerical BO
+battery-specific prompt (Figs.~\ref{fig:prompt_warmstart}
+and~\ref{fig:prompt_generic}). All three variants use the same numerical BO
 procedure after initialization. Each run has a budget of 26 evaluations,
 and the results are computed over ten matched trials
 (Table~\ref{tab:prompt_study}).
@@ -265,7 +265,7 @@ LLMBO-MO & \textbf{\AblationFullMean\,$\pm$\,\AblationFullStd} \\
 
 \end{table}
 
-Figure~\ref{fig:ablation_hv_box} and Table~\ref{tab:ablation} show that
+Fig.~\ref{fig:ablation_hv_box} and Table~\ref{tab:ablation} show that
 LLM-informed initialization provides the largest improvement among the two
 LLM-guidance components. Adding WarmStart increases the mean final HV from
 \AblationBaselineMean\ to \AblationWarmMean, whereas regional guidance alone
@@ -343,7 +343,7 @@ these differences as additional battery-model evaluations are collected.
 
 HV evaluates the nondominated set as a whole. To examine the charging choices
 represented by that set, we select protocols A--C from the Chen2020 Pareto
-archive. Figure~\ref{fig:pareto_profiles} shows their objective values, and
+archive. Fig.~\ref{fig:pareto_profiles} shows their objective values, and
 Table~\ref{tab:representative_protocols} gives their currents and SOC
 increments.
 
@@ -381,7 +381,7 @@ while the aging indicator increases from 0.640 to 0.680 and peak temperature
 rise from 1.528 to 3.069~K. The benefit of faster charging can thus be weighed
 against its thermal and degradation costs using the returned protocols.
 
-Figure~\ref{fig:abc_charging_profiles} shows the voltage, temperature,
+Fig.~\ref{fig:abc_charging_profiles} shows the voltage, temperature,
 current, and SOC trajectories. The current transitions distinguish the
 multistage protocols A and B from the constant-current protocol C, and the SOC
 curves show their different completion times. The voltage trajectories remain

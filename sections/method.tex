@@ -10,7 +10,7 @@
 \label{sec:framework}
 
 LLMBO-MO uses battery-domain knowledge to guide the choice of protocols to
-simulate. Figure~\ref{fig:framework} shows the optimization loop. The LLM
+simulate. Fig.~\ref{fig:framework} shows the optimization loop. The LLM
 first proposes an initial set of protocols. During the early BO iterations,
 it also suggests a region for the current trade-off among objectives. The BO
 optimizer scalarizes the observed objectives, fits a GP, and selects the next
@@ -30,7 +30,7 @@ trade-offs among the three objectives. At iteration $t$, the optimizer selects
 $\mathbf w^{(t)}=[w_1^{(t)},w_2^{(t)},w_3^{(t)}]$ from $W$, with
 $\sum_{i=1}^{3}w_i^{(t)}=1$.
 
-Charging time and aging are first transformed to reduce differences in scale:
+Charging time and aging are first transformed to reduce differences in scale
 \begin{equation}
  y_1(\theta)=\log\!\frac{t_c(\theta)}{t_{\mathrm{ref}}},
  y_2(\theta)=T_p(\theta),
@@ -46,7 +46,7 @@ $s_{i,t}$ its scaling factor. The normalized distance is
  \frac{|y_i(\theta)-z_{i,t}^{*}|}{s_{i,t}},\qquad i=1,2,3.
  \label{eq:objective_scaling}
 \end{equation}
-The augmented Tchebycheff scalarization combines these distances:
+The augmented Tchebycheff scalarization combines these distances
 \begin{equation}
  g_t(\theta)=
  \max_{i=1,2,3}\!\left\{w_i^{(t)}\bar f_{i,t}(\theta)\right\}
@@ -114,12 +114,12 @@ cross-covariance between a candidate $\theta$ and the anchors. The average of
 the GP function values at these anchors has posterior variance
 \begin{equation}
  V_{G,t}=\mathbf v_t^{\top}
- \widetilde{\boldsymbol\Sigma}_{GG,t}\mathbf v_t
+ \widetilde{\boldsymbol\Sigma}_{GG,t}\mathbf v_t.
  \label{eq:region_variance}
 \end{equation}
 The covariance between the candidate value and this regional average is
 $\widetilde{\boldsymbol\Sigma}_{\theta G,t}\mathbf v_t$. It determines the
-candidate's adjustment:
+candidate's adjustment
 \begin{equation}
  r_t(\theta)=
  \lambda_t\,
@@ -127,7 +127,7 @@ candidate's adjustment:
  {\sqrt{V_{G,t}}},
  \quad
  \lambda_t\propto
- \widehat c_t\max\!\left(1-\frac{t-1}{T_{\mathrm L}},0\right)
+ \widehat c_t\max\!\left(1-\frac{t-1}{T_{\mathrm L}},0\right).
  \label{eq:region_adjustment}
 \end{equation}
 Here, $\widehat c_t$ is the guidance score returned by the LLM, and
@@ -143,7 +143,7 @@ $s_{g,t}$ is the scale of the scalar GP target, EI is computed using
  \mu_t^{\mathrm{acq}}(\theta)
  =\mu_t(\theta)-s_{g,t}\Delta_t(\theta),
  \quad
- \sigma_t^{\mathrm{acq}}(\theta)=\sigma_t(\theta)
+ \sigma_t^{\mathrm{acq}}(\theta)=\sigma_t(\theta).
  \label{eq:region_acq_mean}
 \end{equation}
 Thus, a positive adjustment lowers the mean used by EI while leaving the

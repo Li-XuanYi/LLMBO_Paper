@@ -3,7 +3,7 @@
 
 We consider multistage constant-current (MCC) charging from an initial SOC to
 a prescribed target. Each protocol is evaluated by its charging time, peak
-temperature rise, and charging-induced degradation. Figure~\ref{fig:charging_problem}
+temperature rise, and charging-induced degradation. Fig.~\ref{fig:charging_problem}
 summarizes the decision variables, objectives, and constraints.
 
 \input{figures/fig_charging_design_problem}
@@ -19,7 +19,7 @@ The independent decision variables are
 \end{equation}
 and the final SOC increment is
 \begin{equation}
-\Delta s_K=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k
+\Delta s_K=s_f-s_0-\sum_{k=1}^{K-1}\Delta s_k.
 \label{eq:terminal_soc}
 \end{equation}
 Each current and SOC increment is restricted to its prescribed interval. The
@@ -41,10 +41,10 @@ variables.
 
 \subsection{Constrained Multiobjective Charging Design}
 
-The three objectives are minimized jointly:
+The three objectives are minimized jointly
 \begin{equation}
 \min_{\theta}\quad
-\boldsymbol{f}(\theta)=[t_c(\theta),\,T_p(\theta),\,Q_s(\theta)]^\top
+\boldsymbol{f}(\theta)=[t_c(\theta),\,T_p(\theta),\,Q_s(\theta)]^\top.
 \label{eq:cmop}
 \end{equation}
 Here, $T_p$ is the peak temperature rise and $Q_s$ is the aging indicator
