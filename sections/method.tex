@@ -62,10 +62,10 @@ fitted to the scalarized observations. Its posterior mean and standard
 deviation are denoted by $\mu_t(\theta)$ and $\sigma_t(\theta)$. For
 minimization, EI is
 \begin{align}
+ x_t&=\frac{g_t^{\mathrm{best}}-\mu_t(\theta)}{\sigma_t(\theta)}\\
  \mathrm{EI}_t(\theta)
  &=\bigl(g_t^{\mathrm{best}}-\mu_t(\theta)\bigr)\Phi(x_t)
- +\sigma_t(\theta)\phi(x_t)\\
- x_t&=\frac{g_t^{\mathrm{best}}-\mu_t(\theta)}{\sigma_t(\theta)}
+ +\sigma_t(\theta)\phi(x_t)
  \label{eq:ei}
 \end{align}
 where $g_t^{\mathrm{best}}$ is the best observed scalarized value, and
@@ -107,10 +107,12 @@ scalarized objective.
 
 A valid region is represented by $M$ Sobol anchors
 $G_t=\{\mathbf g_{1,t},\ldots,\mathbf g_{M,t}\}$ with equal weights
-$\mathbf v_t=(1/M)\mathbf 1$. Let
-$\widetilde{\boldsymbol\Sigma}_{GG,t}$ be the posterior covariance matrix at
-the anchors and $\widetilde{\boldsymbol\Sigma}_{\theta G,t}$ the posterior
-cross-covariance between a candidate $\theta$ and the anchors. The average of
+$\mathbf v_t=(1/M)\mathbf 1$, where $M$ is the number of anchors and
+$\mathbf 1$ is the $M$-dimensional all-ones vector. Let
+$\widetilde{\boldsymbol\Sigma}_{GG,t}$ and
+$\widetilde{\boldsymbol\Sigma}_{\theta G,t}$ denote the posterior covariance
+matrix of the scalarized GP at the anchors and the posterior cross-covariance
+between a candidate $\theta$ and the anchors, respectively. The average of
 the GP function values at these anchors has posterior variance
 \begin{equation}
  V_{G,t}=\mathbf v_t^{\top}

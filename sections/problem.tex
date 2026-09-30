@@ -12,7 +12,8 @@ Fig.~\ref{fig:charging_problem}.
 \subsection{Multistage Constant-Current Protocol}
 
 A $K$-stage protocol applies a current $I_k$ over an SOC increment $\Delta s_k$
-at stage $k$. The initial and target SOCs are $s_0$ and $s_f$, respectively.
+at stage $k$, $k=1,\ldots,K$. The initial and target SOCs are $s_0$ and $s_f$,
+respectively.
 The independent decision variables are
 \begin{equation}
 \theta=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top
@@ -57,7 +58,9 @@ T(t;\theta)\le T_{\max},\quad
 0\le t\le t_c(\theta)
 \label{eq:operating_constraints}
 \end{equation}
-where $U_{\max}$ and $T_{\max}$ are the voltage and temperature limits. A
+where $U(t;\theta)$ and $T(t;\theta)$ denote the terminal voltage and cell
+temperature under protocol $\theta$, and $U_{\max}$ and $T_{\max}$ are the
+corresponding voltage and temperature limits. A
 protocol is infeasible if it violates either limit or fails to reach $s_f$;
 such protocols are excluded from the Pareto set.
 % AUTHOR_CHECK P2: Exclusion from the Pareto set does not specify how
