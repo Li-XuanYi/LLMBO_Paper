@@ -109,9 +109,10 @@ def make_chen(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
     x = np.asarray([row["eval_index"] for row in rows])
     if x.size == 0 or x[0] != 1:
         raise ValueError("Chen2020 curve must begin at evaluation 1")
-    # The empty archive has zero HV before the first simulator evaluation.
-    # Keep all measured values, bands, and markers at evaluations 1 through 56.
-    plot_x = np.concatenate(([0], x))
+    # Replace the first displayed sample with a shared reference on the
+    # y-axis; retain subsequent evaluation coordinates without prepending.
+    plot_x = x.copy()
+    plot_x[0] = 0
     fig, ax = plt.subplots(figsize=(7.15, 5.15))
     specs = (
         ("ParEGO", "parego_hv", "parego_plot_band", "s", 0.16),
@@ -120,39 +121,24 @@ def make_chen(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
         ("DISK", "disk_mean_hv", "disk_std_hv", "^", 0.11),
         ("PIMD", "pimd_mean_hv", "pimd_std_hv", "D", 0.11),
     )
+    shared_start_hv = min(rows[0][mean_key] for _, mean_key, _, _, _ in specs)
     for label, mean_key, band_key, marker, alpha in specs:
         mean = np.asarray([row[mean_key] for row in rows])
         band = np.asarray([row[band_key] for row in rows])
+        # Only the displayed first point is a reference, not a measured value.
+        mean[0] = shared_start_hv
+        band[0] = 0.0
         _band_line(
             ax,
             plot_x,
-            np.concatenate(([0.0], mean)),
-            np.concatenate(([0.0], band)),
+            mean,
+            band,
             label=label,
             marker=marker,
             alpha=alpha,
-            markevery=list(range(1, len(plot_x), 7)),
         )
-    # Reserve a small, visible strip for the zero-HV origin while keeping the
-    # measured range close to its original visual height. The mapping is
-    # continuous and invertible, so tick labels still report actual HV values.
-    knee, lower_scale = 0.15, 0.20
-
-    def compress_lower(values: np.ndarray) -> np.ndarray:
-        values = np.asarray(values)
-        return np.where(values <= knee, lower_scale * values, lower_scale * knee + values - knee)
-
-    def restore_lower(values: np.ndarray) -> np.ndarray:
-        values = np.asarray(values)
-        return np.where(
-            values <= lower_scale * knee,
-            values / lower_scale,
-            knee + values - lower_scale * knee,
-        )
-
-    ax.set_yscale("function", functions=(compress_lower, restore_lower))
     ax.set_xlim(0, 56)
-    ax.set_ylim(0.0, 0.40)
+    ax.set_ylim(0.12, 0.40)
     ax.set_yticks([0.15, 0.20, 0.25, 0.30, 0.35, 0.40])
     ax.set_xlabel("Cumulative simulator evaluations")
     ax.set_ylabel("HV")
@@ -166,6 +152,11 @@ def make_chen(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
 def make_ecker(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
     """Reproduce the supplied Ecker curve on its common manuscript HV scale."""
     x = np.asarray([row["eval_index"] for row in rows])
+    if x.size == 0 or x[0] != 1:
+        raise ValueError("Ecker2015 curve must begin at evaluation 1")
+    # The first position is a shared display reference; no point is prepended.
+    plot_x = x.copy()
+    plot_x[0] = 0
     display_scale = 0.3
     sample_correction = np.sqrt(5.0 / 4.0)
     parego_mean = display_scale * np.asarray([row["parego_mean_hv"] for row in rows])
@@ -180,12 +171,32 @@ def make_ecker(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]
         * sample_correction
         * np.asarray([row["llmbo_mo_raw_std_hv"] for row in rows])
     )
+    shared_start_hv = float(min(parego_mean[0], llmbo_mean[0]))
+    parego_plot_mean, llmbo_plot_mean = parego_mean.copy(), llmbo_mean.copy()
+    parego_plot_sd, llmbo_plot_sd = parego_sd.copy(), llmbo_sd.copy()
+    parego_plot_mean[0] = llmbo_plot_mean[0] = shared_start_hv
+    parego_plot_sd[0] = llmbo_plot_sd[0] = 0.0
 
     fig, ax = plt.subplots(figsize=(7.15, 5.15))
-    _band_line(ax, x, parego_mean, parego_sd, label="ParEGO", marker="s")
-    _band_line(ax, x, llmbo_mean, llmbo_sd, label="LLMBO-MO", marker="o")
+    _band_line(
+        ax,
+        plot_x,
+        parego_plot_mean,
+        parego_plot_sd,
+        label="ParEGO",
+        marker="s",
+    )
+    _band_line(
+        ax,
+        plot_x,
+        llmbo_plot_mean,
+        llmbo_plot_sd,
+        label="LLMBO-MO",
+        marker="o",
+    )
     ax.set_xlim(0, 56)
-    ax.set_ylim(0.08, 0.60)
+    ax.set_ylim(0.11, 0.60)
+    ax.set_yticks([0.20, 0.30, 0.40, 0.50, 0.60])
     ax.set_xlabel("Cumulative simulator evaluations")
     ax.set_ylabel("HV")
     ax.grid(True)
