@@ -1,21 +1,39 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-LLMBO-MO incorporates battery-domain knowledge into multiobjective charging
-optimization through initial protocol proposals and regional preferences for
-successive scalarized subproblems. The Region-Lift adaptation uses GP
-posterior cross-covariance to translate the regional preferences into mean
-adjustments when computing EI.
+This paper proposed LLMBO-MO, an LLM-informed multiobjective Bayesian
+optimization framework for multistage battery fast-charging protocol design
+under limited simulation budgets. The design task is formulated as a
+constrained multiobjective problem balancing charging time, peak temperature
+rise, and charging-induced degradation, and is solved by decomposition-based
+BO, in which successive Tchebycheff scalarizations are modeled by GP
+surrogates and sampled by maximizing EI. First, LLM-informed initialization
+uses charging-variable definitions, operating constraints, and battery-domain
+knowledge to propose initial protocols; candidate screening and
+diversity-aware selection are then combined with random valid protocols to
+construct the initial simulation design. Second, during the early search, the
+LLM provides a preferred region conditioned on the active scalarization
+weight. Third, Region-Lift uses GP posterior cross-covariance to translate
+the regional preference into a bounded adjustment of the mean used to compute
+EI, and standard EI is used when no valid regional preference is available.
 
-With 56 battery-model evaluations, LLMBO-MO achieved a mean final HV of
-\ChenLLMBOMean\ on Chen2020, compared with \ChenParEGOMean\ for ParEGO,
-a \ChenFinalGain\ increase. The corresponding Ecker2015 values were
-\EckerLLMBOMean\ and \EckerParEGOMean. In the 16-evaluation component study,
-initialization accounted for most of the improvement, while adding regional
-guidance increased the mean HV from \AblationWarmMean\ to \AblationFullMean.
-The initialization study further showed that battery-specific prompting
-improved short-budget optimization more than generic prompting. These findings
-support the use of qualitative battery knowledge to improve the early search
-for charging trade-offs. Future work will assess regional guidance over wider
-operating conditions and validate the resulting protocols on physical cells
-with measured degradation.
+Under a budget of 56 battery-model evaluations, LLMBO-MO achieved the highest
+final mean HV among all compared methods on both battery parameterizations.
+On Chen2020, the mean final HV was \ChenLLMBOMean, compared with
+\ChenParEGOMean\ for ParEGO, corresponding to a \ChenFinalGain\ increase; on
+Ecker2015, the corresponding values were \EckerLLMBOMean\ and
+\EckerParEGOMean. The initialization study showed that battery-specific
+prompting improved short-budget optimization more than generic prompting,
+and the component study showed that LLM-informed initialization accounted for
+most of the improvement, while regional guidance further increased the mean
+final HV from \AblationWarmMean\ to \AblationFullMean. Comparisons across LLM
+backends further indicated that the final performance is robust to the
+choice of backend.
+
+It should be noted that the optimized protocols have been validated only in
+simulation based on the electrochemical--thermal--aging model, and
+discrepancies between model predictions and real battery behavior may still
+exist. Future work will assess regional guidance over wider operating
+conditions, validate the resulting protocols on physical cells with measured
+degradation, and extend the framework to other cell chemistries and
+pack-level charging.
