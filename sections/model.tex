@@ -28,7 +28,7 @@ are given in~\cite{refSPMe}.
 
 A lumped thermal model gives the cell temperature
 \begin{equation}
-\rho_{\mathrm{eff}}\frac{\partial T}{\partial t}=\bar Q-\frac{hA}{V}(T-T_a).
+\rho_{\mathrm{eff}}\frac{\mathrm{d}T}{\mathrm{d}t}=\bar Q-\frac{hA}{V}(T-T_a).
 \label{eq:thermal_balance}
 \end{equation}
 Here, $\rho_{\mathrm{eff}}$ is the effective volumetric heat capacity,
@@ -39,9 +39,10 @@ volume, and $T_a$ is the ambient temperature. The effective heat capacity is
 \rho_{\mathrm{eff}}=\frac{\sum_k\rho_kC_{p,k}L_k}{\sum_kL_k}
 \label{eq:rho_eff}
 \end{equation}
-where $\rho_k$, $C_{p,k}$, and $L_k$ denote density, specific heat capacity,
-and thickness. The sum includes the two current collectors, the two
-electrodes, and the separator.
+where $\rho_k$, $C_{p,k}$, and $L_k$ denote the density, specific heat
+capacity, and thickness of layer $k$, and the sum runs over the five cell
+layers, i.e., the two current collectors, the two electrodes, and the
+separator.
 
 The thermal objective is the maximum temperature rise during charging
 \begin{equation}
@@ -54,7 +55,7 @@ where $T_0$ is the initial cell temperature.
 \label{sec:aging}
 
 Charging-induced degradation is evaluated with the semi-empirical
-capacity-loss model of Suri and Onori~\cite{refAgingModel}:
+capacity-loss model of Suri and Onori~\cite{refAgingModel}
 \begin{equation}
 Q_s(\xi,Ah)=\sigma_{\mathrm{fun}}(\xi)Ah^z.
 \label{eq:aging}
@@ -71,7 +72,10 @@ power-law exponent. The severity factor is
 \end{equation}
 where $\alpha$ and $\beta$ describe SOC dependence, $\eta_a$ describes current
 dependence, $E_a$ is the activation energy, and $R_{\mathrm{gas}}$ is the
-universal gas constant. We use $Q_s$ as a relative degradation indicator for
-one charging process, rather than as a prediction of battery end-of-life.
+universal gas constant. In (4), $Q_s(\theta)$ denotes $Q_s(\xi,Ah)$
+evaluated with the charging-averaged quantities $\xi$ and the charge
+throughput $Ah$ induced by protocol $\theta$. It serves as a relative
+degradation indicator for one charging process, rather than as a prediction
+of battery end-of-life.
 % AUTHOR_CHECK M3: Supply the coefficients, averaging/aggregation rule, and
 % justification for using this aging model with each battery parameterization.

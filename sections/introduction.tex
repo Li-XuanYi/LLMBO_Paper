@@ -51,6 +51,9 @@ al.}~\cite{refDongBO} developed a data-driven BO scheme for minimum-time
 charging with fast convergence and explicit safety constraints. More recently,
 Zhu \emph{et al.}~\cite{refZhuMOBO} combined early degradation prediction with
 multiobjective BO to consider knee-point capacity and cycle life.
+Wang \emph{et al.}~\cite{refEIMO} further proposed experience-informed
+multiobjective optimization (EIMO), which transfers optimization experience
+across battery health states to reduce the simulation cost of charging design.
 GP-assisted evolutionary charging design has also addressed multiple user
 preferences while reducing simulation requirements~\cite{refGPA}. Despite
 these advances, the search is driven primarily by numerical observations
@@ -89,35 +92,38 @@ according to the current objective trade-off. Because the scalarization weights
 change across iterations, a region that is suitable for one objective trade-off
 may be less suitable for another.
 
-This paper proposes \emph{LLM-guided Multiobjective Bayesian Optimization
+This paper proposes \emph{LLM-informed Multiobjective Bayesian Optimization
 (LLMBO-MO)} for multistage battery charging. The method combines LLM-informed
 initialization with covariance-based regional guidance in a decomposition-based
 BO framework. The regional-guidance component is inspired by the region-lifted
 preference mechanism of LGBO~\cite{ref5} and is adapted here to the
 weight-conditioned multiobjective setting. We refer to this adaptation as
-Region-Lift. The main contributions are as follows:
+Region-Lift. The main contributions of this work are summarized as follows.
 
 \begin{itemize}
 
-    \item We develop an LLM-informed initialization strategy that uses
+    \item An LLM-informed initialization strategy is developed, which uses
     charging-variable definitions, operating constraints, and battery-domain
     knowledge to propose initial protocols. Candidate screening and
     diversity-aware selection are combined with random valid protocols to
     construct the initial simulation design.
 
-    \item We adapt region-lifted preference guidance to decomposition-based
+    \item Region-lifted preference guidance is adapted to decomposition-based
     multiobjective BO by conditioning the regional preference on the active
     scalarization weight and restricting its influence to the early search
     stage. GP posterior cross-covariance translates the regional preference
     into an adjustment of the mean used to compute expected improvement (EI).
     Standard EI is used when no valid regional preference is available.
 
-    \item We evaluate LLMBO-MO on the Chen2020 and Ecker2015 battery
-    parameterizations under limited simulation budgets. LLMBO-MO achieves a
-    higher final mean hypervolume than ParEGO on both parameterizations at the
+    \item LLMBO-MO is evaluated on the Chen2020 and Ecker2015 battery
+    parameterizations under limited simulation budgets. It achieves a higher
+    final mean hypervolume than ParEGO~\cite{ref4} and several
+    state-of-the-art surrogate-assisted and evolutionary
+    methods~\cite{refDISK,refPIMD,refNSGAII} on both parameterizations at the
     tested budget. Initialization and ablation studies show that
     battery-specific initialization accounts for most of the improvement in
-    the short-budget experiments.
+    the short-budget experiments. Comparisons across LLM backends further
+    indicate that the final performance is robust to the choice of backend.
 
 \end{itemize}
 

@@ -3,15 +3,17 @@
 
 We consider multistage constant-current (MCC) charging from an initial SOC to
 a prescribed target. Each protocol is evaluated by its charging time, peak
-temperature rise, and charging-induced degradation. Fig.~\ref{fig:charging_problem}
-summarizes the decision variables, objectives, and constraints.
+temperature rise, and charging-induced degradation. The decision variables,
+objectives, and constraints are summarized in
+Fig.~\ref{fig:charging_problem}.
 
 \input{figures/fig_charging_design_problem}
 
 \subsection{Multistage Constant-Current Protocol}
 
 A $K$-stage protocol applies a current $I_k$ over an SOC increment $\Delta s_k$
-at stage $k$. The initial and target SOCs are $s_0$ and $s_f$, respectively.
+at stage $k$, $k=1,\ldots,K$. The initial and target SOCs are $s_0$ and $s_f$,
+respectively.
 The independent decision variables are
 \begin{equation}
 \theta=[I_1,\ldots,I_K,\Delta s_1,\ldots,\Delta s_{K-1}]^\top
@@ -28,9 +30,9 @@ nonzero duration.
 % AUTHOR_CHECK P1: Supply the actual current/SOC bounds, terminal lower bound,
 % initial and target SOCs, and effective capacities from the experiment configs.
 
-Following~\cite{nref7,nref8}, we optimize SOC increments rather than stage
-durations. The current and charge delivered in each stage determine its
-duration, giving the total charging time
+Following~\cite{nref7,nref8}, the optimization is performed over SOC
+increments rather than stage durations. The current and charge delivered in
+each stage determine its duration, giving the total charging time
 \begin{equation}
 t_c(\theta)=3600Q_{\mathrm{eff}}\sum_{k=1}^{K}\frac{\Delta s_k}{I_k}
 \label{eq:charging_time}
@@ -56,13 +58,15 @@ T(t;\theta)\le T_{\max},\quad
 0\le t\le t_c(\theta)
 \label{eq:operating_constraints}
 \end{equation}
-where $U_{\max}$ and $T_{\max}$ are the voltage and temperature limits. A
+where $U(t;\theta)$ and $T(t;\theta)$ denote the terminal voltage and cell
+temperature under protocol $\theta$, and $U_{\max}$ and $T_{\max}$ are the
+corresponding voltage and temperature limits. A
 protocol is infeasible if it violates either limit or fails to reach $s_f$;
-such protocols are excluded from the Pareto archive.
-% AUTHOR_CHECK P2: Exclusion from the Pareto archive does not specify how
+such protocols are excluded from the Pareto set.
+% AUTHOR_CHECK P2: Exclusion from the Pareto set does not specify how
 % infeasible/failed simulations are represented in the GP or acquisition.
 
 Higher charging currents reduce charging time but generally increase the
-thermal and aging costs. We therefore seek a set of feasible nondominated
-protocols, allowing the charging-time, temperature, and degradation trade-off
+thermal and aging costs. A set of feasible nondominated protocols is
+therefore sought, allowing the charging-time, temperature, and degradation trade-off
 to be chosen for the operating requirement.
