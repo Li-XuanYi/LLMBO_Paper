@@ -1,10 +1,12 @@
-% Prompt exhibits for the two LLM touchpoints.
+% Prompt exhibits for the two LLM touchpoints, side by side across two columns.
 % Typeset in the style of boxed prompt figures: gray panel, thin frame,
 % domain-knowledge phrases highlighted in red.
 \newcommand{\promptbox}[1]{%
   \fcolorbox{black}{gray!10}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{#1}}}
 
-\begin{figure}[!t]
+\begin{figure*}[!t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
 \centering
 \promptbox{\footnotesize
 You are an expert in \textcolor{red}{lithium-ion battery fast-charging
@@ -25,9 +27,8 @@ Generate $15$ \textcolor{red}{diverse} protocols that
 around one style}. Respond with only a JSON array.}
 \caption{Prompt for LLM-informed warm-start initialization.}
 \label{fig:prompt_warmstart}
-\end{figure}
-
-\begin{figure}[!t]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
 \centering
 \promptbox{\footnotesize
 You are guiding a battery charging Bayesian optimization loop.\\
@@ -48,5 +49,5 @@ $5$--$20\%$ of the range per dimension). The confidence lies in $[0,1]$ and
 parameter bounds and the $\Delta s$ constraint. Output JSON only.}
 \caption{Prompt for iteration-level region-preference guidance.}
 \label{fig:prompt_region}
-\end{figure}
-
+\end{minipage}
+\end{figure*}

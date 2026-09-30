@@ -40,17 +40,17 @@ compared using the inexpensive surrogate before one is evaluated by the battery
 simulator~\cite{nref6}.
 
 Several studies have established the relevance of BO to fast charging.
-Attia \emph{et al.} combined early cycle-life prediction with BO to optimize
-fast-charging protocols experimentally, reducing both the duration and number
-of tests~\cite{nref3}. Jiang \emph{et al.} investigated BO for minimum-time
-charging subject to degradation-related constraints and compared acquisition
-functions for multistage protocols~\cite{nref7}. Wang and Jiang extended this
-approach to charging-time and cycle-life trade-offs using Tchebycheff
-scalarization and constrained BO~\cite{nref8}. Dong \emph{et al.} developed a
-data-driven BO scheme for minimum-time charging with fast convergence and
-explicit safety constraints~\cite{refDongBO}. More recently,
-Zhu \emph{et al.} combined early degradation prediction with multiobjective BO
-to consider knee-point capacity and cycle life~\cite{refZhuMOBO}.
+Attia \emph{et al.}~\cite{nref3} combined early cycle-life prediction with BO
+to optimize fast-charging protocols experimentally, reducing both the duration
+and number of tests. Jiang \emph{et al.}~\cite{nref7} investigated BO for
+minimum-time charging subject to degradation-related constraints and compared
+acquisition functions for multistage protocols. Wang and Jiang~\cite{nref8}
+extended this approach to charging-time and cycle-life trade-offs using
+Tchebycheff scalarization and constrained BO. Dong \emph{et
+al.}~\cite{refDongBO} developed a data-driven BO scheme for minimum-time
+charging with fast convergence and explicit safety constraints. More recently,
+Zhu \emph{et al.}~\cite{refZhuMOBO} combined early degradation prediction with
+multiobjective BO to consider knee-point capacity and cycle life.
 GP-assisted evolutionary charging design has also addressed multiple user
 preferences while reducing simulation requirements~\cite{refGPA}. Despite
 these advances, the search is driven primarily by numerical observations
@@ -60,9 +60,9 @@ Battery-domain knowledge can complement these numerical observations when only
 a few evaluations are available. In particular, prior knowledge of how
 charging stages affect thermal response and degradation can help identify
 useful regions of the protocol space. Prior-guided BO has already been
-investigated for battery charging: Jeong \emph{et al.} incorporated a simplified
-aging model to guide the search for health-conscious
-protocols~\cite{refPriorCharging}. Such model-based prior information, however,
+investigated for battery charging: Jeong \emph{et al.}~\cite{refPriorCharging}
+incorporated a simplified aging model to guide the search for health-conscious
+protocols. Such model-based prior information, however,
 requires an explicit quantitative representation of the available knowledge.
 Qualitative knowledge concerning charging-variable meanings, operating
 practices, and objective trade-offs is more difficult to incorporate directly
@@ -70,12 +70,13 @@ into BO, particularly when candidate selection must account for multiple
 competing objectives.
 
 Large language models (LLMs) can interpret such descriptions and generate
-candidate suggestions conditioned on the optimization context. Liu \emph{et al.}
-introduced LLAMBO and investigated LLM-based warm starting, surrogate modeling,
-and candidate sampling, with empirical results on hyperparameter
-optimization~\cite{nref12}. In the battery domain, LLMs have been adapted to
-state-of-charge estimation~\cite{refBianLLM}, and Kuai \emph{et al.} applied
-LLM-enhanced BO to electrochemical parameter identification~\cite{refKuaiLLMBO}.
+candidate suggestions conditioned on the optimization context. Liu \emph{et
+al.}~\cite{nref12} introduced LLAMBO and investigated LLM-based warm starting,
+surrogate modeling, and candidate sampling, with empirical results on
+hyperparameter optimization. In the battery domain, Bian \emph{et
+al.}~\cite{refBianLLM} adapted LLMs to state-of-charge estimation, and Kuai
+\emph{et al.}~\cite{refKuaiLLMBO} applied LLM-enhanced BO to electrochemical
+parameter identification.
 These studies suggest that LLMs can provide task-specific prior information when
 numerical observations are scarce. For multiobjective charging design, however,
 the guidance must also reflect the trade-off currently being optimized.
