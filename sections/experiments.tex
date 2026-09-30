@@ -61,7 +61,7 @@ Total simulator budget & 56 \\
 Initial evaluations & 6 \\
 Number of matched trials & 5 \\
 Initial LLM candidate pool & 15 \\
-Regional-guidance horizon $T_{\mathrm L}$ & \RegionHorizon \\
+Region-guided horizon $T_{\mathrm L}$ & \RegionHorizon \\
 Number of regional anchors $M$ & \RegionAnchors \\
 Tchebycheff coefficient $\rho_{\mathrm{aug}}$ & \RhoAug \\
 \bottomrule
@@ -145,9 +145,9 @@ LLMBO-MO & \textbf{\EckerLLMBOMean\,$\pm$\,\EckerLLMBOStd} \\
 
 The preceding comparisons assess the complete method. Two studies on
 Chen2020 separate the effect of battery-specific prompting from the
-contributions of initialization and regional guidance.
+contributions of the warm start and regional guidance.
 
-\subsubsection{LLM-Informed Initialization}
+\subsubsection{LLM-Informed Warm Start}
 
 Random initialization, a detailed generic prompt, and a
 battery-specific prompt are compared (Figs.~\ref{fig:prompt_warmstart}
@@ -213,7 +213,7 @@ LLM to generate candidates.
 \subsubsection{Regional Guidance}
 
 Four variants are compared: the numerical BO optimizer without LLM guidance,
-initialization only, regional guidance only, and the complete method. This
+warm start only, regional guidance only, and the complete method. This
 study uses three matched trials per variant. Each run contains six initial
 evaluations followed by 50 BO iterations, giving a total budget of 56
 battery-model evaluations. The results are summarized in
@@ -253,7 +253,7 @@ Variant & Final HV (mean $\pm$ SD) $\uparrow$ \\
 
 No LLM & \AblationBaselineMean\,$\pm$\,\AblationBaselineStd \\
 
-+ WarmStart & \AblationWarmMean\,$\pm$\,\AblationWarmStd \\
++ Warm start & \AblationWarmMean\,$\pm$\,\AblationWarmStd \\
 
 + Regional guidance & \AblationRegionMean\,$\pm$\,\AblationRegionStd \\
 
@@ -266,20 +266,20 @@ LLMBO-MO & \textbf{\AblationFullMean\,$\pm$\,\AblationFullStd} \\
 \end{table}
 
 As shown in Fig.~\ref{fig:ablation_hv_box} and Table~\ref{tab:ablation},
-LLM-informed initialization provides the largest improvement among the two
-LLM-informed components. Adding WarmStart increases the mean final HV from
+the LLM-informed warm start provides the largest improvement among the two
+components. Adding the warm start increases the mean final HV from
 \AblationBaselineMean\ to \AblationWarmMean, whereas regional guidance alone
-reaches \AblationRegionMean. When regional guidance is added on top of
-LLM-informed initialization, the mean final HV further increases from
+reaches \AblationRegionMean. When regional guidance is added on top of the
+warm start, the mean final HV further increases from
 \AblationWarmMean\ to \AblationFullMean. The complete method also has the
 smallest sample standard deviation among the four variants.
 
 The results indicate that the two components contribute at different stages
-of the optimization. LLM-informed initialization improves the starting design
+of the optimization. The warm start improves the starting design
 by directing the initial evaluations toward more promising charging protocols.
-Region-Lift then uses the current scalarization weights to adjust candidate
-selection during the subsequent BO iterations. In this comparison,
-initialization provides most of the performance gain, while regional guidance
+The regional guidance then uses the current scalarization weights to adjust
+candidate selection during the subsequent BO iterations. In this comparison,
+the warm start provides most of the performance gain, while regional guidance
 further improves the final optimization result.
 
 

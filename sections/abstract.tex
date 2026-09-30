@@ -16,11 +16,12 @@ changing trade-offs in multiobjective optimization. Large language models
 (LLMs) offer a way to incorporate task-specific prior knowledge into BO.
 Accordingly, this paper proposes LLMBO-MO, an LLM-informed multiobjective
 Bayesian optimization framework for lithium-ion battery charging design.
-LLMBO-MO first uses an LLM to propose initial charging protocols from
-battery-domain knowledge, followed by candidate screening and diversity-aware
-selection. During the early search, the LLM also proposes a preferred region
-for the current scalarization weights. Region-Lift uses Gaussian process (GP)
-posterior cross-covariance to apply bounded adjustments to the mean used in
+LLMBO-MO first uses an LLM-informed warm start, in which the LLM proposes
+initial charging protocols from battery-domain knowledge, followed by
+candidate screening and diversity-aware selection. During the early search,
+the LLM also proposes a preferred region for the current scalarization
+weights. The regional guidance uses Gaussian process (GP) posterior
+cross-covariance to apply bounded adjustments to the mean used in
 expected improvement. These adjustments alter the ranking of candidate
 protocols. Under a budget of 56 simulator evaluations, LLMBO-MO achieves a
 9.3\% higher mean final hypervolume than ParEGO on Chen2020. An advantage over

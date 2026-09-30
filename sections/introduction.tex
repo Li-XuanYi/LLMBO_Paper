@@ -81,7 +81,7 @@ al.}~\cite{refBianLLM} adapted LLMs to state-of-charge estimation, and Kuai
 \emph{et al.}~\cite{refKuaiLLMBO} applied LLM-enhanced BO to electrochemical
 parameter identification.
 These studies suggest that LLMs can provide task-specific prior information when
-numerical observations are scarce. For multiobjective charging design, however,
+numerical observations are scarce. For flash-charging multiobjective design, however,
 the guidance must also reflect the trade-off currently being optimized.
 
 These observations suggest two points at which LLM-derived knowledge may be
@@ -93,24 +93,25 @@ change across iterations, a region that is suitable for one objective trade-off
 may be less suitable for another.
 
 This paper proposes \emph{LLM-informed Multiobjective Bayesian Optimization
-(LLMBO-MO)} for multistage battery charging. The method combines LLM-informed
-initialization with covariance-based regional guidance in a decomposition-based
-BO framework. The regional-guidance component is inspired by the region-lifted
-preference mechanism of LGBO~\cite{ref5} and is adapted here to the
-weight-conditioned multiobjective setting. We refer to this adaptation as
-Region-Lift. The main contributions of this work are summarized as follows.
+(LLMBO-MO)} for multistage battery charging. The method combines an
+LLM-informed warm start with covariance-based regional guidance in a
+decomposition-based BO framework. The region-guided component is inspired by
+the region-lifted preference mechanism of LGBO~\cite{ref5} and is adapted
+here to the weight-conditioned multiobjective setting. The main contributions
+of this work are summarized as follows.
 
 \begin{itemize}
 
-    \item An LLM-informed initialization strategy is developed, which uses
+    \item An LLM-informed warm-start strategy is developed, which uses
     charging-variable definitions, operating constraints, and battery-domain
     knowledge to propose initial protocols. Candidate screening and
     diversity-aware selection are combined with random valid protocols to
     construct the initial simulation design.
 
-    \item Region-lifted preference guidance is adapted to decomposition-based
-    multiobjective BO by conditioning the regional preference on the active
-    scalarization weight and restricting its influence to the early search
+    \item LLM-informed regional guidance is incorporated into
+    decomposition-based multiobjective BO by conditioning the regional
+    preference on the active scalarization weight and restricting its
+    influence to the early search
     stage. GP posterior cross-covariance translates the regional preference
     into an adjustment of the mean used to compute expected improvement (EI).
     Standard EI is used when no valid regional preference is available.

@@ -19,7 +19,7 @@
 \begin{tikzpicture}[node distance=5mm and 6.5mm]
 
 \node[box, fill=state, minimum width=35mm] (problem) {Fast-charging CMOP\\$\boldsymbol\theta\!\rightarrow\![t_c,\Delta T_p,D_{\rm chg}]$};
-\node[box, fill=llm, minimum width=39mm, right=9mm of problem] (init) {\textbf{LLM-informed initialization}\\candidate generation $\rightarrow$ screen\\$\rightarrow$ diversity-aware portfolio};
+\node[box, fill=llm, minimum width=39mm, right=9mm of problem] (init) {\textbf{LLM-informed warm start}\\candidate generation $\rightarrow$ screen\\$\rightarrow$ diversity-aware portfolio};
 \node[box, fill=sim, minimum width=32mm, right=9mm of init] (simulator) {\textbf{Battery simulator}\\SPMe + thermal + degradation\\objective + feasibility};
 \node[box, fill=state, minimum width=32mm, right=9mm of simulator] (database) {Evaluated database $\mathcal D$\\Pareto set $\mathcal P$};
 

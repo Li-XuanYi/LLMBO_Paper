@@ -72,7 +72,7 @@ where $g_t^{\mathrm{best}}$ is the best observed scalarized value, and
 $\Phi$ and $\phi$ are the standard normal cumulative distribution and density
 functions.
 
-\subsection{LLM-Informed Initialization}
+\subsection{LLM-Informed Warm Start}
 \label{sec:warm_start}
 
 The first GP is fitted to a small initial data set. To make these evaluations
@@ -91,17 +91,17 @@ valid protocols supplement this selection to cover other parts of the search
 space. The resulting $n_0$ protocols are simulated to initialize the data
 set and the Pareto set.
 
-\subsection{Region-Lift Guidance}
+\subsection{Regional Guidance}
 \label{sec:region_pref}
 
-Initialization introduces LLM suggestions before sequential optimization
-begins. During the search, the relevant trade-off changes with the scalarization
-weights. At an early iteration $t$, the LLM therefore receives the current
+The warm start introduces LLM suggestions before sequential
+optimization begins. During the search, the relevant trade-off changes with
+the scalarization weights. At an early iteration $t$, the LLM therefore receives the current
 weights $\mathbf w^{(t)}$ and the observed optimization state, and returns a
 preferred region $R_t$ for that subproblem
 (Fig.~\ref{fig:prompt_region}). Restricting the search to $R_t$
-would exclude all candidates outside the proposed region. Instead, Region-Lift
-uses GP posterior cross-covariance to adjust their acquisition values. This
+would exclude all candidates outside the proposed region. Instead, the regional
+guidance uses GP posterior cross-covariance to adjust their acquisition values. This
 extends LGBO's region-lifted preference mechanism~\cite{ref5} to the current
 scalarized objective.
 
@@ -160,7 +160,7 @@ The overall procedure is summarized in Algorithm~\ref{alg:llmbo}.
 \begin{algorithmic}[1]
 \Require Battery simulator, LLM, total budget $N$, initial budget $n_0$, weight set $W$, guidance horizon $T_{\mathrm L}$
 \Ensure Feasible Pareto set $P$
-\State Generate and screen LLM-informed initial protocols
+\State Generate and screen LLM-informed warm-start protocols
 \State Combine selected LLM proposals with random valid protocols
 \State Evaluate the $n_0$ initial protocols; initialize $D$ and $P$
 \For{$t=1$ to $N-n_0$}
@@ -169,7 +169,7 @@ The overall procedure is summarized in Algorithm~\ref{alg:llmbo}.
     \If{$t\le T_{\mathrm L}$}
         \State Query the LLM for a preferred region under $\mathbf w^{(t)}$
         \If{a valid region is returned}
-            \State Apply Region-Lift using Eqs.~\eqref{eq:region_variance}--\eqref{eq:region_acq_mean}
+            \State Apply regional guidance using Eqs.~\eqref{eq:region_variance}--\eqref{eq:region_acq_mean}
         \EndIf
     \EndIf
     \State Maximize EI and select the next protocol $\theta_{t+1}$
