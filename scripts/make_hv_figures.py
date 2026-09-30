@@ -87,6 +87,7 @@ def _band_line(
     marker: str,
     alpha: float = 0.16,
     linestyle: str = "-",
+    markevery: int | list[int] = 7,
 ) -> None:
     color = COLORS[label]
     ax.fill_between(x, mean - band, mean + band, color=color, alpha=alpha, linewidth=0)
@@ -97,7 +98,7 @@ def _band_line(
         linewidth=2.0,
         linestyle=linestyle,
         marker=marker,
-        markevery=7,
+        markevery=markevery,
         markersize=4.5,
         label=label,
     )
@@ -106,6 +107,11 @@ def _band_line(
 @plt.rc_context(EIMO_STYLE)
 def make_chen(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
     x = np.asarray([row["eval_index"] for row in rows])
+    if x.size == 0 or x[0] != 1:
+        raise ValueError("Chen2020 curve must begin at evaluation 1")
+    # The empty archive has zero HV before the first simulator evaluation.
+    # Keep all measured values, bands, and markers at evaluations 1 through 56.
+    plot_x = np.concatenate(([0], x))
     fig, ax = plt.subplots(figsize=(7.15, 5.15))
     specs = (
         ("ParEGO", "parego_hv", "parego_plot_band", "s", 0.16),
@@ -115,17 +121,39 @@ def make_chen(rows: list[dict[str, float]], output_dir: Path) -> dict[str, Any]:
         ("PIMD", "pimd_mean_hv", "pimd_std_hv", "D", 0.11),
     )
     for label, mean_key, band_key, marker, alpha in specs:
+        mean = np.asarray([row[mean_key] for row in rows])
+        band = np.asarray([row[band_key] for row in rows])
         _band_line(
             ax,
-            x,
-            np.asarray([row[mean_key] for row in rows]),
-            np.asarray([row[band_key] for row in rows]),
+            plot_x,
+            np.concatenate(([0.0], mean)),
+            np.concatenate(([0.0], band)),
             label=label,
             marker=marker,
             alpha=alpha,
+            markevery=list(range(1, len(plot_x), 7)),
         )
+    # Reserve a small, visible strip for the zero-HV origin while keeping the
+    # measured range close to its original visual height. The mapping is
+    # continuous and invertible, so tick labels still report actual HV values.
+    knee, lower_scale = 0.15, 0.20
+
+    def compress_lower(values: np.ndarray) -> np.ndarray:
+        values = np.asarray(values)
+        return np.where(values <= knee, lower_scale * values, lower_scale * knee + values - knee)
+
+    def restore_lower(values: np.ndarray) -> np.ndarray:
+        values = np.asarray(values)
+        return np.where(
+            values <= lower_scale * knee,
+            values / lower_scale,
+            knee + values - lower_scale * knee,
+        )
+
+    ax.set_yscale("function", functions=(compress_lower, restore_lower))
     ax.set_xlim(0, 56)
-    ax.set_ylim(0.12, 0.40)
+    ax.set_ylim(0.0, 0.40)
+    ax.set_yticks([0.15, 0.20, 0.25, 0.30, 0.35, 0.40])
     ax.set_xlabel("Cumulative simulator evaluations")
     ax.set_ylabel("HV")
     ax.grid(True)
