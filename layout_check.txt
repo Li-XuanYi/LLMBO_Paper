@@ -1,0 +1,703 @@
+                                                                                                                                               1
+
+
+
+
+       Battery Fast-Charging Protocol Design via
+     Large Language Model-Informed Multiobjective
+                 Bayesian Optimization
+Xuanyi Lia , Lincong Xiea , Jinmao Jiaa , Bing-Chuan Wanga , Senior Member, IEEE, Heng Lib , Member, IEEE,
+                                  and Yun Fengc , Senior Member, IEEE
+
+
+
+   Abstract—Lithium-ion batteries are widely used in electric                   selecting how the current varies across charging stages while
+vehicles and energy-storage systems, making efficient and reliable              reaching a target SOC within prescribed current, voltage, and
+fast charging increasingly important. As charging requirements                  temperature limits. The competing objectives of charging time,
+become more diverse, charging strategies must balance charging
+speed, safety, and battery degradation under different user                     thermal response, and battery health motivate a constrained
+preferences. Bayesian optimization (BO) reduces the number of                   multiobjective formulation that provides alternative protocols
+simulator evaluations by using a probabilistic surrogate model and              for different operating preferences [3]–[5].
+an acquisition function to select candidate protocols. However, two                Evaluating these trade-offs is expensive. Physical charging
+challenges remain when observations are scarce. First, uninformed               and aging tests consume cells and laboratory time; in particular,
+initialization does not use available battery-domain knowledge
+when selecting initial charging protocols. Second, incorporating                directly measuring cycle life can require months of testing [7].
+such knowledge during sequential BO requires accounting for the                 Battery models allow candidate protocols to be assessed
+changing trade-offs in multiobjective optimization. Large language              in simulation, reducing reliance on physical experiments
+models (LLMs) offer a way to incorporate task-specific prior                    during the design stage. Nevertheless, electrochemical models
+knowledge into BO. Accordingly, this paper proposes LLMBO-                      require repeated numerical solution of coupled transport and
+MO, an LLM-informed multiobjective Bayesian optimization
+framework for lithium-ion battery charging design. LLMBO-                       reaction equations, often together with thermal and aging
+MO first uses an LLM-informed warm start, in which the                          dynamics. Consequently, replacing experiments with simulation
+LLM proposes initial charging protocols from battery-domain                     reduces the cost of each evaluation but does not eliminate the
+knowledge, followed by candidate screening and diversity-aware                  computational burden of searching across many protocols [8],
+selection. During the early search, the LLM also proposes a                     [9]. This motivates sample-efficient optimization methods that
+preferred region for the current scalarization weights. The regional
+guidance uses Gaussian process (GP) posterior cross-covariance                  require fewer simulator evaluations.
+to apply bounded adjustments to the mean used in expected                          Bayesian optimization (BO) addresses this evaluation cost
+improvement. These adjustments alter the ranking of candidate                   through sequential surrogate modeling and acquisition-based
+protocols. Under a budget of 56 simulator evaluations, LLMBO-                   sampling. A probabilistic surrogate, commonly a Gaussian
+MO achieves a 9.3% higher mean final hypervolume than ParEGO                    process (GP), estimates both objective values and predictive
+on Chen2020. An advantage over ParEGO is also observed on
+Ecker2015.                                                                      uncertainty from evaluated candidates. An acquisition function
+                                                                                combines these estimates to select the next candidate, allowing
+    Index Terms—Lithium-ion batteries, battery charging, Bayesian many alternatives to be compared using the inexpensive
+optimization, large language models, multiobjective optimization.
+                                                                                surrogate before one is evaluated by the battery simulator [10].
+                                                                                   Several studies have established the relevance of BO to fast
+                                                                                charging. Attia et al. [7] combined early cycle-life prediction
+                           I. I NTRODUCTION                                     with BO to optimize fast-charging protocols experimentally,
+    The growing use of lithium-ion batteries in electric vehicles reducing both the duration and number of tests. Jiang et
+and energy-storage systems has increased the demand for effi- al. [8] investigated BO for minimum-time charging subject
+cient fast charging. Fast charging requires balancing charging to degradation-related constraints and compared acquisition
+speed against thermal stress and degradation. For a prescribed functions for multistage protocols. Wang and Jiang [9] extended
+amount of charge, shortening the charging time requires a this approach to charging-time and cycle-life trade-offs using
+higher average current. However, high charging rates increase Tchebycheff scalarization and constrained BO. Dong et al. [11]
+polarization and heat generation and can promote degradation, developed a data-driven BO scheme for minimum-time charging
+with the response depending on temperature and state of charge with fast convergence and explicit safety constraints. More
+(SOC) [1], [2]. Charging-protocol design therefore involves recently, Zhu et al. [12] combined early degradation prediction
+   a Xuanyi Li, Lincong Xie, Jinmao Jia, and Bing-Chuan Wang are with the       with multiobjective BO to consider knee-point capacity and
+School of Automation, Central South University, Changsha 410083, China          cycle life. Wang et al. [13] further proposed experience-
+(e-mail: bingcwang@csu.edu.cn).                                                 informed multiobjective optimization (EIMO), which transfers
+   b Heng Li is with the School of Electronic Information, Central South
+                                                                                optimization experience across battery health states to reduce
+University, Changsha 410075, China (e-mail: liheng@csu.edu.cn).
+   c Yun Feng is with the School of Artificial Intelligence and Robotics, Hunan the simulation cost of charging design. GP-assisted evolutionary
+University, Changsha 410082, China (e-mail: fyrobot@hnu.edu.cn).                charging design has also addressed multiple user preferences
+                                                                                                                                    2
+
+
+
+while reducing simulation requirements [6]. Despite these ad-
+vances, the search is driven primarily by numerical observations
+collected during the optimization process.
+   Battery-domain knowledge can complement these numerical
+observations when only a few evaluations are available. In
+particular, prior knowledge of how charging stages affect                                                                         SOC
+thermal response and degradation can help identify useful
+                                                                                                     propose protocol
+regions of the protocol space. Prior-guided BO has already been
+
+
+
+
+                                                                     constrained Pareto search
+                                                                            OBJECTIVES ALL MINIMIZED
+investigated for battery charging: Jeong et al. [14] incorporated
+a simplified aging model to guide the search for health-
+conscious protocols. Such model-based prior information,
+however, requires an explicit quantitative representation of
+the available knowledge. Qualitative knowledge concerning
+charging-variable meanings, operating practices, and objective
+trade-offs is more difficult to incorporate directly into BO,                                        evaluate objectives
+
+particularly when candidate selection must account for multiple              CONSTRAINTS
+
+competing objectives.
+   Large language models (LLMs) can interpret such descrip-
+tions and generate candidate suggestions conditioned on the
+optimization context. Liu et al. [15] introduced LLAMBO and
+investigated LLM-based warm starting, surrogate modeling, and
+candidate sampling, with empirical results on hyperparameter
+optimization. In the battery domain, Bian et al. [16] adapted
+LLMs to state-of-charge estimation, and Kuai et al. [17] applied Fig. 1. Fast-charging multiobjective design problem.
+LLM-enhanced BO to electrochemical parameter identification.
+These studies suggest that LLMs can provide task-specific
+                                                                        expected improvement (EI). Standard EI is used when no
+prior information when numerical observations are scarce. For
+                                                                        valid regional preference is available.
+flash-charging multiobjective design, however, the guidance
+                                                                     • LLMBO-MO is evaluated on the Chen2020 and Ecker2015
+must also reflect the trade-off currently being optimized.
+   These observations suggest two points at which LLM-derived           battery parameterizations under limited simulation bud-
+knowledge may be useful under a limited simulation budget.              gets. It achieves a higher final mean hypervolume than
+First, it can improve the initial design by proposing plausi-           ParEGO [21] and several state-of-the-art surrogate-assisted
+ble charging protocols while maintaining sufficient diversity.          and evolutionary methods [24]–[26] on both parameter-
+Second, it can provide regional guidance during sequential              izations at the tested budget. Initialization and ablation
+BO according to the current objective trade-off. Because the            studies show that battery-specific initialization accounts for
+scalarization weights change across iterations, a region that is        most of the improvement in the short-budget experiments.
+suitable for one objective trade-off may be less suitable for           Comparisons across LLM backends further indicate that
+another.                                                                the final performance is robust to the choice of backend.
+   This paper proposes LLM-informed Multiobjective Bayesian          The    remainder of this paper is organized as follows. Sec-
+Optimization (LLMBO-MO) for multistage battery charging.          tions  II and III present the charging problem and battery model,
+The method combines an LLM-informed warm start with               respectively.   Section IV describes LLMBO-MO. Section V
+covariance-based regional guidance in a decomposition-based       reports   the experiments,     and Section VI concludes the paper.
+BO framework. The region-guided component is inspired by
+the region-lifted preference mechanism of LGBO [18] and is                           II. P ROBLEM F ORMULATION
+adapted here to the weight-conditioned multiobjective setting.
+                                                                     We consider multistage constant-current (MCC) charging
+The main contributions of this work are summarized as follows.
+                                                                  from an initial SOC to a prescribed target. Each protocol
+   • An LLM-informed warm-start strategy is developed, which
+                                                                  is evaluated by its charging time, peak temperature rise,
+     uses charging-variable definitions, operating constraints,
+                                                                  and charging-induced degradation. The decision variables,
+     and battery-domain knowledge to propose initial protocols.
+                                                                  objectives, and constraints are summarized in Fig. 1.
+     Candidate screening and diversity-aware selection are
+     combined with random valid protocols to construct the
+     initial simulation design.                                   A. Multistage Constant-Current Protocol
+   • LLM-informed regional guidance is incorporated into
+                                                                     A K-stage protocol applies a current Ik over an SOC
+     decomposition-based multiobjective BO by conditioning increment ∆s at stage k, k = 1, . . . , K. The initial and target
+                                                                                  k
+     the regional preference on the active scalarization weight SOCs are s and s , respectively. The independent decision
+                                                                                0        f
+     and restricting its influence to the early search stage. variables are
+     GP posterior cross-covariance translates the regional
+     preference into an adjustment of the mean used to compute                      θ = [I1 , . . . , IK , ∆s1 , . . . , ∆sK−1 ]⊤  (1)
+                                                                                                                                            3
+
+
+
+and the final SOC increment is                                           B. Thermal Model
+                                        K−1                                A lumped thermal model gives the cell temperature
+                    ∆sK = s f − s0 − ∑ ∆sk .                       (2)
+                                        k=1                                                        dT       hA
+                                                                                            ρeff      = Q̄ − (T − Ta ).                   (7)
+Each current and SOC increment is restricted to its prescribed                                     dt       V
+interval. The last increment must also exceed a positive lower           Here, ρeff is the effective volumetric heat capacity, Q̄ is the
+bound so that every stage has nonzero duration.                          average volumetric heat-generation rate, h is the heat-transfer
+   Following [8], [9], the optimization is performed over SOC            coefficient, A is the heat-dissipation area, V is the cell volume,
+increments rather than stage durations. The current and charge           and Ta is the ambient temperature. The effective heat capacity
+delivered in each stage determine its duration, giving the total         is
+charging time                                                                                           ∑ ρkC p,k Lk
+                                        K                                                       ρeff = k                                (8)
+                                          ∆sk                                                              ∑k Lk
+                    tc (θ ) = 3600Qeff ∑                     (3)
+                                       k=1 Ik                            where ρk , C p,k , and Lk denote the density, specific heat capacity,
+where Qeff is the effective cell capacity in Ah and current              and thickness of layer k, and the sum runs over the five cell
+is measured in A. The experiments use K = 3, giving five                 layers, i.e., the two current collectors, the two electrodes, and
+independent decision variables.                                          the separator.
+                                                                            The thermal objective is the maximum temperature rise
+                                                                         during charging
+B. Constrained Multiobjective Charging Design
+  The three objectives are minimized jointly                                                Tp (θ ) =     max [T (t) − T0 ]               (9)
+                                                                                                        0≤t≤tc (θ )
+
+             min    f (θ ) = [tc (θ ), Tp (θ ), Qs (θ )]⊤ .        (4)   where T0 is the initial cell temperature.
+              θ
+
+Here, Tp is the peak temperature rise and Qs is the aging
+indicator defined in Section III. In addition to the bounds on           C. Aging Model
+the decision variables, the charging trajectory must satisfy
+                                                                           Charging-induced degradation is evaluated with the semi-
+      U(t; θ ) ≤ Umax ,    T (t; θ ) ≤ Tmax ,    0 ≤ t ≤ tc (θ )   (5)   empirical capacity-loss model of Suri and Onori [20]
+
+where U(t; θ ) and T (t; θ ) denote the terminal voltage and                                 Qs (ξ , Ah) = σfun (ξ )Ahz .                (10)
+cell temperature under protocol θ , and Umax and Tmax are the
+corresponding voltage and temperature limits. A protocol is              The vector ξ = (SOC, I, T ) contains the average SOC, current,
+infeasible if it violates either limit or fails to reach s f ; such      and temperature during charging; Ah is the charge throughput;
+protocols are excluded from the Pareto set.                              and z is the power-law exponent. The severity factor is
+   Higher charging currents reduce charging time but generally                                             (︃
+                                                                                                                 −Ea + ηa I
+                                                                                                                                 )︃
+increase the thermal and aging costs. A set of feasible                       σfun (ξ ) = (α SOC + β ) exp                          (11)
+                                                                                                              Rgas (273.15 + T )
+nondominated protocols is therefore sought, allowing the
+charging-time, temperature, and degradation trade-off to be              where α and β describe SOC dependence, ηa describes current
+chosen for the operating requirement.                                    dependence, Ea is the activation energy, and Rgas is the universal
+                                                                         gas constant. In (4), Qs (θ ) denotes Qs (ξ , Ah) evaluated with
+   III. E LECTROCHEMICAL –T HERMAL –AGING M ODEL                         the charging-averaged quantities ξ and the charge throughput
+                                                                         Ah induced by protocol θ . It serves as a relative degradation
+A. Electrochemical Model                                                 indicator for one charging process, rather than as a prediction
+   The single particle model with electrolyte dynamics (SPMe)            of battery end-of-life.
+describes the battery’s electrochemical response [19]. It ac-
+counts for lithium diffusion in representative solid particles of                         IV. P ROPOSED LLMBO-MO
+both electrodes and transport through the electrolyte. This
+reduced-order model retains the electrochemical dynamics                 A. Framework
+needed for charging simulation at a lower computational cost                LLMBO-MO uses battery-domain knowledge to guide the
+than a full porous-electrode model.                                      choice of protocols to simulate. The optimization loop is shown
+   The terminal voltage is calculated as [19]                            in Fig. 2. The LLM first proposes an initial set of protocols.
+                    U = Ueq + ηr + ηd + ∆Φ                         (6)   During the early BO iterations, it also suggests a region for the
+                                                                         current trade-off among objectives. The BO optimizer scalarizes
+where Ueq is the equilibrium potential, ηr is the ohmic                  the observed objectives, fits a GP, and selects the next protocol
+overpotential, ηd is the concentration overpotential, and ∆Φ             by maximizing EI. Evaluating that protocol with the battery
+is the average potential difference in the electrolyte. SOC is           model provides its objective values and feasibility, which are
+obtained from the solid-phase lithium concentration. The SPMe            used to update the data set D and the feasible Pareto set P.
+equations and their derivation are given in [19].                        The loop stops when the simulation budget is exhausted.
+                                                                                                                                                                                                              4
+
+
+
+                                          LLM-informed Warm Start                                                                          C. LLM-Informed Warm Start
+       Battery-domain Knowledge                       LLM reasoning                                   Initial Protocols
+                  MCC
+                 protocol
+                                               Propose 15 diverse 3-stage protocols                 LLM output:                               The first GP is fitted to a small initial data set. To make
+    battery                                             for 0–80% SOC
+                 structure
+    context                                                                                          candidate screening &                 these evaluations more informative for charging design, the
+                                                                                                           selection
+                                                  "high current at low SOC is safe;
+                                                   taper toward full charge. spread
+                                                       candidates across trade-
+                                                                                                                                           LLM is given the battery context, MCC protocol structure,
+                 Operating
+                  practice
+                                                       offs:fast/cool/long-life"
+                                                                                                                                           decision-variable bounds, objectives, and domain knowledge
+                                                                                                        feasible Pareto set of
+                                                                                                                                           about charging (Fig. 3). It returns numerical candidate protocols
+                                             LLMBO-MO Loop                                                                                 and a preference ranking.
+                     Battery Simulation                                               Scalarized GP
+                                                                                                                                              The candidate pool is screened before simulation. Entries
+         Thermal                                                                                                                           with non-numerical or non-finite values, duplicates, and invalid
+              Time                                                                                                                         protocol representations are removed; out-of-bound values are
+        Degradation                                                                                                                        repaired. The remaining candidates are selected using their
+                                                                                                                                           ranking and diversity in the decision space. Random valid
+                        EI Acquisition                                        LLM Regional Guidance                                        protocols supplement this selection to cover other parts of
+                                                              "high early current saves time;
+                                                                                                           LLM preference density
+                                                                                                                                           the search space. The resulting n0 protocols are simulated to
+                                                                    keep       moderate
+                                                               to limit plating risk. Propose
+                                                                                                                                           initialize the data set and the Pareto set.
+                                                                                                "
+
+
+
+                                                                                                                                           D. Regional Guidance
+                                                                                                                                              The warm start introduces LLM suggestions before sequen-
+                                                                                                                                           tial optimization begins. During the search, the relevant trade-
+Fig. 2. Structure of the proposed LLMBO-MO framework                                                                                       off changes with the scalarization weights. At an early iteration
+                                                                                                                                           t, the LLM therefore receives the current weights w(t) and the
+B. Decomposition-Based Multiobjective BO                                                                                                   observed optimization state, and returns a preferred region Rt
+   The numerical optimizer follows the decomposition-based                                                                                 for that subproblem (Fig. 4). Restricting the search to Rt would
+approach of EIMO [13]. A set W of nonnegative weight vectors                                                                               exclude all candidates outside the proposed region. Instead, the
+represents trade-offs among the three objectives. At iteration                                                                             regional guidance uses GP posterior cross-covariance to adjust
+                                                   (t) (t) (t)                                                                             their acquisition values. This extends LGBO’s region-lifted
+t, the optimizer selects w(t) = [w1 , w2 , w3 ] from W , with
+        (t)                                                                                                                                preference mechanism [18] to the current scalarized objective.
+∑3i=1 wi = 1.                                                                                                                                 A valid region is represented by M Sobol anchors Gt =
+   Charging time and aging are first transformed to reduce                                                                                 {g1,t , . . . , gM,t } with equal weights vt = (1/M)1, where M is the
+differences in scale                                                                                                                       number of anchors and 1 is the M-dimensional all-ones vector.
+                     tc (θ )                                       Qs (θ )                                                                 Let Σ ˜︁GG,t and Σ     ˜︁θ G,t denote the posterior covariance matrix
+    y1 (θ ) = log            , y2 (θ ) = Tp (θ ), y3 (θ ) = log            (12)
+                       tref                                          Qref                                                                  of the scalarized GP at the anchors and the posterior cross-
+where tref and Qref are fixed positive reference values. A positive                                                                        covariance between a candidate θ and the anchors, respectively.
+floor is applied before taking logarithms. Let z∗i,t be the best                                                                           The average of the GP function values at these anchors has
+observed value of transformed objective i and si,t its scaling                                                                             posterior variance
+factor. The normalized distance is                                                                                                                                        VG,t = vt⊤ Σ
+                                                                                                                                                                                     ˜︁GG,t vt .            (17)
+                               |yi (θ ) − z∗i,t |
+               f¯i,t (θ ) =                       ,     i = 1, 2, 3.       (13)                                                            The covariance between the candidate value and this regional
+                                     si,t                                                                                                               ˜︁θ G,t vt . It determines the candidate’s adjustment
+                                                                                                                                           average is Σ
+The augmented Tchebycheff scalarization combines these                                                                                                                                   (︃          )︃
+distances                                                                                                                                                     Σ˜︁θ G,t vt                     t −1
+                                                                                                                                                rt (θ ) = λt √︁           , λt ∝ cˆ︁t max 1 −      ,0 .    (18)
+                   {︂            }︂      3                                                                                                                          VG,t                        TL
+                      (t)                   (t)
+      gt (θ ) = max wi f¯i,t (θ ) + ρaug ∑ wi f¯i,t (θ ) (14)                                                                              Here, cˆ︁t is the guidance score returned by the LLM, and TL is
+                             i=1,2,3                                                  i=1
+                                                                                                                                           the guidance horizon. The coefficient λt combines this score
+where ρaug > 0 is a small augmentation coefficient. Changing                                                                               with a fixed scale and a linearly decaying time factor. Positive
+w(t) directs successive iterations toward different parts of the                                                                           posterior cross-covariance produces a favorable adjustment for
+Pareto front.                                                                                                                              the minimization problem; negative cross-covariance produces
+  A GP with an automatic relevance determination (ARD)                                                                                     the opposite adjustment.
+Matérn-5/2 kernel is fitted to the scalarized observations. Its                                                                               The adjustment rt (θ ) is rescaled using its magnitude at the
+posterior mean and standard deviation are denoted by µt (θ )                                                                               regional anchors and clipped to obtain a bounded value ∆t (θ ).
+and σt (θ ). For minimization, EI is                                                                                                       If sg,t is the scale of the scalar GP target, EI is computed using
+                                gtbest − µt (θ )                                                                                                  acq
+                                                                                                                                                µt (θ ) = µt (θ ) − sg,t ∆t (θ ),
+                                                                                                                                                                                     acq
+                                                                                                                                                                                    σt (θ ) = σt (θ ).     (19)
+                              xt =                                                                                                  (15)
+                                     σt (θ )
+                               (︁ best           )︁                                                                                        Thus, a positive adjustment lowers the mean used by EI while
+                     EIt (θ ) = gt − µt (θ ) Φ(xt ) + σt (θ )φ (xt )                                                                (16)
+                                                                                                                                           leaving the fitted GP and its posterior variance unchanged.
+where gtbest is the best observed scalarized value, and Φ and                                                                              Standard EI is used when no valid region is available and after
+φ are the standard normal cumulative distribution and density                                                                              the guidance window. The overall procedure is summarized in
+functions.                                                                                                                                 Algorithm 1.
+                                                                                                                                                                 5
+
+
+
+You are an expert in lithium-ion battery fast-charging optimization. Cell:        You are guiding a battery charging Bayesian optimization loop.
+LG INR21700-M50 (5 Ah, NMC811/graphite); the charging window is                   Iteration t of T ; weight vector w(t) = (w1 , w2 , w3 ); current best scalarized
+0% to 80% SOC.                                                                    value gtbest . Decision variables and bounds as in Fig. 3; hard constraint
+Decision variables and bounds: I1 ∈ [2.0, 6.0] A, I2 ∈ [2.0, 5.0] A, I3 ∈         ∆s1 + ∆s2 < 0.70.
+[2.0, 3.0] A, ∆s1 ∈ [0.10, 0.40], ∆s2 ∈ [0.10, 0.30].                             Return exactly one JSON object with one of two structures:
+Constraints: keep ∆s1 + ∆s2 ≤ 0.65 whenever possible (practical hard limit           "point": {I1, I2, I3, dSOC1, dSOC2, confidence}
+0.70). A decreasing current profile I1 ≥ I2 ≥ I3 is recommended, since high          "region": {lb: {...}, ub: {...}, confidence}
+currents at low SOC carry a lower risk of lithium plating than the same           Guidelines: use a point when confident about a specific location; use a
+currents near full charge.                                                        region when the promising area is uncertain (region width 5–20% of the
+Objectives: minimize charging time, peak temperature rise, and capacity           range per dimension). The confidence lies in [0, 1] and reflects your certainty.
+fade.                                                                             All values must respect the parameter bounds and the ∆s constraint. Output
+Generate 15 diverse protocols that cover multiple trade-off directions instead    JSON only.
+of clustering around one style. Respond with only a JSON array.
+                                                                                  Fig. 4. Prompt for iteration-level regional guidance.
+Fig. 3. Prompt for the LLM-informed warm start.
+
+
+Algorithm 1 LLMBO-MO                                                                                             TABLE II
+Require: Battery simulator, LLM, total budget N, initial budget n0 , weight                           M AIN E XPERIMENTAL S ETTINGS
+    set W , guidance horizon TL
+Ensure: Feasible Pareto set P                                                     Setting                                              Value
+ 1: Generate and screen LLM-informed warm-start protocols
+ 2: Combine selected LLM proposals with random valid protocols                    Total simulator budget                               56
+ 3: Evaluate the n0 initial protocols; initialize D and P                         Initial evaluations                                  6
+ 4: for t = 1 to N − n0 do                                                        Number of matched trials                             5
+ 5:     Select w(t) ∈ W and compute gt using Eq. (14)                             Initial LLM candidate pool                           15
+ 6:     Fit the scalar GP and construct EI                                        Region-guided horizon TL                             12
+ 7:     if t ≤ TL then                                                            Number of regional anchors M                         32
+ 8:          Query the LLM for a preferred region under w(t)                      Tchebycheff coefficient ρaug                         0.05
+ 9:          if a valid region is returned then
+10:              Apply regional guidance using Eqs. (17)–(19)
+11:          end if                                                                                              TABLE III
+12:     end if                                                                                            F INAL HV ON C HEN 2020
+13:     Maximize EI and select the next protocol θt+1
+14:     Evaluate θt+1 and append the result to D                                                  Method           Final HV (mean ± SD) ↑
+15:     Update the feasible Pareto set P
+16: end for                                                                                       LLMBO-MO              0.3848 ± 0.0073
+17: return P                                                                                      ParEGO                0.3520 ± 0.0169
+                                                                                                  NSGA-II               0.3265 ± 0.0220
+                                                                                                  DISK                  0.3085 ± 0.0267
+                              TABLE I                                                             PIMD                  0.2941 ± 0.0195
+                   BATTERY AND S IMULATOR S ETTINGS
+
+  Parameter                                       Value                          and aging indicator Qs . The battery and algorithm settings are
+  Primary parameterization                        Chen2020, LG                   summarized in Tables I and II.
+                                                  INR21700-M50
+  Additional parameterization                     Ecker2015
+                                                                                    The main comparison allocates 56 battery-model evaluations
+  Chen2020 nominal capacity                       5.0 Ah                         to each method and uses five matched trials. For the BO
+  Chen2020 cell voltage range                     2.50–4.20 V                    methods, this budget consists of six initial evaluations and
+  Chen2020 cell format                            21700 cylindrical, 70 ×
+                                                  21 mm
+                                                                                 50 subsequent iterations. Hypervolume (HV) measures the
+  Initial/ambient temperature                     298.15 K                       quality of the feasible nondominated set; larger values are
+  Maximum cell temperature                        328.15 K                       better under the same objective definitions and reference point.
+                                                                                 All methods use the same HV calculation within each battery
+                                                                                 parameterization. Final HV is reported as mean ± sample
+       V. N UMERICAL VALIDATION AND D ISCUSSION                                  standard deviation.
+                                                                                    ParEGO is the primary BO baseline because it uses the
+   The experiments examine whether LLM guidance improves
+                                                                                 same decomposition–GP structure as the numerical optimizer
+charging optimization at a fixed simulation budget and which
+                                                                                 in LLMBO-MO [21]. DISK and PIMD provide comparisons
+part of the guidance accounts for the gain. Comparisons with
+                                                                                 with surrogate-assisted multiobjective evolutionary optimiza-
+other optimizers are followed by initialization and component
+                                                                                 tion [24], [25]; NSGA-II is included as a classical evolutionary
+studies. LLM backends are also compared, and representative
+                                                                                 baseline [26].
+charging protocols from the computed Pareto set are inspected.
+
+                                                                                 B. Performance Comparison
+A. Experimental Setup
+                                                                                    LLMBO-MO obtains the highest final mean HV among the
+  The main case uses the Chen2020 parameterization of the LG                     five methods on Chen2020 (Table III). After 56 evaluations, its
+INR21700-M50 cell [22]. A second case uses Ecker2015 [23] to                     mean HV is 0.3848 ± 0.0073, compared with 0.3520 ± 0.0169
+examine performance with a different battery parameterization.                   for ParEGO, a 9.3% increase. NSGA-II, DISK, and PIMD reach
+The objectives are charging time tc , peak temperature rise Tp ,                 mean HV values of 0.3265, 0.3085, and 0.2941, respectively.
+                                                                                                                                            6
+
+
+
+     0.40                                                                     0.6
+
+
+     0.35                                                                     0.5
+
+     0.30
+                                                                              0.4
+HV
+
+
+
+
+                                                                         HV
+     0.25
+                                                                              0.3
+     0.20                                                    ParEGO
+                                                             LLMBO-MO
+                                                             NSGA-II          0.2
+     0.15                                                    DISK                                                                ParEGO
+                                                             PIMD                                                                LLMBO-MO
+        0           10            20       30           40       50             0        10         20         30         40        50
+                          Cumulative simulator evaluations                                    Cumulative simulator evaluations
+
+Fig. 5. HV trajectories of the five methods on Chen2020.                 Fig. 6. HV trajectories of LLMBO-MO and ParEGO on Ecker2015.
+
+
+
+                               TABLE IV                                                              TABLE VI
+                      HV C OMPARISON ON E CKER 2015                                       A BLATION R ESULTS ON C HEN 2020
+
+                         Method         Evaluation 56                               Variant               Final HV (mean ± SD) ↑
+                         ParEGO        0.4760 ± 0.0039                              No LLM                    0.2907 ± 0.0451
+                         LLMBO-MO      0.5605 ± 0.0008                              + Warm start              0.3462 ± 0.0109
+                                                                                    + Regional guidance       0.2980 ± 0.0462
+                                                                                    LLMBO-MO                  0.3500 ± 0.0039
+                                TABLE V
+            E FFECT OF D IFFERENT I NITIALIZATION S TRATEGIES
+
+             Initialization            Final HV (mean ± SD) ↑
+             Random                       0.31062 ± 0.04303             paired initialization analysis yields a Holm-adjusted p-value of
+             Generic prompt               0.31371 ± 0.04675             0.005859. The difference between generic and battery-specific
+             Battery-specific prompt      0.36890 ± 0.00824             prompting indicates that the content of the domain information
+                                                                        matters for short-budget optimization, not merely the use of
+                                                                        an LLM to generate candidates.
+As shown in Fig. 5, the lead over ParEGO develops early in
+the search and persists to the end of the budget.                          2) Regional Guidance: Four variants are compared: the
+   The comparison with ParEGO is repeated on Ecker2015.                 numerical BO optimizer without LLM guidance, warm start
+LLMBO-MO reaches 0.5605 ± 0.0008 at evaluation 56,                      only, regional guidance only, and the complete method. This
+whereas ParEGO reaches 0.4760 ± 0.0039(Table IV). Its HV                study uses three matched trials per variant. Each run contains
+is also higher over most of the search in Fig. 6. The                   six initial evaluations followed by 50 BO iterations, giving a
+advantage over ParEGO is therefore observed with both battery           total budget of 56 battery-model evaluations. The results are
+parameterizations at the tested budget.                                 summarized in Table VI and Fig. 8.
+                                                                    As shown in Fig. 8 and Table VI, the LLM-informed
+C. Ablation Study                                                warm start provides the largest improvement among the two
+                                                                 components. Adding the warm start increases the mean final
+   The preceding comparisons assess the complete method.
+                                                                 HV from 0.2907 to 0.3462, whereas regional guidance alone
+Two studies on Chen2020 separate the effect of battery-specific
+                                                                 reaches 0.2980. When regional guidance is added on top of the
+prompting from the contributions of the warm start and regional
+                                                                 warm start, the mean final HV further increases from 0.3462
+guidance.
+                                                                 to 0.3500. The complete method also has the smallest sample
+   1) LLM-Informed Warm Start: Random initialization, a
+                                                                 standard deviation among the four variants.
+detailed generic prompt, and a battery-specific prompt are
+compared (Figs. 3 and 7). All three variants use the same           The results indicate that the two components contribute at
+numerical BO procedure after initialization. Each run has a different stages of the optimization. The warm start improves
+budget of 26 evaluations, and the results are computed over the starting design by directing the initial evaluations toward
+ten matched trials (Table V).                                    more promising charging protocols. The regional guidance then
+   The generic prompt gives a mean final HV close to that uses the current scalarization weights to adjust candidate selec-
+of random initialization: 0.31371 versus 0.31062. The battery- tion during the subsequent BO iterations. In this comparison,
+specific prompt reaches 0.36890, an increase of 0.05828 over the warm start provides most of the performance gain, while
+random initialization, and has a smaller standard deviation. The regional guidance further improves the final optimization result.
+                                                                                                                                                                 7
+
+
+
+You are an expert in lithium-ion battery fast-charging optimization. Task:                0.36
+design 15 diverse initial charging protocols for a multi-objective Bayesian
+optimization workflow.                                                                    0.34
+Decision variables and bounds: I1 ∈ [2.0, 6.0] A, I2 ∈ [2.0, 5.0] A, I3 ∈
+[2.0, 3.0] A, ∆s1 ∈ [0.10, 0.40], ∆s2 ∈ [0.10, 0.30]; hard constraint ∆s1 +
+∆s2 < 0.70.                                                                               0.32
+Objectives: minimize charging time, peak temperature rise, and capacity
+
+
+
+
+                                                                                     HV
+fade.                                                                                     0.30
+Guidance: multi-objective optimization requires exploring different trade-
+off directions (fast charging vs. thermal safety vs. aging minimization);                 0.28
+a good initial set should be well dispersed across the five-dimensional
+decision space; consider leveraging physical relationships between decision               0.26
+variables; points near the boundary of the feasible region can help maximize
+Pareto coverage, while interior points help model the response surface in
+the central region. Respond with only a JSON array.                                              No LLM         +WarmStart       +Region       LLMBO-MO
+
+Fig. 7. Generic prompt used in the initialization study of Table V. Unlike
+the battery-specific prompt in Fig. 3, it contains no battery-specific domain        Fig. 8. Final HV distributions of the four ablation variants on Chen2020.
+knowledge.
+
+
+
+                              TABLE VII                                             E. Analysis of the Computed Pareto Set
+              HV O BTAINED WITH D IFFERENT LLM BACKENDS
+                                                                                       HV evaluates the nondominated set as a whole. To examine
+            Backend                  Initial HV      HV at 15      Final HV         the charging choices represented by that set, we select protocols
+            DeepSeek-V4-Flash         0.341225       0.373845      0.385986
+                                                                                    A–C from the Chen2020 Pareto set. Their objective values are
+            DeepSeek-V4-Pro           0.345274       0.372526      0.387931         shown in Fig. 9, and their currents and SOC increments are
+            GLM-5.3-Flash             0.346248       0.372527      0.385324         listed in Table VIII.
+                                                                                       Protocol A applies higher currents early in charging and
+                                                                                    reaches the target SOC in 2880 s. It is the fastest of the three,
+                           TABLE VIII                                               but has the largest peak temperature rise and aging indicator.
+    R EPRESENTATIVE C HARGING P ROTOCOLS FROM THE PARETO S ET                       Protocol C uses a constant 2 A current and takes 7200 s,
+                                                                                    with the lowest values of both indicators. Protocol B offers an
+     Protocol Currents (I1 /I2 /I3 , A)     ∆s1 /∆s2 /∆s3   tc (s) Tp (K) Qs (%)
+                                                                                    intermediate choice: relative to C, it reduces charging time to
+        A        6.000/5.000/3.000        0.400/0.300/0.100 2880    7.567   1.261
+        B        2.782/2.000/3.000        0.211/0.100/0.489 5199    3.069   0.680   5199 s, while the aging indicator increases from 0.640 to 0.680
+        C        2.000/2.000/2.000        0.245/0.153/0.403 7200    1.528   0.640   and peak temperature rise from 1.528 to 3.069 K. The benefit
+                                                                                    of faster charging can thus be weighed against its thermal and
+                                                                                    degradation costs using the returned protocols.
+                                                                                       The voltage, temperature, current, and SOC trajectories
+D. Comparison Across LLM Backends                                                   are shown in Fig. 10. The current transitions distinguish the
+                                                                                    multistage protocols A and B from the constant-current protocol
+   To examine the effect of the LLM backend, three backends                         C, and the SOC curves show their different completion times.
+are compared in Table VII using the same Chen2020 prompt,                           The voltage trajectories remain below the prescribed limit.
+numerical BO settings, and evaluation budget. Each backend
+is evaluated in a single run consisting of six initial evaluations
+followed by 50 BO iterations, for a total of 56 battery-model
+evaluations.
+   The three backends produce different initial HV values,
+ranging from 0.341225 to 0.346248, indicating that the initial
+protocols generated by the LLM depend to some extent
+on the backend. As the BO search proceeds, however, the
+difference becomes smaller. At evaluation 15, the HV values
+are concentrated between 0.372526 and 0.373845. After the full
+evaluation budget, the final HV values are 0.385986, 0.387931,
+and 0.385324 for DeepSeek-V4-Flash, DeepSeek-V4-Pro, and
+GLM-5.3-Flash, respectively.
+   Although the three LLMs produce somewhat different
+initial designs, their optimization trajectories become closer
+after subsequent BO updates and lead to similar final HV
+values. This suggests that the LLM backend mainly affects the
+initial proposals, while the numerical BO procedure reduces
+these differences as additional battery-model evaluations are
+collected.
+                                                                                                                                                                                  8
+
+
+
+
+                                                                                                                  Protocol A    Protocol B                      Protocol C
+
+
+
+
+                                                                                                                                  Temperature / K
+                                                                            Voltage / V
+                                                                                            4.0                                                       304
+
+                                                                                            3.5                                                       302
+                                                                                                                                                      300
+                                                                                            3.0
+                                                                                                                                                      298
+                                                                                                      0    2000   4000   6000                            0   2000   4000   6000
+                                                                                                              Time / s                                          Time / s
+                                                                                                                  (a)                                               (b)
+
+
+
+
+                                                                                  Input Current / A
+                                                                                                                                                      0.8
+
+
+
+
+                                                                                                                                    State of Charge
+                                                                                                      6
+                                                                                                                                                      0.6
+                                                                                                      4                                               0.4
+                                                                                                                                                      0.2
+                                                                                                      2
+                                                                                                                                                      0.0
+                                                                                                       0   2000   4000   6000                            0   2000   4000   6000
+                                                                                                              Time / s                                          Time / s
+                                                                                                                  (c)                                               (d)
+Fig. 9. Representative charging protocols from the computed Pareto set on
+Chen2020.                                                                   Fig. 10. Charging trajectories of protocols A–C on Chen2020.
+
+
+
+                         VI. C ONCLUSION                           will assess regional guidance over wider operating conditions,
+   This paper proposed LLMBO-MO, an LLM-informed mul- validate the resulting protocols on physical cells with measured
+tiobjective Bayesian optimization framework for multistage degradation, and extend the framework to other cell chemistries
+battery fast-charging protocol design under limited simulation and pack-level charging.
+budgets. The design task is formulated as a constrained multi-
+objective problem balancing charging time, peak temperature
+rise, and charging-induced degradation, and is solved by                                          R EFERENCES
+decomposition-based BO, in which successive Tchebycheff
+                                                                    [1] A. Tomaszewska et al., “Lithium-ion battery fast charging: A re-
+scalarizations are modeled by GP surrogates and sampled                 view,” eTransportation, vol. 1, Art. no. 100011, 2019, doi:10.1016/
+by maximizing EI. First, the LLM-informed warm start uses               j.etran.2019.100011.
+charging-variable definitions, operating constraints, and battery- [2] H. Tu, H. Feng, S. Srdic, and S. Lukic, “Extreme fast charging of electric
+domain knowledge to propose initial protocols; candidate                vehicles: A technology overview,” IEEE Trans. Transp. Electrific., vol. 5,
+                                                                        no. 4, pp. 861–878, 2019, doi:10.1109/TTE.2019.2958709.
+screening and diversity-aware selection are then combined           [3] K. Liu, C. Zou, K. Li, and T. Wik, “Charging pattern optimiza-
+with random valid protocols to construct the initial simulation         tion for lithium-ion batteries with an electrothermal-aging model,”
+design. Second, during the early search, the LLM provides a             IEEE Trans. Ind. Informat., vol. 14, no. 12, pp. 5463–5474, 2018,
+                                                                        doi:10.1109/TII.2018.2866493.
+preferred region conditioned on the active scalarization weight. [4] C. Fan, Y. Wang, Q. Peng, and K. Liu, “Towards plating-free fast charging
+Third, the regional guidance uses GP posterior cross-covariance         for lithium-ion batteries: A review of optimization aspects,” IEEE Trans.
+to translate the regional preference into a bounded adjustment          Transp. Electrific., early access, 2026, doi:10.1109/TTE.2026.3736242.
+                                                                    [5] X. Hu, Y. Zheng, X. Lin, and Y. Xie, “Optimal multistage charging
+of the mean used to compute EI, and standard EI is used when            of NCA/graphite lithium-ion batteries based on electrothermal-aging
+no valid regional preference is available.                              dynamics,” IEEE Trans. Transp. Electrific., vol. 6, no. 2, pp. 427–438,
+   Under a budget of 56 battery-model evaluations, LLMBO-               2020, doi:10.1109/TTE.2020.2977092.
+MO achieved the highest final mean HV among all compared            [6] B.-C. Wang, Y.-Y. Mao, Y. Wang, and H.-X. Li, “Gaussian process-
+                                                                        accelerated multiobjective evolutionary design of charging process
+methods on both battery parameterizations. On Chen2020,                 considering multiple user preferences,” IEEE Trans. Ind. Informat.,
+the mean final HV was 0.3848, compared with 0.3520 for                  vol. 20, no. 8, pp. 10123–10133, 2024, doi:10.1109/TII.2024.3388602.
+ParEGO, corresponding to a 9.3% increase; on Ecker2015, the         [7] P. M. Attia et al., “Closed-loop optimization of fast-charging protocols
+                                                                        for batteries with machine learning,” Nature, vol. 578, pp. 397–402,
+corresponding values were 0.5605 and 0.4760. The initialization         2020, doi:10.1038/s41586-020-1994-5.
+study showed that battery-specific prompting improved short- [8] B. Jiang et al., “Fast charging design for lithium-ion batteries via
+budget optimization more than generic prompting, and the                Bayesian optimization,” Appl. Energy, vol. 307, Art. no. 118244, 2022,
+                                                                        doi:10.1016/j.apenergy.2021.118244.
+component study showed that the warm start accounted for most       [9] X. Wang and B. Jiang, “Multi-objective optimization for fast charg-
+of the improvement, while regional guidance further increased           ing design of lithium-ion batteries using constrained Bayesian op-
+the mean final HV from 0.3462 to 0.3500. Comparisons across             timization,” J. Power Sources, vol. 584, Art. no. 233602, 2023,
+                                                                        doi:10.1016/j.jpowsour.2023.233602.
+LLM backends further indicated that the final performance is
+                                                                   [10] B. Shahriari et al., “Taking the human out of the loop: A review of
+robust to the choice of backend.                                        Bayesian optimization,” Proc. IEEE, vol. 104, no. 1, pp. 148–175, 2016,
+   It should be noted that the optimized protocols have been            doi:10.1109/JPROC.2015.2494218.
+validated only in simulation based on the electrochemical– [11] G. Dong, Y. Feng, Y. Lou, M. Zhang, and J. Wei, “Data-driven fast
+                                                                        charging optimization for lithium-ion battery using Bayesian optimization
+thermal–aging model, and discrepancies between model pre-               with fast convergence,” IEEE Trans. Transp. Electrific., vol. 10, no. 2,
+dictions and real battery behavior may still exist. Future work         pp. 4173–4183, 2024, doi:10.1109/TTE.2023.3311813.
+                                                                                 9
+
+
+
+[12] R. Zhu, W. Peng, F. Yang, and M. Xie, “Fast-charging protocols
+     design of lithium-ion battery: A multiple-objective Bayesian optimization
+     perspective,” IEEE Trans. Transp. Electrific., vol. 11, no. 3, pp. 8327–
+     8338, 2025, doi:10.1109/TTE.2025.3539853.
+[13] B.-C. Wang, Y.-Y. Mao, J.-M. Jia, J. Liu, and Y. Wang, “Experience-
+     informed multiobjective optimization for fast charging design of lithium-
+     ion batteries,” IEEE Trans. Autom. Sci. Eng., vol. 23, pp. 16843–16856,
+     2026, doi:10.1109/TASE.2026.3716925.
+[14] W. Jeong, S. Heo, and J. H. Lee, “Health-conscious charging of lithium-
+     ion batteries using Bayesian optimization guided by a semi-empirical
+     aging model,” J. Energy Storage, vol. 141, Art. no. 119348, 2026,
+     doi:10.1016/j.est.2025.119348.
+[15] T. Liu, N. Astorga, N. Seedat, and M. van der Schaar, “Large language
+     models to enhance Bayesian optimization,” in Proc. Int. Conf. Learn.
+     Represent., 2024, [Online].
+[16] C. Bian, X. Han, Z. Duan, C. Deng, S. Yang, and J. Feng, “Hybrid
+     prompt-driven large language model for robust state-of-charge estimation
+     of multitype Li-ion batteries,” IEEE Trans. Transp. Electrific., vol. 11,
+     no. 1, pp. 426–437, 2025, doi:10.1109/TTE.2024.3391938.
+[17] X. Kuai, J.-H. Ren, B.-C. Wang, and Y. Feng, “Large language model-
+     enhanced Bayesian optimization for parameter identification of lithium-
+     ion batteries,” J. Energy Storage, vol. 135, Art. no. 118198, 2025,
+     doi:10.1016/j.est.2025.118198.
+[18] X. Yuan, Z. Chen, J. Zhang, H. Xiong, N. Ye, Y. Li, and Q. Gu, “Un-
+     leashing LLMs in Bayesian optimization: Preference-guided framework
+     for scientific discovery,” in Proc. Int. Conf. Learn. Represent., 2026,
+     [Online].
+[19] S. J. Moura, F. B. Argomedo, R. Klein, A. Mirtabatabaei, and M. Krstic,
+     “Battery state estimation for a single particle model with electrolyte
+     dynamics,” IEEE Trans. Control Syst. Technol., vol. 25, no. 2, pp. 453–
+     468, 2017.
+[20] G. Suri and S. Onori, “A control-oriented cycle-life model for hybrid
+     electric vehicle lithium-ion batteries,” Energy, vol. 96, pp. 644–653,
+     2016.
+[21] J. Knowles, “ParEGO: A hybrid algorithm with on-line landscape
+     approximation for expensive multiobjective optimization problems,” IEEE
+     Trans. Evol. Comput., vol. 10, no. 1, pp. 50–66, 2006.
+[22] C.-H. Chen, F. Brosa Planella, K. O’Regan, D. Gastol, W. D. Widanage,
+     and E. Kendrick, “Development of experimental techniques for param-
+     eterization of multi-scale lithium-ion battery models,” J. Electrochem.
+     Soc., vol. 167, no. 8, Art. no. 080534, 2020.
+[23] M. Ecker, T. K. D. Tran, P. Dechent, S. Käbitz, A. Warnecke, and
+     D. U. Sauer, “Parameterization of a physico-chemical model of a
+     lithium-ion battery: I. Determination of parameters,” J. Electrochem.
+     Soc., vol. 162, no. 9, pp. A1836–A1848, 2015.
+[24] Z. Zhang, Y. Wang, G. Sun, and T. Pang, “A distribution information-
+     based Kriging-assisted evolutionary algorithm for expensive many-
+     objective optimization problems,” IEEE Trans. Evol. Comput., vol. 29,
+     no. 6, pp. 2656–2670, 2025.
+[25] Y. Li, W. Li, S. Li, and Y. Zhao, “An infill sampling criterion based on
+     improvement of probability and mapping crowding distance for expensive
+     multi/many-objective optimization,” Eng. Appl. Artif. Intell., vol. 133,
+     Art. no. 108616, 2024.
+[26] K. Deb, A. Pratap, S. Agarwal, and T. Meyarivan, “A fast and elitist
+     multiobjective genetic algorithm: NSGA-II,” IEEE Trans. Evol. Comput.,
+     vol. 6, no. 2, pp. 182–197, 2002, doi:10.1109/4235.996017.
+

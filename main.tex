@@ -27,6 +27,9 @@
 \renewcommand{\figureautorefname}{Fig.}
 \renewcommand{\tableautorefname}{Table}
 
+% Keep one figure at each column top; compact tables may follow it.
+\setcounter{topnumber}{1}
+\setcounter{dbltopnumber}{1}
 \graphicspath{{figures/}}
 \hyphenation{op-tical net-works semi-conduc-tor}
 
@@ -48,16 +51,17 @@ Large Language Model-Informed Multiobjective Bayesian Optimization}
 \author{%
 Xuanyi~Li\textsuperscript{a}\,\orcidlink{0009-0009-9775-1612},
 Lincong~Xie\textsuperscript{a}, Jinmao~Jia\textsuperscript{a},
-Bing-Chuan~Wang\textsuperscript{a}\,\orcidlink{0000-0002-0234-2843},~\IEEEmembership{Member,~IEEE,}
-Heng~Li\textsuperscript{a}\,\orcidlink{0000-0001-5592-7004},~\IEEEmembership{Member,~IEEE,}
-and~Yun~Feng\textsuperscript{b}\,\orcidlink{0000-0002-6512-3293},~\IEEEmembership{Senior~Member,~IEEE}%
-% Institution markers: a = Central South University; b = Hunan University.
+Bing-Chuan~Wang\textsuperscript{a}\,\orcidlink{0000-0002-0234-2843},~\IEEEmembership{Senior~Member,~IEEE,}
+Heng~Li\textsuperscript{b}\,\orcidlink{0000-0001-5592-7004},~\IEEEmembership{Member,~IEEE,}
+and~Yun~Feng\textsuperscript{c}\,\orcidlink{0000-0002-6512-3293},~\IEEEmembership{Senior~Member,~IEEE}%
+% Affiliation markers: a = CSU Automation; b = CSU Electronic Information;
+% c = Hunan University Artificial Intelligence and Robotics.
 \thanks{\textsuperscript{a}Xuanyi Li, Lincong Xie, Jinmao Jia, and Bing-Chuan Wang
 are with the School of Automation,
 Central South University, Changsha 410083, China (e-mail: bingcwang@csu.edu.cn).}
-\thanks{\textsuperscript{a}Heng Li is with the School of Electronic Information,
+\thanks{\textsuperscript{b}Heng Li is with the School of Electronic Information,
 Central South University, Changsha 410075, China (e-mail: liheng@csu.edu.cn).}
-\thanks{\textsuperscript{b}Yun Feng is with the School of Artificial Intelligence and Robotics,
+\thanks{\textsuperscript{c}Yun Feng is with the School of Artificial Intelligence and Robotics,
 Hunan University, Changsha 410082, China (e-mail: fyrobot@hnu.edu.cn).}
 }
 
@@ -70,6 +74,9 @@ Hunan University, Changsha 410082, China (e-mail: fyrobot@hnu.edu.cn).}
 
 \input{sections/introduction}
 \input{sections/problem}
+% Queue method illustrations early enough for the following page tops.
+\input{figures/fig_llambo_mo_framework}
+\input{figures/fig_llm_prompts}
 \input{sections/model}
 \input{sections/method}
 \input{sections/experiments}

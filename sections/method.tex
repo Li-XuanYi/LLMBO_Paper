@@ -19,8 +19,6 @@ provides its objective values and feasibility, which are used to update the
 data set $D$ and the feasible Pareto set $P$. The loop stops when the
 simulation budget is exhausted.
 
-\input{figures/fig_llambo_mo_framework}
-
 \subsection{Decomposition-Based Multiobjective BO}
 \label{sec:parego_backbone}
 
@@ -80,8 +78,6 @@ more informative for charging design, the LLM is given the battery context,
 MCC protocol structure, decision-variable bounds, objectives, and domain
 knowledge about charging (Fig.~\ref{fig:prompt_warmstart}). It returns
 numerical candidate protocols and a preference ranking.
-
-\input{figures/fig_llm_prompts}
 
 The candidate pool is screened before simulation. Entries with non-numerical
 or non-finite values, duplicates, and invalid protocol representations are
@@ -153,7 +149,7 @@ fitted GP and its posterior variance unchanged. Standard EI is used when no
 valid region is available and after the guidance window.
 The overall procedure is summarized in Algorithm~\ref{alg:llmbo}.
 
-\begin{algorithm}[!t]
+\begin{algorithm}[t]
 \caption{LLMBO-MO}
 \label{alg:llmbo}
 \footnotesize
