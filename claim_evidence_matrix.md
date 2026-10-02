@@ -1,24 +1,28 @@
-# Claim–Evidence Matrix
+# Claim--Evidence Matrix
 
-| Manuscript claim | Evidence | Valid scope | Enforced wording |
+| Manuscript claim | Evidence | Valid scope | Required wording |
 |---|---|---|---|
-| LLM output is advisory, not an objective observation | Only simulator evaluations enter the GP training database | All reported configurations | “Only simulator outputs train the surrogate.” |
-| Rejected guidance recovers ordinary EI | Parser, geometry, anchor, and coupling fallbacks have zero mean adjustment | Algorithmic property | Exact recovery claim, not a performance claim |
-| The main covariance coupling is bounded | Eq. (5) clips the standardized mean reduction by \(\delta_{\max}\) | Correlation-clipped operator | \(0\leq\delta_t(\theta)\leq\delta_{\max}\) |
-| Chen2020 mean final HV is higher | ParEGO \(0.3853\pm0.0094\); LLMBO-MO \(0.3885\pm0.0088\) | Seeds 8409–8413; 56 calls; sample SD | +0.84%, 3/5 paired wins; “modest configuration-level advantage” |
-| Ecker2015 mean final HV is higher | ParEGO \(0.5540\pm0.0121\); LLMBO-MO \(0.5660\pm0.0104\) | Seeds 8409–8413; 56 calls; common ideal/reference box; sample SD | +2.18%, 4/5 paired wins |
-| HV comparisons are fair within each parameterization | Identical transformed objectives and benchmark-specific box for both methods | Within Chen2020 or within Ecker2015 | Absolute HV is not compared across parameterizations |
-| Warm starting contributes positively in the component study | \(0.3902\pm0.0078\) versus \(0.3836\pm0.0101\); 4/5 wins | Chen2020 component batch | Larger and more consistent individual change |
-| Regional guidance can help | \(0.3862\pm0.0112\); +0.0026; 4/5 wins | Chen2020 component batch | Positive but more dispersed component change |
-| The complete component configuration has the highest mean | \(0.3932\pm0.0117\); 3/5 wins | Matched-budget five-seed follow-up | Seed-dependent complementarity, not uniform synergy |
-| \(D_{\mathrm{chg}}\) measures a relative degradation proxy | Fixed trajectory-average algebra; no calibrated cycling fit | Common simulator only | Arbitrary proxy units, never percentage capacity loss |
-| The platform is an intended validation interface | No platform measurement enters a reported result | Deployment context only | Simulation-only caption and limitations |
+| LLM output is advisory rather than an objective observation | Only simulator evaluations enter the GP training database and Pareto archive | All reported configurations | The LLM proposes search locations; the simulator supplies evidence. |
+| Invalid Region-Lift leaves acquisition ranking unchanged | The corrected operator returns no coupling when parsing, geometry, confidence, or variance checks fail | Proposed Region-Lift mechanism | State that the active acquisition then reduces exactly to standard EI; do not claim a performance guarantee. |
+| The proposed online mechanism is posterior-covariance Region-Lift | Current implementation uses uniform feasible anchors, standardized posterior cross-covariance, signed shift budgets, and unchanged predictive standard deviation | Method and Algorithm 1 | Describe covariance as a preference-propagation operator, not as a modification of the GP covariance matrix. |
+| Main archived Chen2020 runs do not establish the corrected mean shift | Archived configuration has region-lift override disabled and no accepted mean shift | Main Chen2020 comparison only | Treat the archive as end-to-end historical evidence; do not attribute its gain causally to posterior-covariance Region-Lift. |
+| Chen2020 mean final HV is higher in the retained archive | LLMBO-MO \(0.3848\pm0.0073\); ParEGO \(0.3778\pm0.0169\) | Five archived seeds, 56 calls, mixed compatible batches | Report a descriptive \(1.85\%\) observed mean difference; do not claim significance. |
+| LLMBO-MO exceeds the retained Chen evolutionary/transfer baselines | NSGA-II \(0.3265\pm0.0220\), DISK \(0.3085\pm0.0267\), PIMD \(0.2941\pm0.0195\) | Five archived runs per method, 56-call cap | Report relative differences of \(17.9\%\)--\(30.8\%\). |
+| The Chen five-way figure is representative rather than a uniform multi-seed curve | LLMBO-MO and ParEGO centers are seed 8409; their bands are auxiliary proxy envelopes | Figure only | Point readers to the five-seed table for formal final statistics. |
+| Ecker2015 shows faster intermediate progress and a retained final advantage | Evaluation 30: \(0.5559\) vs. \(0.4333\); evaluation 56: \(0.5605\pm0.0008\) vs. \(0.4760\pm0.0039\) | Five archived seeds, common within-parameterization HV convention | Associate \(28.3\%\) only with evaluation 30 and \(17.8\%\) only with evaluation 56; do not call this an isolated transfer effect. |
+| Objective scaling matters for heterogeneous charging objectives | Final min--max \(0.4146\pm0.0067\), Z-score \(0.4122\pm0.0078\), and none \(0.3826\pm0.0358\) | Five archived Chen2020 seeds, 56 evaluations | Note faster mid-search Z-score progress and slightly higher final min--max mean; do not claim significant separation between the two. |
+| LLMBO-MO maintains a larger per-iteration Pareto archive in the retained diagnostic | Final mean archive size 49.4 vs. 45.8 | Five runs, iteration axis 0--50 | Define entries as feasible and nondominated; do not reinterpret the plot as equal-call sample efficiency or as HV. |
+| Pareto labels A--E are database-backed protocols | Five selected records from a 158-point global nondominated pool; each row retains seed and observation provenance | Five Chen2020 LLMBO-MO archives | Stars and table rows must come from the same records; all SOC spans sum to 0.8. |
+| Battery-specific prompt content improves short-budget initialization | Experimental prompt \(0.36890\pm0.00824\) vs. random \(0.31062\pm0.04303\); Holm \(p=0.005859\) | Ten-seed Chen2020 study, 26 evaluations | Attribute the result to prompt content and warm start, not regional guidance. |
+| Warm start is the more stable component in the retained ablation | Warm start \(0.3902\pm0.0087\) vs. plain BO \(0.3836\pm0.0113\) | Five archived Chen2020 runs | Describe a positive mean difference; retained confidence intervals do not support a broad significance claim. |
+| Corrected Region-Lift has not yet been independently established in the manuscript-facing results | Historical component results predate consistent activation, and the available corrected run has sparse effective-lift activation | Component archives only | Require matched coupling-on/off runs with identical initialization, LLM responses, seeds, and acquisition budget before making a causal gain claim. |
+| \(D_{\mathrm{chg}}\) is a relative degradation proxy | Fixed trajectory-average algebra with no calibrated cycling fit | Simulation only | Never interpret it as measured capacity loss or lifetime extension. |
 
-## Claims that still require new evidence
+## Claims requiring new evidence
 
-- Causal attribution of the principal fixed-budget gains to one advisory
-  touchpoint.
-- Statistical significance beyond five seeds.
-- Superiority to matched qEHVI/qNEHVI or other direct-hypervolume BO methods.
+- A synchronized five-seed comparison generated by one code snapshot.
+- Statistical superiority over ParEGO on Chen2020.
+- Matched qEHVI/qNEHVI comparisons.
+- An independently isolated regional-coupling effect.
 - Calibrated lifetime or capacity-fade improvement.
-- Hardware robustness, protection performance, or cell-to-cell generalization.
+- Hardware robustness or cell-to-cell generalization.

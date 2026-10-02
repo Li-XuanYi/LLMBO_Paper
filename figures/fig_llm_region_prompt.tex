@@ -1,0 +1,21 @@
+% Right-hand panel of the paired page-top prompt figures.
+\centering
+\promptbox{\footnotesize
+You are guiding a battery charging Bayesian optimization loop.\\
+Iteration $t$ of $T$; weight vector
+$\mathbf w^{(t)}=(w_1,w_2,w_3)$; current best scalarized value
+$g_t^{\mathrm{best}}$. Decision variables and bounds as in
+Fig.~\ref{fig:prompt_warmstart}; hard constraint
+$\Delta s_1+\Delta s_2<0.70$.\\
+Return exactly one JSON object with one of two structures:\\
+\hspace*{1em}\texttt{"point"}: \texttt{\{I1, I2, I3, dSOC1, dSOC2,
+confidence\}}\\
+\hspace*{1em}\texttt{"region"}: \texttt{\{lb: \{...\}, ub: \{...\},
+confidence\}}\\
+Guidelines: \textcolor{red}{use a point when confident about a specific
+location; use a region when the promising area is uncertain} (region width
+$5$--$20\%$ of the range per dimension). The confidence lies in $[0,1]$ and
+\textcolor{red}{reflects your certainty}. All values must respect the
+parameter bounds and the $\Delta s$ constraint. Output JSON only.}
+\caption{Prompt for iteration-level regional guidance.}
+\label{fig:prompt_region}

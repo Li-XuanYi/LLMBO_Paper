@@ -1,0 +1,58 @@
+{
+  "figure": "Chen2020 short-budget component ablation",
+  "source": "D:/Users/aa133/Desktop/BO_Multi_12_20/New_LLMBO/Ablation_Exp/experiment_records/ablation_4way_3seeds_10iter_deepseek_v3_codex_2026_05_17",
+  "display_labels": [
+    "No LLM",
+    "+WarmStart",
+    "+Region",
+    "LLMBO-MO"
+  ],
+  "groups": [
+    {
+      "key": "baseline",
+      "display_label": "No LLM",
+      "values": [
+        0.2521761643327531,
+        0.3403689248364983,
+        0.27968594836716043
+      ]
+    },
+    {
+      "key": "baseline_warmstart",
+      "display_label": "+WarmStart",
+      "values": [
+        0.34461193723483496,
+        0.336257581594945,
+        0.3578656785294392
+      ]
+    },
+    {
+      "key": "baseline_llm_region",
+      "display_label": "+Region",
+      "values": [
+        0.24722228608185612,
+        0.33767947667780324,
+        0.30896113685332793
+      ]
+    },
+    {
+      "key": "llmbo_mo",
+      "display_label": "LLMBO-MO",
+      "values": [
+        0.34560756429467065,
+        0.35184960310002344,
+        0.3526592341557317
+      ]
+    }
+  ],
+  "outputs": {
+    "png": {
+      "path": "D:/Users/aa133/Desktop/Paper/figures/ablation_hv_box.png",
+      "sha256": "0ccc5c961021741848fead687cb8989bdd9ddfcf0c74bf2319a308c2fc64de38"
+    },
+    "pdf": {
+      "path": "D:/Users/aa133/Desktop/Paper/figures/ablation_hv_box.pdf",
+      "sha256": "1b53a6c35def1e1bd6e530d5575904502214ee23c37439904a19d49760070558"
+    }
+  }
+}

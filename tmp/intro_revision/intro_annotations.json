@@ -1,0 +1,97 @@
+[
+  {
+    "page": 1,
+    "comment": "这句话不对 ，这不是原因，because it can identify highquality solutions with a limited number of expensive evaluations. 你这是结果。",
+    "text": "potential for battery charging design because it can identify high-\nquality solutions with a limited number of expensive evaluations.\nHowever, when observations are sparse, BO can suffer from unin-"
+  },
+  {
+    "page": 1,
+    "comment": "这里一句话有两个挑战，不对，这里拆成2个，",
+    "text": "However, when observations are sparse, BO can suffer from unin-\nformed initialization and insufficient task-specific guidance during\nearly-stage search, leaving valuable battery-domain knowledge\nunderutilized. Recent advances in large language models (LLMs),\nparticularly their contextual reasoning, few-shot learning, and"
+  },
+  {
+    "page": 1,
+    "comment": "这三个的特征和你的文章有什么关系，这里只列举最相关的几个",
+    "text": "particularly their contextual reasoning, few-shot learning, and\ndomain-knowledge capabilities, provide a promising means of\ncomplementing BO in such low-data regimes. Motivated by these"
+  },
+  {
+    "page": 1,
+    "comment": "这句话有什么用。 这后面半句话不要",
+    "text": "ranking without inserting pseudo-observations or altering GP\nuncertainty. Extensive experiments demonstrate that LLMBO-MO\nconsistently outperforms conventional BO methods and achieves"
+  },
+  {
+    "page": 1,
+    "comment": "这有什么用",
+    "text": " (EVs)"
+  },
+  {
+    "page": 1,
+    "comment": "从快充怎么直接到充电电流了？",
+    "text": "However, increasing the charging current generally leads to\ngreater heat generation and accelerated battery degradation,\nwhich can adversely affect both battery safety and service life."
+  },
+  {
+    "page": 1,
+    "comment": "被SOC和 电池状态约束是什么意思",
+    "text": "jectives and is subject to operational constraints on charging\ncurrent, voltage, temperature, state of charge (SOC), and other\nbattery states. It can therefore be naturally formulated as a"
+  },
+  {
+    "page": 1,
+    "comment": "你讲这个干嘛 ，删掉 深度强化学习和你这个没关系",
+    "text": "Abstract—Lithium-ion batteries are widely used in electric\nvehicles and energy-storage systems, making efficient and reliable\nfast charging increasingly important. As charging requirements\nbecome more diverse, charging strategies must balance charging\nspeed, safety, and battery degradation under different user\npreferences. Bayesian optimization (BO) has shown strong\npotential for battery charging design because it can identify high-\nquality solutions with a limited number of expensive evaluations.\nHowever, when observations are sparse, BO can suffer from unin-\nformed initialization and insufficient task-specific guidance during\nearly-stage search, leaving valuable battery-domain knowledge\nunderutilized. Recent advances in large language models (LLMs),\nparticularly their contextual reasoning, few-shot learning, and\ndomain-knowledge capabilities, provide a promising means of\ncomplementing BO in such low-data regimes. Motivated by these\nadvances, this paper proposes LLMBO-MO, an LLM-guided\nmultiobjective Bayesian optimization framework for lithium-ion\nbattery charging design. LLMBO-MO first employs an LLM-\ninformed initialization strategy to generate promising and diverse\ninitial charging protocols from battery-domain knowledge. It\nthen introduces a posterior-covariance Region-Lift mechanism\nthat converts weight-conditioned LLM regional preferences into\nbounded acquisition-time mean shifts, thereby changing candidate\nranking without inserting pseudo-observations or altering GP\nuncertainty. Extensive experiments demonstrate that LLMBO-MO\nconsistently outperforms conventional BO methods and achieves\na 9.3% higher final hypervolume than ParEGO.\nIndex Terms—Lithium-ion batteries, battery charging, Bayesian\noptimization, large language models, multiobjective optimization.\nI. INTRODUCTION\nLithium-ion batteries have been widely adopted in electric\nvehicles (EVs) and energy-storage systems due to their high en-\nergy density and long cycle life [1]. With the rapid development\nof EVs, increasing demand has been placed on fast charging.\nHowever, increasing the charging current generally leads to\ngreater heat generation and accelerated battery degradation,\nwhich can adversely affect both battery safety and service life.\nTherefore, achieving an appropriate balance among charging\ntime, safety, and battery degradation has become an important\nproblem in lithium-ion battery charging design [2], [3]. Such\na design problem typically involves multiple conflicting ob-\njectives and is subject to operational constraints on charging\ncurrent, voltage, temperature, state of charge (SOC), and other\nbattery states. It can therefore be naturally formulated as a\nconstrained multiobjective optimization problem (CMOP) [2].\nVarious optimization methods have been developed for\ncharging-strategy design. For example, deep reinforcement\nlearning has been applied to multiobjective battery charging\nstrategy design [5].\nscribe the internal b\nmal, and degradatio\nstrategy using nume\ntrol (MPC). For exa\ncharging optimizatio\nmodel [2], while H\nparticle model with\naccounting for batte\nthese approaches pr\nframeworks, they ge\nunderlying battery m\ncan involve complex\nscale searches com\nnumber of candidat\npractical computatio\nBayesian optimi\nexpensive black-bo\nidentify promising \nof the true objecti\nprobabilistic surroga\nto approximate the \nfunction to balanc\nproperty is well ali\nwhere the evaluatio\nrequire computation\ntime-consuming bat\nthat a closed-loop m\ncan substantially re\nfor charging-protoc\napplied BO to lith\ndemonstrated its a\nprotocols with a li\nand Jiang subsequ\nmultiobjective charg\ncharging time and b\nDespite its sample\nily make effective us\nthe entire optimizati\nstage, the surrogate\nsmall number of ini\ncontain little useful\nspend a substantial n\nregions before reac\nresulting in a prono\nal. showed that stan"
+  },
+  {
+    "page": 1,
+    "comment": "？ 这又是什么 这不是控制的办法吗模型预测控制",
+    "text": "strategy using numerical optimization or model predictive con-\ntrol (MPC). For example, Liu et al. investigated multiobjective"
+  },
+  {
+    "page": 1,
+    "comment": "这里总结也不对，你看应该是说，这种基于PDE的优化能降低一部分昂贵属性，但是PDE求解本身也很昂贵，我们才在这个基础上做昂贵优化，进一步降低成本。\n并且你这个在摘要里也没有啊 不知道为什么这样写 intro 要和abstract 要对应 好吗\n\n这里有点长还是",
+    "text": "accounting for battery degradation mechanisms [4]. Although\nthese approaches provide physically interpretable optimization\nframeworks, they generally require repeated evaluations of the\nunderlying battery model. High-fidelity electrochemical models\ncan involve complex coupled dynamic equations, making large-\nscale searches computationally expensive. Consequently, the\nnumber of candidate protocols that can be evaluated within a\npractical computational budget is often limited."
+  },
+  {
+    "page": 1,
+    "comment": "这不是原因",
+    "text": "expensive black-box optimization problems because it can\nidentify promising solutions with relatively few evaluations\nof the true objective functions. BO typically constructs a"
+  },
+  {
+    "page": 1,
+    "comment": "这句话有点废话",
+    "text": "function to balance exploitation and exploration [6]. This\nproperty is well aligned with battery charging optimization,\nwhere the evaluation of a candidate charging protocol may\nrequire computationally expensive high-fidelity simulations or\ntime-consuming battery experiments. Attia et al. demonstrated"
+  },
+  {
+    "page": 1,
+    "comment": "这句话有点矛盾，这个话说的不合适 怎么能这样说呢",
+    "text": "Despite its sample efficiency, however, BO does not necessar-\nily make effective use of a limited evaluation budget throughout\nthe entire optimization process. In particular, during the initial"
+  },
+  {
+    "page": 1,
+    "comment": "？",
+    "text": "the entire optimization process. In particular, during the initial\nstage, the surrogate model must be constructed from only a\nsmall number of initial observations. When these observations"
+  },
+  {
+    "page": 1,
+    "comment": "？不要花这么多篇幅写这个，你说这些所有的优化办法都有这个问题 不只是BO。你这里的重点 是利用先验知识，不要讲这么多优化算法本身的问题",
+    "text": "small number of initial observations. When these observations\ncontain little useful task-specific prior information, BO may\nspend a substantial number of evaluations exploring low-quality\nregions before reaching promising parts of the search space,\nresulting in a pronounced cold-start phase. Ramachandran et"
+  },
+  {
+    "page": 2,
+    "comment": "？ 这一段逻辑不顺畅",
+    "text": "this issue [9]. This limitation is particularly relevant to battery\ncharging design because each unproductive evaluation may\nincur the cost of an additional high-fidelity simulation or\nphysical experiment."
+  },
+  {
+    "page": 2,
+    "comment": "这怎么表明 ，这是面对高维或特定问题的BO特性 过度探索啊 你这里讲采集函数，",
+    "text": "In addition to initialization, effectively restricting and guiding\nthe subsequent search region is another important factor\naffecting BO efficiency. Conventional BO generally optimizes\nthe acquisition function over the entire decision space. For\ncomplex search spaces, such global acquisition optimization\ncan lead to excessive exploration of regions that are unlikely to\ncontain high-quality solutions. To address this issue, Eriksson et\nal. proposed TuRBO, which employs local probabilistic models\nand trust regions to concentrate the search on more promising\nregions and demonstrated improved efficiency on challenging\nblack-box optimization problems [10]. More recently, Namura\nand Takemori proposed Regional Expected Improvement (REI),\nwhich identifies regions that are more likely to contain the\nglobal optimum and uses them to determine the trust region\nfor subsequent search [11]. These studies suggest that if useful\ninformation about promising regions can be obtained and\nincorporated into BO, unnecessary exploration can be reduced\nand optimization efficiency can be improved under a limited\nevaluation budget."
+  },
+  {
+    "page": 2,
+    "comment": "你这个问题有过度探索吗，请问，",
+    "text": "and potentially excessive exploration during the subsequent\nglobal search."
+  },
+  {
+    "page": 2,
+    "comment": "？ 这是数值优化框架吗 这对吗",
+    "text": "BO process while preserving BO as the main numeri-\ncal optimization framework, providing additional prior"
+  }
+]
