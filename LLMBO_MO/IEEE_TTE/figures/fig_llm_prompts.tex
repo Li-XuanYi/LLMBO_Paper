@@ -1,0 +1,37 @@
+% Warm-start and regional prompts, paired side by side at the page top.
+% Typeset in the style of boxed prompt figures: gray panel, thin frame,
+% domain-knowledge phrases highlighted in red.
+\newcommand{\promptbox}[1]{%
+  \fcolorbox{black}{gray!10}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{#1}}}
+
+% Paired figures share a page-top row so neither is stacked mid-column.
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\promptbox{\footnotesize
+You are an expert in \textcolor{red}{lithium-ion battery fast-charging
+optimization}. Cell: LG INR21700-M50 (5~Ah, NMC811/graphite); the charging
+window is 0\% to 80\% SOC.\\
+Decision variables and bounds: $I_1\in[2.0,6.0]$~A,
+$I_2\in[2.0,5.0]$~A, $I_3\in[2.0,3.0]$~A,
+$\Delta s_1\in[0.10,0.40]$, $\Delta s_2\in[0.10,0.30]$.\\
+Constraints: keep $\Delta s_1+\Delta s_2\le 0.65$ whenever possible
+(practical hard limit $0.70$).
+\textcolor{red}{A decreasing current profile $I_1\ge I_2\ge I_3$ is
+recommended, since high currents at low SOC carry a lower risk of lithium
+plating than the same currents near full charge.}\\
+Objectives: minimize charging time, peak temperature rise, and capacity
+fade.\\
+Generate $15$ \textcolor{red}{diverse} protocols that
+\textcolor{red}{cover multiple trade-off directions instead of clustering
+around one style}. Respond with only a JSON array.}
+\caption{Prompt for the LLM-informed warm start.}
+\label{fig:prompt_warmstart}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\input{figures/fig_llm_region_prompt}
+\end{minipage}
+\end{figure*}
