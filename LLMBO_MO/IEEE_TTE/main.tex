@@ -126,6 +126,15 @@
 \newcommand{\RhoR}{0.30}
 % END: sections/experiment_values.tex
 
+% Allow two stacked double-column float rows at the top of one page
+% (combined height ~89% exceeds the default 70% limit).
+\renewcommand{\dbltopfraction}{0.99}
+\renewcommand{\textfraction}{0.01}
+\renewcommand{\topfraction}{0.99}
+\setcounter{dbltopnumber}{2}
+\setcounter{topnumber}{4}
+\renewcommand{\floatpagefraction}{0.85}
+
 \begin{document}
 
 \title{Battery Fast-Charging Protocol Design via\\
@@ -952,6 +961,26 @@ knowledge.}
 \end{minipage}
 \end{figure*}
 
+% Paired figures share a page-top row so neither is stacked mid-column.
+% Declared before the bibliography so the floats land on an earlier page.
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth]{pareto_protocols_ae.png}
+\caption{Representative charging protocols from the computed Pareto set on Chen2020.}
+\label{fig:pareto_profiles}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\vspace{0pt}
+\centering
+\includegraphics[width=\linewidth]{abc_charging_profiles.pdf}
+\caption{Charging trajectories of protocols A--C on Chen2020.}
+\label{fig:abc_charging_profiles}
+\end{minipage}
+\end{figure*}
+
 \begin{table}[!t]
 \caption{Effect of Different Initialization Strategies}
 \label{tab:prompt_study}
@@ -1102,25 +1131,6 @@ optimization trajectories become closer after subsequent BO updates and
 lead to similar final HV values. This suggests that the LLM backend mainly
 affects the initial proposals, while the numerical BO procedure reduces
 these differences as additional battery-model evaluations are collected.
-
-% Paired figures share a page-top row so neither is stacked mid-column.
-\begin{figure*}[t]
-\centering
-\begin{minipage}[t]{0.48\textwidth}
-\vspace{0pt}
-\centering
-\includegraphics[width=\linewidth]{pareto_protocols_ae.png}
-\caption{Representative charging protocols from the computed Pareto set on Chen2020.}
-\label{fig:pareto_profiles}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}
-\vspace{0pt}
-\centering
-\includegraphics[width=\linewidth]{abc_charging_profiles.pdf}
-\caption{Charging trajectories of protocols A--C on Chen2020.}
-\label{fig:abc_charging_profiles}
-\end{minipage}
-\end{figure*}
 
 \begin{table}[!t]
 \caption{Representative Charging Protocols from the Pareto Set}
