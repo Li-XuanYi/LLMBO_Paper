@@ -1174,6 +1174,42 @@ curves show their different completion times. The voltage trajectories remain
 below the prescribed limit.
 
 % END: sections/experiments.tex
+% BEGIN: sections/realcell.tex
+% ---------------------------------------------------------------------------
+% Real-cell experimental validation of the optimized protocols.
+% NOTE (TODO before submission):
+%  1. Replace figures/neware_protocol_screenshot.png with a NATIVE screenshot
+%     exported from the Neware BTS client (not an AI-enhanced photo of the
+%     monitor). AI-regenerated images of experimental evidence may be treated
+%     as image manipulation by IEEE.
+%  2. Fill in the textual description once the cycling results are available.
+% ---------------------------------------------------------------------------
+\section{Experimental Validation on Real Cells}
+\label{sec:realcell}
+
+% TODO: describe the battery cycler (NEWARE BTS--800), the test cell
+% (21700 cell, chemistry/capacity), ambient conditions, and which Pareto
+% protocols (A--C from the Chen2020 case) are being executed on the hardware.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\linewidth]{neware_protocol_screenshot.png}
+  \caption{TODO: The optimized charging protocols, translated from the
+  Pareto set returned by LLMBO-MO into step-parameter files for the NEWARE
+  battery testing system. Each row corresponds to one working step
+  (constant-current charge, rest, and cyclic repetition) with its cutoff
+  voltage/current and record conditions.}
+  \label{fig:neware_protocol}
+\end{figure}
+
+% TODO (after hardware results are in):
+% \subsection{Setup}: cell specs, cycler channel, temperature chamber,
+%   how Pareto protocols A--C are converted to .xml step files
+%   (Fig.~\ref{fig:neware_protocol}).
+% \subsection{Results}: measured charging time / peak surface temperature /
+%   capacity fade vs. the model-predicted objectives for each protocol;
+%   discussion of model--reality gap.
+% END: sections/realcell.tex
 % BEGIN: sections/conclusion.tex
 \section{Conclusion}
 \label{sec:conclusion}
