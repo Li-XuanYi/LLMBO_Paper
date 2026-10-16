@@ -189,7 +189,12 @@ cross-covariance to apply bounded adjustments to the mean used in
 expected improvement. These adjustments alter the ranking of candidate
 protocols. Under a budget of 56 simulator evaluations, LLMBO-MO achieves a
 9.3\% higher mean final hypervolume than ParEGO on Chen2020. An advantage over
-ParEGO is also observed on Ecker2015.
+ParEGO is also observed on Ecker2015. Representative Pareto protocols are
+further executed on real M50T cells. Results show that the LLMBO-MO
+protocol completes a 4.0~Ah charge in 64.8~min, about 100~min faster than
+the manufacturer-recommended CC-CV setting and 3.0~min faster than ParEGO,
+while maintaining a lower peak temperature rise than ParEGO on every
+tested cell.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -819,7 +824,10 @@ Tchebycheff coefficient $\rho_{\mathrm{aug}}$ & \RhoAug \\
 
 \subsection{Experimental Setup}
 
-The main case uses the Chen2020 parameterization of the LG INR21700-M50
+The optimization environment is an electrochemical--thermal--aging model
+developed in PyBaMM, with model parameters taken from experimentally
+identified parameterizations of real lithium-ion cells. The main case uses
+the Chen2020 parameterization of the LG INR21700-M50
 cell~\cite{ref8}. A second case uses Ecker2015~\cite{ref9} to examine
 performance with a different battery parameterization. The objectives are
 charging time $t_c$, peak temperature rise $T_p$, and aging indicator $Q_s$.
@@ -1175,40 +1183,97 @@ below the prescribed limit.
 
 % END: sections/experiments.tex
 % BEGIN: sections/realcell.tex
-% ---------------------------------------------------------------------------
-% Real-cell experimental validation of the optimized protocols.
-% NOTE (TODO before submission):
-%  1. Replace figures/neware_protocol_screenshot.png with a NATIVE screenshot
-%     exported from the Neware BTS client (not an AI-enhanced photo of the
-%     monitor). AI-regenerated images of experimental evidence may be treated
-%     as image manipulation by IEEE.
-%  2. Fill in the textual description once the cycling results are available.
-% ---------------------------------------------------------------------------
+% NOTE (user-handled): replace figures/neware_protocol_screenshot.png with a
+% native Neware client screenshot before submission.
 \section{Experimental Validation on Real Cells}
 \label{sec:realcell}
-
-% TODO: describe the battery cycler (NEWARE BTS--800), the test cell
-% (21700 cell, chemistry/capacity), ambient conditions, and which Pareto
-% protocols (A--C from the Chen2020 case) are being executed on the hardware.
 
 \begin{figure}[!t]
   \centering
   \includegraphics[width=\linewidth]{neware_protocol_screenshot.png}
-  \caption{TODO: The optimized charging protocols, translated from the
-  Pareto set returned by LLMBO-MO into step-parameter files for the NEWARE
+  \caption{The charging protocols computed by LLMBO-MO and ParEGO,
+  translated from the Pareto set into step-parameter files for the NEWARE
   battery testing system. Each row corresponds to one working step
   (constant-current charge, rest, and cyclic repetition) with its cutoff
   voltage/current and record conditions.}
   \label{fig:neware_protocol}
 \end{figure}
 
-% TODO (after hardware results are in):
-% \subsection{Setup}: cell specs, cycler channel, temperature chamber,
-%   how Pareto protocols A--C are converted to .xml step files
-%   (Fig.~\ref{fig:neware_protocol}).
-% \subsection{Results}: measured charging time / peak surface temperature /
-%   capacity fade vs. the model-predicted objectives for each protocol;
-%   discussion of model--reality gap.
+\subsection{Experimental Setup}
+
+To examine whether the protocols computed in simulation can be executed
+directly on hardware, representative Pareto protocols returned by LLMBO-MO
+and ParEGO under the Chen2020 parameterization were tested on real cells
+together with the manufacturer-recommended charging setting. Three LG
+INR21700 M50T cells were charged by a NEWARE CT-4008-5V20A-A battery
+cycler at an ambient temperature of about 25$^\circ$C, and a surface
+temperature sensor was attached at the same position on each cell. The
+peak temperature rise is measured relative to the cell surface temperature
+at the start of charging.
+
+Three protocols were compared. The baseline is the
+manufacturer-recommended CC-CV setting, which applies a 1.455~A constant
+current followed by a 4.20~V constant-voltage stage with a 0.05~A cutoff
+current. The LLMBO-MO protocol applies 3.90~A, 3.76~A, and 3.00~A with
+stage transitions at 40\% and 70\% SOC, and the ParEGO protocol applies
+3.40~A, 4.79~A, and 2.99~A with transitions at 11.5\% and 41.2\% SOC; on
+the cycler, the stage transitions were implemented using the accumulated
+charged capacity. Each protocol was executed twice on each of the three
+cells, and every run charged 4.0~Ah. The hardware validation covers
+charging time and temperature response. As stated in
+Section~\ref{sec:aging}, the aging indicator $Q_s$ is a relative
+degradation measure for a single charging process; a hardware comparison
+of degradation would require hundreds of cycles and is left for future
+work.
+
+\begin{table}[!t]
+\caption{Real-Cell Charging Results (Mean $\pm$ Standard Deviation Over
+Three Cells, Two Repeats Each)}
+\label{tab:realcell_results}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Protocol & $t_c$ (min) & $T_p$ (K) & Max voltage (V) \\
+\midrule
+CC-CV & 165.06\,$\pm$\,0.16 & 1.80\,$\pm$\,1.23 & 4.121\,$\pm$\,0.003 \\
+ParEGO & 67.78\,$\pm$\,0.03 & 7.33\,$\pm$\,0.64 & 4.158\,$\pm$\,0.005 \\
+LLMBO-MO & \textbf{64.77\,$\pm$\,0.01} & \textbf{6.84\,$\pm$\,0.78} & 4.159\,$\pm$\,0.006 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Results}
+
+Table~\ref{tab:realcell_results} summarizes the measured charging time,
+peak temperature rise, and maximum terminal voltage; every run charged
+4.0~Ah. The two optimized protocols charge the cells about 100~min faster
+than the manufacturer-recommended CC-CV setting. Between them, the
+LLMBO-MO protocol is on average 3.0~min faster than the ParEGO protocol,
+and it produces a lower peak temperature rise on each of the three cells
+(6.0 vs.\ 6.7~K, 7.1 vs.\ 7.2~K, and 7.4 vs.\ 8.1~K). The ordering of the
+two protocols in both objectives therefore agrees with the simulation
+results in Section~V.
+
+The measured charging times also match the simulated predictions closely:
+the LLMBO-MO and ParEGO protocols took 3886~s and 4067~s on average,
+within 0.2\% of the simulated 3883~s and 4060~s. The peak temperature
+rises (6.84~K and 7.33~K) are higher than the simulated values (4.56~K and
+5.00~K), indicating that the lumped thermal model underestimates the
+surface temperature rise under high-current charging; the relative
+comparison between the two protocols, however, is preserved. The larger
+variability of the CC-CV temperature rise arises because this rise is
+measured relative to the pre-charge surface temperature, which drifted
+with the ambient conditions between repeats.
+
+Two further observations support the validity of the comparison. First,
+under both optimized protocols the terminal voltage remained below the
+4.20~V limit, with a measured maximum of about 4.16~V. Second, the CC-CV
+runs never entered the constant-voltage stage within the 4.0~Ah window, as
+the terminal voltage stayed below 4.20~V; the comparison is therefore made
+at an equal charged capacity for all three protocols. Overall, the
+protocols computed from the simulation model were executed on real cells
+without modification, and the measured time--temperature trade-off
+reproduced the simulated Pareto ordering.
 % END: sections/realcell.tex
 % BEGIN: sections/conclusion.tex
 \section{Conclusion}
@@ -1244,13 +1309,17 @@ final HV from \AblationWarmMean\ to \AblationFullMean. Comparisons across LLM
 backends further indicated that the final performance is robust to the
 choice of backend.
 
-It should be noted that the optimized protocols have been validated only in
-simulation based on the electrochemical--thermal--aging model, and
-discrepancies between model predictions and real battery behavior may still
-exist. Future work will assess regional guidance over wider operating
-conditions, validate the resulting protocols on physical cells with measured
-degradation, and extend the framework to other cell chemistries and
-pack-level charging.
+The computed protocols were further executed on three real M50T cells: the
+measured charging times matched the simulated predictions within
+0.2\%, and the time--temperature ordering between the LLMBO-MO and ParEGO
+protocols was reproduced on every tested cell, although the lumped thermal
+model underestimated the absolute temperature rise. The degradation
+objective remains a simulation-based relative indicator, and the computed
+protocols are optimal within the considered three-stage MCC policy class
+rather than globally optimal charging trajectories. Future work will
+validate the aging objective through long-term cycling, assess regional
+guidance over wider operating conditions, and extend the framework to
+other cell chemistries and pack-level charging.
 % END: sections/conclusion.tex
 % BEGIN: sections/references.tex
 % Bibliography supplied by the authors; stable keys retained.
