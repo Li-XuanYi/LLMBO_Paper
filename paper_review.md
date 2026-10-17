@@ -1,56 +1,49 @@
 # Adversarial Paper Self-Review
 
-Status meanings:
+Status meanings: **Pass**, **Pass with limitation**, and **Needs new experiment**.
 
-- **Pass:** supported and clearly stated.
-- **Pass with limitation:** defensible, but scope must remain explicit.
-- **Needs new experiment:** wording cannot remove the evidence gap.
+## Contribution and method
 
-## 1. Contribution and method
-
-| Reviewer question | Status | Current assessment |
+| Reviewer question | Status | Assessment |
 |---|---|---|
-| Is the novelty clear? | Pass | The contribution is a two-touchpoint interface that separates LLM preference from simulator evidence, plus a bounded covariance-shaped acquisition operator. |
-| Is the formal method distinguishable from the ablation? | Pass | Only the correlation-clipped operator is formalized in the main method. The uniform-anchor, mean-absolute-shift-budget form is described only in the component study. |
-| Are the core equations closed? | Pass | Anchor weights, novelty, global-range fallback, covariance jitter, quality gate, trust/confidence product, attenuation, and shift bound are defined. |
-| Are routine formulas overexposed? | Pass | Standard thermal, GP-kernel, and EI relations are concise or unnumbered; numerical values are centralized in Table I. |
-| Is every method claim supported? | Pass with limitation | The operator is mathematically bounded, but the principal comparison evaluates the complete configuration rather than isolating coupling causality. |
+| Is the novelty clear? | Pass | The paper contributes an asymmetric LLM--BO interface: screened warm start plus a bounded posterior-covariance projection from semantic regions into acquisition-time candidate ranking. |
+| Is the proposed method distinguished from historical evidence? | Pass with limitation | Region-Lift is now the proposed online mechanism, while the text explicitly states that the retained restart-era archives do not isolate its causal contribution. |
+| Is the budget unambiguous? | Pass | Algorithm 1 defines \(N=n_0+n_{\mathrm{BO}}\), and the experiments use \(6+50=56\) simulator calls. |
+| Does fallback imply guaranteed performance? | Pass | The manuscript limits fallback claims to the affected numerical operator and explicitly rejects a guarantee that every guided trajectory improves. |
 
-## 2. Writing and structure
+## Writing and reproducibility
 
-| Reviewer question | Status | Current assessment |
+| Reviewer question | Status | Assessment |
 |---|---|---|
-| Does the paper have one coherent story? | Pass | The narrative centers on preserving numerical authority while using LLM advice at initialization and early acquisition. |
-| Are terms consistent? | Pass | “Protocol-domain-screened,” “degradation proxy,” “regional guidance,” and “bounded adjustment” are used consistently. |
-| Is the section order reviewer friendly? | Pass | Problem → model → method overview → warm start → BO backbone → regional coupling → experiments → results → interpretation → component study. |
-| Are figures and tables placed with their discussion? | Pass | The platform appears after the Section V setup; Tables I–II follow in source order; Fig. 4 opens the interpretation page rather than the references. |
-| Does the conclusion answer the paper’s question? | Pass | It reports both five-seed outcomes, identifies the more consistent component, and states the simulation boundary. |
+| Are terms consistent? | Pass | The manuscript uses HV throughout and reserves `degradation proxy` for \(D_{\mathrm{chg}}\). |
+| Are the principal values traceable? | Pass with limitation | A single values file and figure manifest map all reported numbers to archived sources; the source archives are not one synchronized batch. |
+| Are figure statistics identified correctly? | Pass | The Chen caption distinguishes representative seed-8409 centers, proxy envelopes, and genuine five-run mean/SD curves. |
+| Are diagnostic axes interpreted correctly? | Pass | The optimal-protocol plot is described only as per-iteration archive growth and is not conflated with equal-call efficiency or HV. |
+| Are representative protocols reproducible? | Pass | A--E use a deterministic global-front arc-length rule and retain seed, observation index, and source database. |
+| Are template artifacts removed? | Pass | The review copy uses anonymous metadata and contains no sample IEEE author, date, affiliation, or volume strings. |
 
-## 3. Experimental evidence
+## Experimental evidence
 
-| Reviewer question | Status | Current assessment |
+| Reviewer question | Status | Assessment |
 |---|---|---|
-| Are the principal results multi-seed? | Pass | Chen2020 and Ecker2015 both use seeds 8409–8413 with 56 simulator calls. |
-| Are HV values comparable? | Pass | Both methods use a common transformed objective map and benchmark-specific ideal/reference box within each parameterization. |
-| Are gains meaningful? | Pass with limitation | Mean gains are modest: +0.84% (3/5 wins) and +2.18% (4/5 wins). No significance claim is made. |
-| Are strong current baselines included? | Needs new experiment | ParEGO is matched; qEHVI/qNEHVI are cited but not run under the same budget. |
-| Does the comparison isolate acquisition coupling? | Needs new experiment | LLMBO-MO uses 3 screened LLM + 3 random initial points, while ParEGO uses 6 random points. |
-| Is the ablation synchronized? | Needs new experiment | The complete arm is a matched-budget five-seed follow-up rather than one simultaneously executed four-arm batch. |
-| Is hardware performance established? | Needs new experiment | No platform measurement enters the quantitative evaluation. |
+| Is the Chen comparison multi-seed? | Pass with limitation | Five archived seeds are summarized, but compatible historical batches are mixed and the result remains descriptive. |
+| Are stronger non-BO baselines present? | Pass | Chen2020 includes NSGA-II, DISK, and PIMD under the retained 56-evaluation cap. |
+| Are strong modern MOBO baselines present? | Needs new experiment | Matched qEHVI/qNEHVI runs are unavailable. |
+| Is the language contribution isolated? | Pass | A ten-seed prompt study changes the initialization source while retaining the downstream BO procedure. |
+| Is regional coupling isolated? | Needs new experiment | The component archive contains an external-restart confound and does not show a stable increment over warm start. |
+| Is objective preprocessing assessed? | Pass | Five-seed Chen2020 results compare min--max, Z-score, and no normalization without overstating the small final difference between the scaled variants. |
+| Is physical performance established? | Needs new experiment | All evidence is simulation based and uses an uncalibrated degradation proxy. |
 
-## 4. Submission-risk summary
+## Submission-risk summary
 
-The current manuscript is internally consistent and bases both principal
-comparisons on seeds 8409--8413 with a common within-benchmark HV scale. The
-remaining review risks are empirical rather than editorial:
+The revision makes the Region-Lift mechanism mathematically explicit and keeps
+the evidence boundary visible: numerical values are centralized, HV terminology
+is consistent, and the historical archives are not relabeled as a clean
+coupling-on experiment. Remaining risks are empirical:
 
-1. modest effect size with five seeds;
+1. mixed historical archives in the Chen2020 summary;
 2. no matched qEHVI/qNEHVI result;
-3. different initialization composition between LLMBO-MO and ParEGO;
-4. a component study assembled from a primary batch and matched follow-up;
-5. a trajectory-averaged degradation proxy rather than calibrated capacity
-   fade;
+3. no independently isolated regional-coupling effect;
+4. backend variation across archives;
+5. an uncalibrated degradation proxy;
 6. no physical-cell validation.
-
-These limitations are stated without weakening the main methodological
-contribution.

@@ -1,0 +1,1674 @@
+1
+Experience-Informed Multiobjective Optimization
+for Fast Charging Design of Lithium-Ion Batteries
+Abstract—The design of charging protocols for lithium-ion
+batteries that satisfy diverse user requirements has become
+an important research topic. Although model-based optimiza-
+tion is more cost-effective than experiment-driven approaches,
+battery simulations remain computationally expensive. Bayesian
+optimization has recently shown strong potential for charging
+design due to its ability to exploit information from historical
+evaluations. Bayesian optimization is inherently data-driven and
+typically treats each optimization task independently. However, in
+battery charging applications, the optimal charging protocol must
+evolve with the battery’s state of health (SOH). Re-optimizing
+from scratch at each SOH level ignores previously acquired
+optimization experience and leads to significant computational
+redundancy. To address this challenge, this paper proposes an
+experience-informed multiobjective optimization (EIMO) algo-
+rithm that transfers optimization experience from higher SOH
+levels to the current SOH level. EIMO uses Bayesian optimization
+to reduce the number of required simulations and represents
+accumulated experience as a probability distribution. A transfer
+acquisition function is developed to incorporate this experience
+and accelerate the search for optimal charging strategies. Exten-
+sive simulations and experiments demonstrate that EIMO can
+efficiently obtain high-quality charging protocols that balance
+user demands while satisfying safety and longevity constraints.
+Compared with a popular and efficient multiobjective algorithm
+for expensive optimization (i.e., ParEGO), EIMO reduces the
+computational time by 45.15%, 41.81%, and 39.24% in the
+three representative cases, respectively, while achieving higher
+hypervolume values.
+Note to Practitioners—This work aims to support the practical
+development of intelligent charging strategies for lithium-ion
+batteries. In real applications, charging protocols must adapt
+to changing user requirements and evolving battery degrada-
+tion states. Although Bayesian optimization is data-driven and
+sample-efficient, it typically treats each optimization problem
+as an independent task. Directly re-optimizing the protocol at
+every SOH is rarely feasible due to the high computational
+cost associated with battery simulation. The proposed EIMO
+algorithm addresses this issue by reusing optimization experi-
+ence obtained at earlier SOH levels. Engineers can treat such
+historical experience as transferable knowledge that accelerates
+the design process without compromising safety constraints. The
+approach integrates Bayesian optimization and experience trans-
+fer, enabling practitioners to generate efficient and physically
+compliant charging strategies with significantly fewer simulation
+evaluations. This framework is suitable for applications such as
+fast charging system development, adaptive battery management
+systems, and the design of personalized charging services. In fu-
+ture work, we will integrate Bayesian optimization with transfer
+learning for charge balancing in battery packs.
+Index Terms—Lithium-ion battery, charging design, experi-
+ence, Bayesian optimization, transfer learning
+I. INTRODUCTION
+As a representative of innovative energy storage devices,
+lithium-ion batteries have been widely used due to their excel-
+lent performance and environmentally friendly properties [1]–
+[3]. However, the long charging time caused by slow charging
+and the degradation caused by fast charging remain critical
+issues that hinder the further promotion and development
+of lithium-ion batteries. To this end, the design of charging
+protocols for lithium-ion batteries has become a hot research
+topic recently [4], [5]. The design process is inherently a
+constrained multiobjective optimization problem (CMOP), as
+it involves considering diverse user demands and is subject
+to certain restrictions [6]. The development of an accurate
+electrochemical-thermal-aging model is essential to assess
+various charging protocols, given the resource-intensive nature
+of experiment-based evaluations [7]. However, simulating an
+electrochemical-thermal-aging model is time-consuming due
+to its reliance on a set of coupled partial differential equations
+(PDEs) and algebraic equations [8]. Additionally, in many
+scenarios, the optimal charging protocols for a lithium-ion
+battery vary at different state of health (SOH) levels. For
+example, since the SOH of batteries can vary across different
+charging stations, the optimal dynamic charging strategy for
+electric vehicle fleets should take this variation into account
+[9]. Therefore, it is inefficient to repeatedly determine the
+optimal charging protocols for an operating battery from
+scratch.
+In recent times, many attempts have been made to accelerate
+the design process. The equivalent circuit model (ECM) uti-
+lizes RC pairs to describe the internal polarization reactions
+of a lithium-ion battery, thus tracking the battery’s voltages
+under different input currents [10]. Due to the absence of
+PDE solving, charging design based on ECM is more efficient
+compared with methods based on electrochemical models.
+Liu et al. [11] leveraged an ECM-thermal-aging model to
+design charging protocols in which battery health, charging
+time, and energy conversion efficiency are formulated as
+objectives. Hu et al. [12] employed an ECM-thermal-aging
+model to optimize the charging protocols. This study considers
+two conflicting objectives: minimizing charging time and
+simultaneously mitigating battery capacity fade. Despite its
+computational efficiency, ECM provides limited insights into
+the battery’s internal states, which limits the accuracies of the
+design process.
+Some researchers employed a reduced-order model (ROM)
+instead of the full-order version, thereby alleviating the com-
+putational load to a certain degree. Lin et al. [13] optimized
+charging time and battery degradation through dynamic pro-
+gramming, in which an electrolyte-enhanced single particle
+model (SPM) is used to capture the electrochemical dynamics
+in the battery. Furthermore, Lin et al. [14] proposed a frame-
+work to explore the interactions between optimized charging
+protocols and battery internal electrochemical kinetics. In this
+framework, an SPM is coupled with a lumped parameter
+
+2
+thermal model. Zou et al. [15] designed charging protocols by
+a linear time-varying model predictive control algorithm. In
+this study, an ROM coupled with thermal states is constructed
+under several assumptions. Hwang et al. [16] adopted an en-
+hanced SPM to develop charging protocols aimed at reducing
+intracycle capacity fade.
+Recently, deep reinforcement learning (DRL) has been
+applied to many interesting fields [17]–[20], including bat-
+tery fast charging design, due to its capability for adaptive
+decision-making [8], [21], [22]. Xiong et al. [22] developed a
+multiobjective DRL method that considers charging duration
+and battery overheating as two optimization objectives. Dong
+et al. [8] adopted a multiobjective deep Q-network algorithm
+for fast charging design, considering the electrical, thermal,
+and aging behaviors of the battery. Wei et al. [23] designed
+charging protocols using DRL, in which an ROM coupled with
+a lumped parameter thermal model is developed and evaluated
+on a cloud server. Although DRL exhibits strong adaptation
+capability, DRL-based approaches typically require a large
+number of training episodes to achieve stable performance.
+Such data requirements are often impractical for battery
+systems, where each evaluation may involve costly battery
+simulations or physical experiments. Thus, these methods are
+often implemented in a cloud environment.
+From another perspective, several recent studies [4], [24]–
+[26] have demonstrated that Bayesian optimization can signifi-
+cantly reduce the number of simulation evaluations in charging
+design, owing to its ability to perform sample-efficient opti-
+mization through surrogate modeling and efficient acquisition
+strategies. Jiang et al. [4] employed Bayesian optimization to
+design various charging protocols and investigated the impact
+of different acquisition functions on convergence. Wang and
+Jiang [24] proposed a multiobjective Bayesian optimization
+framework for charging design. The multiobjective optimiza-
+tion problem is decomposed into single-objective ones us-
+ing the Tchebycheff decomposition method. Afterward, these
+problems are solved by a constrained acquisition function-
+based Bayesian optimization algorithm. Dong et al. [25] pre-
+sented a hybrid Bayesian optimization algorithm by combining
+mesh grid adaptive search, where various search strategies
+and acquisition functions are evaluated across multiple multi-
+stage constant charging protocols. While Bayesian optimiza-
+tion leverages historical data of the current task to enhance
+efficiency, existing studies have not utilized experience data
+from other similar scenarios to further accelerate the design
+of charging protocols. Indeed, experience data from a lithium-
+ion battery at different SOH levels can be carefully collected
+and leveraged, since the internal mechanisms of the battery
+remain similar throughout its lifespan [27], [28].
+From the above literature review, some interesting findings
+and insights are summarized as follows:
+• In many studies, the charging design is formulated as a
+CMOP to satisfy diverse user demands and constraints.
+• Model-based algorithms are more cost-effective than
+experiment-based methods. However, design algorithms
+based on a full-order model are time-consuming, while
+those employing a faster model may sacrifice accuracies.
+• DRL-based approaches typically require a large number
+of training episodes to achieve stable performance, which
+is often impractical for battery systems.
+• As another promising direction for charging design from
+an optimization perspective, Bayesian optimization can
+effectively balance optimization efficiency and solution
+quality. Moreover, transfer learning can be naturally in-
+corporated into the acquisition function.
+• Experience data can indeed contribute significantly to
+enhancing the efficiency of a design algorithm. However,
+to the best of our knowledge, this topic has been scarcely
+explored.
+Based on these observations, an experience-informed mul-
+tiobjective optimization (EIMO) algorithm is proposed to
+design charging protocols for lithium-ion batteries. In EIMO,
+a decomposition-based multiobjective Bayesian optimization
+algorithm is presented to use historical data to accelerate the
+design process. Additionally, a distribution-similarity-based
+transfer learning technique is developed and integrated into
+Bayesian optimization to effectively utilize experience data,
+thereby further enhancing the efficiency of the design process.
+The main contributions of EIMO are as follows:
+• To the best of our knowledge, EIMO is the first attempt
+to leverage experience data from other SOH levels to
+design charging protocols for lithium-ion batteries at the
+current SOH level. The proposed EIMO introduces a
+new optimization-based approach, offering a promising
+alternative for charging design.
+• A distribution-similarity-based transfer learning tech-
+nique is developed to formulate the acquisition function,
+enabling the effective utilization of both historical data
+from the current SOH level and experience data from
+other SOH levels.
+• By employing the decomposition technique and applying
+an evolutionary algorithm to solve the acquisition func-
+tion, EIMO is capable of efficiently providing a set of
+optimal charging protocols.
+• In our study, an electrochemical-thermal-aging model is
+presented and validated using real battery data. Based
+on this validated model, extensive simulations have been
+conducted to demonstrate that EIMO outperforms other
+methods in terms of efficiency and accuracy.
+The rest of this paper is organized as follows. Section
+II introduces the problem formulation. Section III describes
+the electrochemical-thermal-aging model used for simulation.
+Section IV elaborates on EIMO. Section V presents the
+validations and discussions. Finally, the concluding remarks
+are provided in Section VI.
+II. PROBLEM FORMULATION
+As shown in Fig. 1, the charging design problem deter-
+mines charging protocols by optimization techniques that take
+battery states into consideration. It is always formulated as a
+CMOP. The decision variables, objectives, and constraints are
+introduced as follows.
+Decision Variables: Due to its efficiency [29], the multi-
+stage constant current (MCC) protocol is investigated. Specif-
+
+3
+Battery states
+Optimization 
+technique
+Optimal charging 
+protocol set
+Fig. 1. Schematic of charging design.
+ically, the decision vector (i.e., solution) includes the cur-
+rent rates and the charging capacities for M stages: θ =
+[cc1, . . . , cci, . . . , ccM, ∆s1, . . . , ∆si, . . . , ∆sM], where cci
+and ∆si, i = 1, . . . , M, denote the current rate and the charg-
+ing capacity in the ith stage, respectively. The main reasons
+for choosing charging capacity rather than stage duration as
+decision variables are as follows. First, the charging design
+problem aims to fully charge the battery while satisfying
+operational constraints and minimizing the total charging time.
+In a multi-stage charging protocol, the total charging time
+is simply the sum of the stage durations, which directly
+constitutes an objective function. Therefore, stage durations
+are outcome variables determined by the charging currents and
+capacity allocation, rather than independent decision variables.
+Additionally, this setting can enhance physical consistency
+and modeling convenience. Specifically, charging capacity is
+directly related to the state-of-charge (SOC) evolution of the
+battery and allows each charging stage to be naturally defined
+in the SOC domain. In contrast, using stage durations as
+decision variables would introduce strong coupling with the
+charging current, since the delivered capacity depends on both
+current and time. In an optimization problem, this coupling
+complicates constraint handling and may lead to physically
+inconsistent or redundant decision representations. By param-
+eterizing each stage using charging capacity, the SOC bound-
+aries between stages are explicitly controlled, which simpli-
+fies constraint enforcement and improves numerical stability
+during optimization. This representation has also been widely
+adopted in existing charging design studies [4], [6], [30],
+facilitating fair comparison and practical implementation. As
+reported in [4], [6], setting M = 3 yields good performance;
+therefore, this configuration is adopted in our study.
+Objectives: The diverse user demands are formulated as
+charging objectives [24]. Generally speaking, these include
+time, safety, and sustainability requirements, which can be
+represented by minimizing the charging time (denoted as tc),
+the temperature rise (denoted as Tp), and the lithium-ion
+loss/sustainability indicator (denoted as Qs), respectively:
+min f(θ) ={tc, Tp, Qs}
+(1)
+where θ denotes the decision vector (i.e., charging protocol).
+In practical scenarios, these three objectives are inherently
+conflicting. While higher currents can shorten charging time,
+they also raise battery temperature and accelerate lithium-ion
+loss. Besides, user preferences regarding these three objectives
+vary across different scenarios. In time-sensitive situations,
+minimizing charging time is prioritized, whereas in time-
+abundant contexts, safety and battery sustainability become
+Fig. 2. Charging design problem.
+more important. Furthermore, even within a specific scenario,
+users often struggle to precisely quantify their preferences.
+Thus, providing a set of Pareto nondominated charging pro-
+tocols is promising to accommodate diverse user preferences.
+The details of these three objectives can be found in [6].
+Constraints: Additionally, the input current (denoted as
+I(t)), the terminal voltage (denoted as U(t)), the temperature
+(denoted as T(t)), and the SOC (denoted as soc(t)) must
+satisfy certain constraints [31]:
+
+
+
+
+
+
+
+Imin ≤I(t) ≤Imax
+smin ≤soc(t) ≤smax
+Umin ≤U(t) ≤Umax
+T (t0) = T0, T(t) ≤Tmax
+(2)
+where t is the temporal coordinate, Imin, Umin, and smin denote
+the lower bounds of I(t), U(t), and soc(t), respectively, Imax,
+Umax, and smax represent the corresponding upper bounds,
+respectively, t0 is the starting time, T0 denotes the initial
+temperature, and Tmax is the upper bound of T(t). The first
+two are box constraints on the decision variables, whereas the
+remaining two are additional problem-specific constraints. In
+our study, the problem-specific constraints are handled using
+penalty functions. Specifically, when the battery temperature
+exceeds the threshold Tmax, a linear penalty proportional to the
+temperature rise is imposed. Similarly, once the terminal volt-
+age exceeds the predefined upper limit Umax, a linear penalty
+proportional to the magnitude of overvoltage is applied.
+In summary, the charging design problem is described as
+shown in Fig. 2. It should be noted that the goal of solving
+this problem is to identify an optimal or Pareto nondominated
+set of charging protocols that best balance multiple objectives
+under varying preferences, while satisfying constraints to
+ensure battery safety and longevity. Additionally, with a given
+charging protocol (i.e., θ), battery states are computed using
+an electrochemical-thermal-aging model. This process is time-
+consuming. Therefore, developing an efficient algorithm for
+charging design holds significant promise.
+
+4
+III. ELECTROCHEMICAL-THERMAL-AGING MODEL
+A. Electrochemical Model
+The electrochemical model describes the internal electro-
+chemical dynamics in a lithium-ion battery. For a tradeoff
+of efficiency and accuracy, the SPMe model [32] is adopted.
+SPMe consists of three sets of PDEs. Two PDEs describe
+the variation of lithium-ion concentration within the particles
+of the negative and positive electrodes, respectively, while
+an additional linear PDE governs the lithium-ion concentra-
+tion distribution in the electrolyte across three regions. The
+battery voltage can be computed through a simple algebraic
+expression, and the state of charge (SOC) can be obtained by
+integrating the lithium-ion concentration in the solid phase.
+Specifically, the battery voltage can be calculated as follows:
+U = Ueq + ηr + ηd + ∆Φ
+(3)
+where U is the battery voltage, Ueq is the equilibrium po-
+tential, ηr represents the ohmic overpotential, ηd denotes the
+concentration overpotential, and ∆Φ is the average potential
+difference in the electrolyte. More details can be found in [32].
+B. Thermal Model
+A cylindrical battery is considered in our study. Thus, a
+lumped parameter thermal model [33] is used:
+ρeff
+∂T
+∂t = Q −hA
+V (T −Ta)
+(4)
+ρeff =
+P
+k ρkCp,kLk
+P
+k Lk
+(5)
+where ρeff is the effective volumetric heat capacity, T is the
+average temperature, t is the time variable, Q is the average
+heat generation term, h is the heat transfer coefficient, A is
+the heat dissipation surface area, V is the battery volume, and
+Ta is the ambient temperature. ρeff is obtained by averaging
+the heat capacities of the negative current collector, negative
+electrode, separator, positive electrode, and positive current
+collector. Here, ρk is the density, Cp,k is the specific heat
+capacity, and Lk is the thickness of each component, where
+k = {cn, n, s, p, cp} represent the negative current collector,
+negative electrode, separator, positive electrode, and positive
+current collector, respectively.
+C. Aging Model
+In this paper, a widely used semi-empirical battery aging
+model [34] is adopted, which could account for both the
+formation of the solid electrolyte interphase (SEI) layer and
+lithium plating. In this model, the normalized capacity loss,
+Qs [%] is used as a measure of sustainability indicator:
+Qs(f, Ah) = σfun(f) × Ahz
+(6)
+where f denotes the vector of aging factors (SOC, I, T),
+each representing the average SOC, current, and temperature,
+respectively, z is the power-law exponent representing the
+dependence on Ah throughput, and σfun(f) is a nonlinear
+function of the severity factors, referred to as the severity
+factor function, which can be expanded as follows:
+σfun(f) = (α · SOC + β) ·
+−Ea + ηa · I
+Rgas · (273.15 + T)
+(7)
+where α and β define SOC dependence, ηa models the I
+dependence, Rgas is the universal gas constant, and Ea is
+the activation energy. It should be noted that Qs should not
+be interpreted as a direct lifetime metric. It is used to quantify
+the incremental severity of degradation induced by a given
+charging process. In our study, it is employed as a short-
+term sustainability and relative aging indicator, rather than an
+explicit predictor of end-of-life. Although the aging model
+is cumulative, battery degradation can be regarded as the
+accumulation of incremental aging contributions over repeated
+charging operations. From this perspective, minimizing Qs for
+a single charging process corresponds to reducing the per-
+charge aging increment. When such charging protocols are
+repeatedly applied over the battery’s operational life, a lower
+per-cycle degradation increment is expected to translate into
+slower long-term degradation trends, even though the exact
+end-of-life cannot be directly predicted. As discussed in [34],
+such aging proxies are particularly suitable for optimization
+and control purposes, as they capture the relative impact
+of different charging protocols on battery degradation while
+remaining computationally efficient.
+In summary, the combination of the aforementioned models
+yields an electrochemical-thermal-aging model. The accuracy
+of this battery model has been validated through experiments.
+Due to the involvement of PDE solving, each simulation
+of this model is time-consuming. When utilizing this model
+for charging design, it is promising to develop appropriate
+optimization techniques to accelerate the design process.
+IV. PROPOSED EIMO
+A. Motivation
+The charging design problem is always formulated as a
+CMOP. Bayesian optimization has recently been applied to the
+design of charging protocols. While it can accelerate the design
+process by leveraging a minimal number of evaluated samples
+to construct an informative surrogate model, Bayesian opti-
+mization often suffers from being data-hungry when solving
+CMOPs. In fact, experience from other similar scenarios can
+be used to reduce the reliance on data from the current task.
+For charging design, the experience gained from a lithium-ion
+battery at different SOH levels can be utilized to optimize the
+charging protocols of the battery at the current SOH level.
+Note that the “optimization experience” refers to previously
+evaluated charging protocols and their corresponding objective
+values obtained from charging design tasks at other SOH levels
+in our study, rather than heuristic rules or model parameters.
+As shown in Fig. 3, the proposed EIMO takes advantage of
+Bayesian optimization for charging design and incorporates
+transfer learning to merge historical data at the current SOH
+level and the experience from higher SOH levels, further
+enhancing efficiency. More specifically, the experience is rep-
+resented by a subset of high-quality decision vectors (charging
+
+5
+Battery states
+Bayesian optimization
+Optimal charging protocol set
+Database
+…
+Experience
+Transfer learning
+Enhancing
+Fig. 3. Schematic of EIMO.
+protocols) collected from source SOH levels. These decision
+vectors are modeled as a probability distribution in the decision
+space and are incorporated into the optimization process
+through a distribution-based transfer acquisition function. It
+is worth emphasizing that EIMO does not directly reuse
+surrogate models or merge source and target datasets. Instead,
+the experience is abstracted as a probabilistic description of
+promising regions in the decision space, which serves as
+soft guidance to accelerate the search for optimal charging
+protocols at the current SOH level.
+B. Framework
+The framework of EIMO is shown in Fig. 4. First, a
+database is constructed by sampling a set of charging protocols
+and evaluating the corresponding battery states. Note that
+the charging design problem described in (1) and (2) is
+decomposed into several single objective subproblems. At each
+iteration, a subproblem is randomly selected, and Bayesian
+optimization is used to generate a new protocol for that
+subproblem. Specifically, Bayesian optimization consists of
+two key components: a Gaussian process (GP) model and
+an acquisition function. The GP model is constructed to ap-
+proximate the time-consuming electrochemical-thermal-aging
+model described in Section II, while the acquisition function
+is designed to sample a new protocol. Historical data from the
+database is used to build the GP model, and a transfer learning
+technique is proposed to integrate the historical data with
+experience in formulating the acquisition function. By solving
+the acquisition function using an evolutionary algorithm, a
+new protocol is derived. This protocol is then evaluated using
+the electrochemical-thermal-aging model and added to the
+database. The process is repeated until the computational
+resources are exhausted, after which the optimal charging
+protocol set from the database is selected and output.
+The main differences between EIMO and another class
+of multiobjective optimization algorithms (e.g., multiobjective
+genetic algorithms (MOGAs)) lie in solution generation and
+selection. In MOGAs, solutions are generated through genetic
+operators such as crossover and mutation, and then selected
+based on their objective values. In contrast, EIMO integrates
+solution generation and selection into a unified process. Specif-
+ically, new solutions are obtained by optimizing the acquisition
+function. Moreover, historical data is embedded within the
+Battery states
+Optimal charging 
+protocol set
+Database
+Initial 
+sampling
+Experience
+Transfer learning
+Gaussian 
+process
+Acquisition 
+function
+Bayesian optimization
+Battery 
+model
+New 
+protocol
+New protocol
+Fig. 4. Framework of EIMO.
+acquisition function, allowing EIMO to leverage experience
+to accelerate the optimization process.
+C. Main Steps
+The main steps of EIMO including initialization, problem
+decomposition, GP modeling, and transfer acquisition function
+are illustrated as follows.
+1) Initialization: The initial iteration number t is set to
+0. Next, N init charging protocols are sampled randomly and
+evaluated. Based on these protocols, a database (denoted as
+DM
+T = {(θ(l), f(θ(l)))}NT =Ninit+t
+l=1
+) is constructed, where θ(l)
+and f(θ(l)) denote the lth sampled charging protocol and the
+corresponding objective values, respectively. Note that data
+from other scenarios, such as the charging design for the
+battery at different SOH levels, represent the corresponding
+experience. These data are consolidated into a dataset denoted
+as DM
+S
+= {ΘS, FS} = {(θ(l)
+S , fS(θ(l)
+S ))}NS
+l=1, where θ(l)
+S
+and fS(θ(l)
+S ) denote the lth charging protocol sampled from
+other SOH levels and the corresponding objective values,
+respectively.
+2) Problem Decomposition: In some studies [35], the mul-
+tiple objectives are unified into a single one by a set of
+fixed weights. Summing these objectives directly is a specific
+example where the weights of these three objectives are equal.
+However, user preferences regarding these three objectives
+vary across different scenarios. Therefore, providing a set
+of Pareto nondominated charging protocols is a promising
+approach to accommodate diverse user preferences. To achieve
+this, EIMO adopts a decomposition-based strategy. At each
+iteration t, a weight vector w(t) is randomly selected from
+the predefined set W, where each weight in w(t) represents
+the preference for the corresponding objectives. The set W is
+generated using the Riesz s-energy-based method [36]. Using
+the selected weight vector, the scalarized objective in the
+target dataset DT = {ΘT , Ftch
+T } = {(θ(l)
+T , f tch
+T
+(θ(l)
+T ))}NT
+l=1 is
+generated based on the augmented Tchebycheff function as
+follows:
+f tch
+T
+(θ) =
+max
+i∈{1,...,m}{w(t)
+i fT,i(θ)} + η
+m
+X
+i=1
+w(t)
+i fT,i(θ)
+(8)
+where m is the number of objectives, fT,i(·) is the ith normal-
+ized objective of the target CMOP, w(t)
+i
+is the ith component
+of w(t), and η is a small positive weight. By solving (8), a
+
+6
+Pareto nondominated charging protocol is derived. Note that
+the ith objective is normalized as follows:
+fT,i(θ) = fi(θ) −f min
+i
+f max
+i
+−f min
+i
+(9)
+where fi(θ) is the ith original objective function, f max
+i
+and
+f min
+i
+are the maximum and the minimum values of this
+objective in the dataset. Following a similar way, the scalarized
+source dataset DS is also produced based on DM
+S
+and the
+augmented Tchebycheff function.
+3) GP Modeling: For the selected subproblem, a GP model,
+denoted as N( ˆf(θ), s2(θ)), is constructed to approximate the
+Tchebycheff scalarized objective based on the dataset DT ,
+thereby accelerating the design process:
+ˆf (θ) = ˆµ + 1TC−1  Ftch
+T
+−1ˆµ
+
+(10)
+s2 (θ) = ˆσ2
+
+1 −cTC−1 c + 1 −1TC−1c
+1TC−11
+
+(11)
+ˆµ = 1T C−1Ftch
+T
+1TC−11
+(12)
+ˆσ2 =
+ Ftch
+T
+−1ˆµ
+T C−1  Ftch
+T
+−1ˆµ
+
+N
+(13)
+where ˆf (θ) denotes the predictor, s2 (θ) denotes the uncer-
+tainty of the predictor, 1 is an N-dimensional (i.e., N = 2M)
+vector of ones, C is an (N × N) matrix with the entry
+Cij = k
+
+θ(i)
+T , θ(j)
+T
+
+, and c is an N-dimensional vector with
+the entry ci = k
+
+θ, θ(i)
+T
+
+. Here, k (·, ·) denotes the correlation
+of two vectors and is quantified by a Gaussian kernel function:
+k
+
+θ(i)
+T , θ(j)
+T
+
+= exp
+ 
+−
+N
+X
+k=1
+pk
+θ(i)
+T,k −θ(j)
+T,k
+
+2
+!
+(14)
+where pk is a weight parameter, and θ(i)
+T,k and θ(j)
+T,k are the kth
+dimensions of θ(i)
+T
+and θ(j)
+T , respectively.
+4) Transfer Acquisition Function: In traditional Bayesian
+optimization, an acquisition function is designed using the
+GP model to sample a new decision vector that effectively
+balances exploitation and exploration. To effectively integrate
+data with experience, EIMO introduces a transfer acquisition
+function (denoted as a(θ)), which incorporates DS, represent-
+ing the experience:
+a(θ) = ˆf(θ) −β · s(θ)
+|
+{z
+}
+LCB
+−γt
+|{z}
+Weight
+· log pS(θ)
+|
+{z
+}
+Experience
+.
+(15)
+As shown in (15), a(θ) consists of three critical components:
+the lower confidence bound (LCB), a term representing the
+experience, and a weight term.
+LCB is a commonly used sampling criterion in Bayesian
+optimization, known for its ability to effectively balance ex-
+ploitation and exploration. Specifically, ˆf(θ) is the GP model’s
+predictor, and minimizing it promotes exploitation in regions
+with promising objective values. Conversely, s(θ) quantifies
+the uncertainty of the predictor, and minimizing (−s(θ)) pro-
+motes exploration of regions in the decision space that exhibit
+Algorithm 1 EIMO
+1: t ←0;
+2: Sample
+Ninit
+charging
+protocols
+(denoted
+as
+θ(1)
+T , . . . , θ(Ninit)
+T
+)
+and
+evaluate
+these
+protocols
+by
+the electrochemical-thermal-aging model;
+3: DM
+T ←{(θ(l)
+T , f(θ(l)
+T ))}NT =Ninit+t
+l=1
+;
+4: while t < tmax do
+5:
+Randomly select a weight vector (denoted as w(t));
+6:
+Scalarize DM
+S
+and DM
+T
+based on the augmented
+Tchebycheff
+scalarized
+function
+to
+generate
+two
+datasets: DS and DT ;
+7:
+Build a GP model (i.e., N( ˆf(θ), s2(θ))) based on DT ;
+8:
+Select the Np best decision vectors from DS and DT
+based on the scalarized function values, thus forming
+two populations: PS and PT ;
+9:
+Estimate
+the
+population
+distribution
+of
+PS
+and
+PT , thereby obtaining two Gaussian distributions:
+N(µS, ΣS) and N(µT , ΣT );
+10:
+Calculate γt according to (16);
+11:
+Generate a new protocol (denoted as θ(t)
+T ) by optimizing
+the transfer acquisition function (15) using an evolution-
+ary algorithm;
+12:
+Evaluate θ(t)
+T
+by the electrochemical-thermal-aging
+model;
+13:
+DM
+T ←DM
+T ∪{(θ(t)
+T , f(θ(t)
+T ))} ;
+14:
+t ←t + 1;
+15: end while
+16: Output the nondominated decision vectors (i.e., optimal
+charging protocols) in DM
+T ;
+greater uncertainty. In summary, by appropriately setting β
+and minimizing the LCB, a trade-off between exploitation and
+exploration can be effectively achieved. This facilitates the
+identification of multiple promising regions, thereby enabling
+the efficient discovery of high-quality solutions.
+pS(θ) = N(µS, ΣS) is a Gaussian distribution derived
+from DS, which encapsulates experience from data collected at
+different SOH levels that have been optimized. First, the best
+Np decision vectors are selected from DS. Next, µS and ΣS
+are calculated by using the maximum likelihood estimation
+method [37]. Through the use of log pS(θ), experience from
+other SOH levels can be effectively utilized. Specifically, if
+the SOH levels used to construct pS(θ) are similar to that
+of the current task, the optimal decision vector is likely to
+conform to this distribution. Intuitively, a higher value of
+log pS(θ) indicates a greater likelihood that the decision vector
+θ aligns with pS(θ). Consequently, minimizing (−log pS(θ))
+promotes alignment with this distribution, thereby enabling
+knowledge transfer from previously optimized SOH levels.
+In this manner, experience from other SOH levels can be
+leveraged to accelerate the charging design process.
+The weight γt controls the impact of the experience on the
+optimization process. The rationale for tuning γt is twofold:
+• First, it ensures that the experience has a greater influence
+when DS closely resembles DT ;
+• Additionally, as optimization progresses and more new
+
+7
+data become available, the influence of experience should
+diminish, reducing the risk of negative transfer.
+Based on the above observations, γt is adjusted adaptively as
+follows:
+γt =
+tmax −t
+tmax
+
+·
+τ
+KL(pS(θ)||pT (θ))
+(16)
+where KL(pS(θ)||pT (θ)) is the Kullback-Leibler (KL) di-
+vergence to quantify the similarity between DS and DT ,
+pT (θ) is derived from DT in the same manner as pS(θ) is
+derived from DS, tmax is the maximum iteration number, and
+τ is a preset constant. As shown in (16), γt is influenced
+by both the KL divergence and the iteration number t. The
+inclusion of the KL divergence term is intended to encourage
+EIMO to transfer more experience when DS and DT exhibit
+substantial similarity. Note that the smaller the KL divergence,
+the higher the similarity between DS and DT . Additionally,
+the incorporation of t is designed to guide EIMO towards
+predominantly relying on the experience during the initial
+stages of optimization, gradually reducing its impact as the
+optimization progresses. This adjustment strategy is consistent
+with the aforementioned analysis.
+Finally, the transfer acquisition function is solved using an
+evolutionary algorithm, resulting in a new protocol (denoted as
+θ(t)
+T ). Afterward, θ(t)
+T
+is evaluated using the electrochemical-
+thermal-aging model and then appended to DM
+T . The above
+procedures are repeated until the computational resources are
+exhausted (i.e., t ≥tmax). In summary, the whole process of
+EIMO is outlined in Algorithm 1.
+Remark 1: In Eq. (16), both pS and pT are estimated
+from finite samples, which may introduce estimation uncer-
+tainty in the KL divergence. In our framework, however, the
+KL divergence is not used as a precise statistical estimator,
+but rather as a relative discrepancy measure to guide the
+Bayesian optimization process. Specifically, the KL divergence
+is evaluated consistently across candidate charging protocols
+using the same estimation procedure and sample size. As
+a result, although absolute KL values may be affected by
+finite-sample noise, the relative ordering and trend information
+that are relevant for acquisition optimization remain robust.
+Moreover, the Bayesian optimization framework naturally
+tolerates moderate noise in objective evaluations through its
+probabilistic surrogate modeling. Therefore, the finite-sample
+estimation of pS and pT does not compromise the effectiveness
+of EIMO, while providing a practical and informative metric
+for distributional deviation.
+Remark 2: To the best of our knowledge, transfer opti-
+mization has rarely been explored in the context of battery
+charging optimization. In contrast, transfer learning has been
+widely used in battery management systems, particularly for
+tasks such as SOC and SOH estimation [38]. In most studies,
+transfer learning is implemented at the surrogate model level
+through weight transfer between models. Recently, transfer
+learning has been combined with a Wasserstein generative
+adversarial network to optimize the topology of battery cooling
+channels [39], where the generator parameters obtained during
+pre-training are transferred for subsequent fine-tuning. How-
+ever, the problem considered in this work is fundamentally
+TABLE I
+PARAMETERS OF THE ELECTROCHEMICAL-THERMAL-AGING MODEL
+Battery Parameter
+Value
+Nominal capacity
+5 Ah
+Upper cutoff voltage
+4.20 V
+Lower cutoff voltage
+2.50 V
+Length
+70 mm
+Diameter
+21 mm
+Ambient temperature
+298.15 K
+TABLE II
+PARAMETER SETTINGS OF EIMO
+EIMO Parameter
+Value
+η
+0.05
+Ninit
+20
+NS
+1000
+Np
+20
+τ
+5
+β
+0.5
+tmax
+200
+different, as it focuses on improving the acquisition function,
+which plays a more critical role in guiding the search process
+in optimization tasks. Additionally, compared with warm-
+start Bayesian optimization, EIMO does not directly utilize
+all available experience. Instead, according to Eq. (15), it
+selectively exploits useful experience while reducing the risk
+of negative transfer.
+Remark 3: In EIMO, the experience distribution is modeled
+as a Gaussian model fitted to the top Np solutions. The reasons
+are as follows. From a Bayesian optimization perspective,
+the objective of modeling optimization experience is not to
+construct an accurate global surrogate or density estimator,
+but rather to progressively localize and bias the search toward
+promising regions of the decision space. In this context, the
+Gaussian model serves as a compact and tractable repre-
+sentation of elite solutions for guiding experience transfer,
+rather than a precise characterization of the underlying solution
+distribution. Although the global distribution of high-quality
+charging protocols may be multimodal or highly nonlinear, the
+experience distribution is fitted only to the top Np solutions,
+which typically concentrate in a relatively localized region.
+Capturing the dominant mean and covariance of this region is
+sufficient for the purpose of accelerating convergence, even if
+finer multimodal structures are not explicitly represented. We
+agree that more expressive models, such as Gaussian mixture
+models or nonparametric density estimators, could provide
+a richer representation of multimodal experience. However,
+these approaches would substantially increase modeling and
+computational complexity, while offering limited additional
+benefit for the primary goal of region localization in Bayesian
+optimization. Importantly, the proposed EIMO framework is
+not inherently tied to a Gaussian assumption, and alternative
+experience representations could be incorporated in a plug-in
+manner as future extensions.
+
+8
+Fig. 5. Optimal charging protocol sets at different SOH levels.
+TABLE III
+REPRESENTATIVE OPTIMAL CHARGING PROTOCOLS AND SIMULATION
+RESULTS
+Protocol Parameters
+tc/s
+Tp/K
+Qs/%
+A
+1.20/1.00/0.60/0.40/0.30/0.10
+2880
+6.88
+1.46
+B
+0.40/0.40/0.40/0.13/0.26/0.41
+7200
+1.39
+0.66
+C
+0.40/1.00/0.59/0.40/0.30/0.10
+5284
+4.56
+0.57
+D
+1.20/1.00/0.60/0.40/0.30/0.10
+2016
+6.54
+0.75
+E
+0.66/0.42/0.40/0.10/0.26/0.44
+4686
+1.72
+0.39
+F
+0.40/0.89/0.59/0.39/0.30/0.11
+3781
+3.77
+0.31
+* The protocol parameters: cc1/cc2/cc3/∆s1/∆s2/∆s3
+V. VALIDATION AND DISCUSSION
+A. Simulation Setup
+To verify the effectiveness of EIMO, it was used to optimize
+the charging protocols for a lithium-ion battery at different
+SOH levels. As is widely adopted in many fast charging
+design studies, including Bayesian optimization methods [4],
+[26], reinforcement learning approaches [8], machine learning-
+based methods [23], and control-oriented strategies [40], [41],
+a battery model is first calibrated using experimental data, and
+optimal charging protocols are subsequently derived through
+simulation. Following this established paradigm, we developed
+an electrochemical-thermal-aging model in PyBaMM, with
+model parameters identified from experimental data obtained
+from a real lithium-ion battery. All charging protocol opti-
+mization and performance comparisons were then carried out
+through simulations based on this experimentally validated
+model. The key parameters of the electrochemical-thermal-
+aging model are presented in Table I, while the parameter
+settings for EIMO are detailed in Table II. The upper bounds
+of cc1, cc2, and cc3 are 1.2, 1.0, and 0.8, respectively, while
+their lower bounds are all set to 0.4. The battery is charged
+from 0 to a SOC of 0.8. The upper bounds of ∆s1 and
+∆s2 are 0.4 and 0.3, respectively, and their lower bounds
+are both 0.1. The charge quantity of the third stage is given
+by (0.8 −∆s1 −∆s2). Moreover, an effective evolutionary
+algorithm, namely differential evolution [42], was employed to
+minimize the transfer acquisition function in (15). Specifically,
+the differential evolution optimizer was configured with a pop-
+ulation size of 30 and a maximum of 20 generations, resulting
+(a)
+(b)
+(c)
+(d)
+Fig. 6. Charging processes of fast charging protocols.
+(a)
+(b)
+(c)
+(d)
+Fig. 7. Charging processes of smooth charging protocols.
+in 600 evaluations of the acquisition function. It is worth
+noting that each acquisition function evaluation involves only
+surrogate model predictions and probability density computa-
+tions, which are computationally inexpensive. Therefore, the
+computational overhead associated with solving the acquisition
+function using differential evolution is negligible compared
+with the cost of high-fidelity battery simulations. Moreover,
+alternative optimization algorithms can be readily employed
+to solve the transfer acquisition function, potentially further
+improving computational efficiency.
+B. Optimal Charging Protocol Set
+As stated in Section II, the charging design problem that
+considers various user demands is typically formulated as
+a CMOP. Moreover, user preferences for each objective are
+often difficult to quantify precisely. Thus, providing a set of
+Pareto nondominated charging protocols is a promising way
+to accommodate diverse user preferences. Similar to [24], for
+performance assessment, the optimal charging protocol sets
+at different SOH levels were individually obtained by EIMO
+using adequate computational resources (i.e., 1,000 simulation
+
+9
+(a)
+(b)
+(c)
+Fig. 8. Number of optimal charging protocols varies with the number of simulation evaluations in a typical run. (a) Using experience from SOH=1.0. (b)
+Using experience from SOH=0.9. (c) Using experience from SOH=0.8.
+(a)
+(b)
+(c)
+Fig. 9. HV value varies with the number of simulation evaluations in a typical run. (a) Using experience from SOH=1.0. (b) Using experience from SOH=0.9.
+(c) Using experience from SOH=0.8.
+TABLE IV
+PERFORMANCE COMPARISON BETWEEN EIMO AND THE OTHER THREE COMPETITORS IN TERMS OF COMPUTATIONAL EFFICIENCY AND HV
+Case
+SOH=1.0→SOH=0.7
+SOH=0.9→SOH=0.7
+SOH=0.8→SOH=0.7
+ParEGO
+DISK
+PIMD
+EIMO
+ParEGO
+DISK
+PIMD
+EIMO
+ParEGO
+DISK
+PIMD
+EIMO
+Computational time (s)
+380.3
+(±32.9)
+304.4
+(±17.7)
+298.0
+(±18.5)
+208.6
+(±7.7)
+360.2
+(±10.8)
+295.5
+(±16.9)
+300.7
+(±13.1)
+209.6
+(±7.6)
+369.8
+(±16.9)
+314.4
+(±10.1)
+327.4
+(±11.1)
+224.7
+(±13.6)
+Simulation evaluations
+133.8
+(±6.9)
+146.2
+(±7.3)
+139.6
+(±9.3)
+119.8
+(±3.3)
+132.6
+(±3.6)
+142.0
+(±7.3)
+135.6
+(±5.7)
+119.4
+(±3.8)
+134.6
+(±6.8)
+150.2
+(±4.8)
+144.4
+(±5.6)
+125.4
+(±7.3)
+HV value
+0.7409
+(±2.5E-3)
+0.7273
+(±1.9E-2)
+0.6957
+(±1.2E-2)
+0.7426
+(±4E-4)
+0.7413
+(±1.4E-3)
+0.7359
+(±4.2E-3)
+0.6880
+(±2.4E-2)
+0.7436
+(±8E-4)
+0.7407
+(±2E-3)
+0.7362
+(±5.6E-3)
+0.6976
+(±1.2E-2)
+0.7468
+(±6E-4)
+evaluations). As shown in Fig. 5, the optimal charging protocol
+sets vary across different SOH levels. In other words, for an
+operating battery, the optimal charging protocols should be
+updated to account for aging degradation. Additionally, the
+sets of two successive SOH levels are closely related to each
+other. Specifically, there are 763, 784, 792, and 782 optimal
+charging protocols corresponding to the SOH levels of 0.7, 0.8,
+0.9, and 1.0, respectively. To better observe the similarities and
+differences between the optimal charging protocols at different
+SOH levels, three protocols were sampled from the optimal
+charging protocol sets corresponding to the SOH levels of 0.7
+and 1.0, respectively. Of these protocols, two are designed for
+fast charging, and the other four for smooth charging. The
+details of these six protocols can be found in Table III. As
+shown in Table III, three-stage constant current protocols were
+considered in this study. Note that the proposed EIMO serves
+as a general optimization framework, capable of optimizing
+other types of charging protocols as well.
+The charging processes of the fast charging protocols are
+shown in Fig. 6. Protocols A and D prioritize minimizing
+charging time, requiring high current input throughout the
+entire charging process. Since the input current constraint
+is relatively tight while the voltage constraint is relatively
+loose, the fast-charging strategies remain largely consistent
+across different SOH levels, with each stage operated nearly
+at the maximum allowable charging current. Fig. 7 presents
+the charging processes of the smooth charging protocols.
+Protocols B and E aim to reduce the temperature rise of
+the battery, requiring the lowest possible current during all
+stages to keep heat generation minimal. Protocols C and F
+focus on reducing lithium-ion capacity loss. They use high
+current during the mid-range SOC, usually in the second or
+third stages. It is consistent with the degradation mechanism
+in the battery model. It can be observed that the charging
+
+10
+(a)
+(b)
+(c)
+Fig. 10. HV comparison based on 100 optimal solutions obtained by EIMO,
+ParEGO, DISK, and PIMD over multiple independent runs. Markers denote
+mean values, and error bars represent the corresponding variability (e.g.,
+standard deviation) (a) Using experience from SOH=1.0. (b) Using experience
+from SOH=0.9. (c) Using experience from SOH=0.8.
+protocols across different SOH levels exhibit differences under
+the two conditions. In addition to the optimal charging pro-
+tocols addressing these three objectives, the optimal charging
+protocol set encompasses a variety of balanced protocols that
+accommodate diverse user demands. In summary, the optimal
+charging protocols show both consistency and variation across
+different SOH levels, making this problem well-suited to be
+addressed within a transfer optimization framework.
+C. Performance Comparison
+The performance of EIMO was compared with three repre-
+sentative methods. Among them, ParEGO [43] is a widely used
+decomposition-based Bayesian optimization algorithm, while
+DISK [44] and PIMD [45] are two recently proposed state-
+of-the-art methods for expensive multiobjective optimization.
+Specifically, these four methods were used to optimize the
+charging protocols of a lithium-ion battery with an SOH level
+of 0.7, leveraging the experience from higher SOH levels:
+SOH = 1.0, SOH = 0.9, and SOH = 0.8. As shown in
+Fig. 8, the number of optimal charging protocols obtained by
+EIMO consistently exceeded that obtained by the other three
+competitors across all evaluations. Additionally, the advantage
+becomes more significant as the number of evaluations in-
+creases. Moreover, experience from a closer SOH level proves
+to be more beneficial. The reason is intuitive: the battery’s
+internal states are more similar between two closer SOH
+levels. The simulation results demonstrate that, by leveraging
+transferred experience, EIMO effectively reduces ineffective
+exploration, enabling rapid convergence to the Pareto front
+and producing a dense set of optimal charging protocols.
+(a)
+(b)
+(c)
+Fig. 11. HV value of all solutions obtained by EIMO with different similarity
+metrics. (a) Using experience from SOH=1.0. (b) Using experience from
+SOH=0.9. (c) Using experience from SOH=0.8.
+For a quantitative comparison, the Hypervolume (HV) val-
+ues achieved by ParEGO and EIMO according to the number
+of simulation evaluations are shown in Fig. 9. Note that
+hypervolume (HV) is a widely used performance metric in
+multiobjective optimization, particularly when the true Pareto
+front is unknown, as it simultaneously evaluates both con-
+vergence and diversity. A higher HV value indicates that the
+obtained optimal charging protocol set is more uniform and
+closer to the true optimal set. As shown in Fig. 9, without
+utilizing the experience from other SOH levels, the HV values
+achieved by the other three competitors are consistently lower
+than those achieved by EIMO.
+Furthermore, we compared the computational time and
+simulation evaluations required by these methods to obtain
+100 optimal charging protocols in Table IV. The HV value was
+also calculated for further analysis. Compared with ParEGO,
+EIMO reduces computational time by 45.15%, 41.81%, and
+39.24% in the three cases, respectively. That is to say, although
+constructing the GP model incurs a certain computational
+overhead, EIMO significantly reduces the number of sim-
+ulation evaluations by leveraging experience. Consequently,
+the overall computational time is reduced. The error bars in
+Fig. 10 suggest that EIMO demonstrates superior stability
+compared to the competitors, consistently achieving higher
+HV values with lower standard deviation. The p-values of
+the Wilcoxon signed-rank test for EIMO compared with the
+other competitors in the three cases are {0.064453, 0.001953,
+0.001953}, {0.003906, 0.001953, 0.001953}, and {0.001953,
+0.001953, 0.001953}, respectively, further supporting the sta-
+tistical significance of the observed performance differences.
+In summary, by leveraging the experience from other SOH
+levels, EIMO can significantly improve efficiency. It is inter-
+esting to find that with the same number of optimal charging
+protocols, the set obtained by EIMO owns higher HV values
+than that achieved by ParEGO. It implies that the quality of
+the charging protocols obtained by EIMO is higher than that
+achieved by ParEGO. It is worth noting that, in our study, a set
+
+11
+(a)
+(b)
+(c)
+Fig. 12.
+HV value of all solutions obtained by EIMO and the competitors
+in which the competitors were initialized using the final population obtained
+at the previous SOH level. (a) Using experience from SOH=1.0. (b) Using
+experience from SOH=0.9. (c) Using experience from SOH=0.8.
+of Pareto nondominated charging protocols is obtained rather
+than a single solution. As a result, the approach requires more
+simulation evaluations compared to methods that generate only
+one charging protocol. Nevertheless, it remains more efficient
+than recently proposed Bayesian optimization methods [25],
+[26], which typically require around 20 simulation evaluations
+per charging protocol.
+D. Further Discussions
+Effectiveness of the Similarity Metric: To test the robustness
+of the similarity metric, we implemented a variant of EIMO,
+termed EIMO-Wd, in which the KL divergence is replaced
+with the Wasserstein distance. The comparison results between
+EIMO-Wd and the KL-based variant (denoted as EIMO-KL)
+are presented in Fig. 11. The final HV values of EIMO-Wd
+in the three cases are {0.7472, 0.7486, 0.7497}, while those
+of EIMO-KL are {0.7456, 0.7476, 0.7494}. These results
+indicate that the two methods achieve highly comparable
+performance. As discussed in Remark 1, the similarity metric
+is not intended to serve as a precise statistical estimator of
+distributional difference, but rather as a relative discrepancy
+measure to bias the Bayesian optimization process toward
+promising regions. Therefore, alternative similarity metrics
+can also be adopted without significantly affecting the overall
+optimization performance.
+Effectiveness of the Transfer Learning of EIMO: To evaluate
+the transfer learning capability of EIMO, we conducted an
+additional comparison in which the competing methods were
+initialized using the final population obtained at the previous
+SOH level, serving as a form of transfer learning. The results
+in Fig. 12 show that EIMO consistently outperforms the
+competing methods across all evaluation budgets. Additionally,
+the final HV values obtained by EIMO are higher than those of
+the competing methods. The results indicate that the transfer
+mechanism in EIMO is particularly effective for cross-SOH
+fast charging design. Therefore, the observed performance
+(a)
+(b)
+Fig. 13. HV value of all solutions obtained by EIMO and ParEGO for different
+batteries. (a) Ecker2015 battery. (b) O’Regan2022 battery.
+improvements cannot be solely attributed to the availability of
+transferred experience. Indeed, the core contribution of EIMO
+lies in being among the first attempts to leverage optimization
+experience from different SOH levels for fast charging design.
+The practical motivation of this work is to address realistic
+battery aging scenarios, in which historical charging optimiza-
+tion data at higher SOH levels are naturally available and can
+be exploited to improve efficiency at lower SOH levels. This
+design choice does not contradict the effectiveness of EIMO,
+but rather reflects the practical setting in which transferable
+experience can be naturally utilized.
+Performance of EIMO Across Different Batteries: To test the
+capability of EIMO across different batteries, we conducted
+two additional experiments in which the optimization expe-
+rience obtained from the studied battery is transferred to the
+O’Regan2022 [46] and Ecker2015 [47] batteries, respectively.
+Specifically, the O’Regan2022 battery is an 18650 cell with a
+capacity of approximately 5 Ah, which is similar to the battery
+used in the original study. In contrast, the Ecker2015 battery
+is a small-capacity cell with a nominal capacity of 0.156 Ah.
+The HV convergence curves in Fig. 13 show that EIMO can
+accelerate the optimization process when the battery types are
+similar. When the battery characteristics differ substantially,
+the performance of EIMO remains comparable to that of
+conventional optimization. This observation is consistent with
+the fundamental principle of transfer optimization, where
+knowledge transfer is most beneficial when the source and
+target tasks share a higher degree of similarity.
+Influence of the Number of Charging Stages: In principle,
+increasing the number of charging stages allows the charging
+protocols to be more flexible, which may lead to improved
+optimization results. However, a larger number of stages also
+increases the dimensionality of the optimization problem and
+therefore makes the optimization process more challenging. To
+identify a more appropriate choice of M, we evaluated the per-
+formance of EIMO under a larger number of charging stages
+by setting M = 5. In this case, the optimization problem
+involves ten decision variables, including five SOC switching
+thresholds and five charging currents. The SOC thresholds
+define the transitions between charging stages, while the
+charging currents determine the current applied at each stage.
+The corresponding variable bounds were defined to ensure
+physically meaningful charging protocols and to maintain the
+overall SOC constraint. Based on the above configuration, we
+conducted additional optimization simulations and compared
+
+12
+(a)
+(b)
+(c)
+Fig. 14.
+HV value of all solutions obtained by EIMO and ParEGO for
+charging design with M = 5. (a) Using experience from SOH=1.0. (b) Using
+experience from SOH=0.9. (c) Using experience from SOH=0.8.
+the convergence behaviors of ParEGO and EIMO. The results
+are shown in Fig. 14. The results indicate that EIMO still
+outperforms ParEGO when the number of charging stages in-
+creases. However, the performance improvement becomes less
+pronounced as the dimensionality of the problem increases.
+Considering the above observations and the recommendations
+in previous studies [4], [6], setting M
+= 3 provides a
+good balance between optimization flexibility and computa-
+tional complexity in practice. Importantly, the proposed EIMO
+framework itself does not rely on a fixed number of charging
+stages. The main contribution of this work is the experience-
+driven acquisition strategy that enables efficient transfer of
+optimization knowledge across different SOH levels. From a
+methodological perspective, EIMO can be naturally extended
+to a variable number of stages by redefining the decision
+vector accordingly. Similarly, continuous charging profiles can
+be approximated using piecewise-constant or piecewise-linear
+parameterizations, where the corresponding parameters can be
+optimized within the same Bayesian optimization framework.
+Effectiveness of the Objective Normalization: The normal-
+ization of objectives in our framework is not an ad-hoc oper-
+ation, but an integral part of the Tchebycheff decomposition-
+based multiobjective formulation, which requires objectives
+with different physical scales to be mapped onto a comparable
+range. We compared the performance of EIMO using min-max
+normalization with two variants: one using Z-score normaliza-
+tion and the other without normalization. The results in Fig.
+15 show that min-max normalization performs better than the
+other two methods. The reasons are as follows. Min-max nor-
+malization is employed to balance heterogeneous objectives so
+that no single objective dominates the scalarized optimization
+due to scale differences. Although the min-max values may
+be less stable in early iterations when the dataset is small,
+Bayesian optimization primarily relies on relative comparisons
+among candidate solutions, and all objectives are normalized
+consistently at each iteration. As a result, moderate early-
+stage variations in normalization have a limited impact on the
+(a)
+(b)
+(c)
+Fig. 15. HV value of all solutions obtained by EIMO variants with different
+normalization strategies. (a) Using experience from SOH=1.0. (b) Using
+experience from SOH=0.9. (c) Using experience from SOH=0.8.
+Fig. 16. HV value of all solutions obtained by EIMO for different values of
+τ.
+optimization trajectory. Moreover, the proposed experience-
+enhanced framework leverages historical optimization data
+from higher SOH levels, which provides a more stable initial
+normalization reference and further mitigates the effect of
+early-stage statistical uncertainty. As optimization proceeds
+and more samples are collected, the min–max estimates rapidly
+stabilize. Z-score normalization reflects the deviation of ob-
+jective values from the current population mean rather than
+the relative distance to an ideal reference level. When com-
+bined with the Tchebycheff decomposition, this property may
+weaken the dominance of the maximum weighted deviation
+term to some extent, thereby affecting the consistency of
+solution ranking and the subsequent optimization efficiency.
+Without normalization, the numerical ranges and variation
+scales of different objectives are typically inconsistent. As
+a result, the dominant term in the Tchebycheff aggregation
+is more likely to be influenced by objectives with larger
+numerical scales, causing the scalarization result to be biased
+toward those objectives. Consequently, the relative tradeoff
+among multiple objectives may not be adequately reflected.
+Sensitivity of the Parameter τ: The parameter τ in Eq. (16)
+
+13
+controls the transfer process. A larger value of τ leads to
+stronger transfer, and vice versa. A value that is too small
+cannot fully utilize the experience, while a value that is too
+large may lead to negative transfer. We evaluated the sensitivity
+of τ by varying its value. The results in Fig. 16 support this
+observation, showing that τ = 5 achieves the best performance
+among the tested values. Therefore, τ = 5 was used in our
+simulations.
+Effectiveness of Differential Evolution for Acquisition Func-
+tion Optimization: As discussed previously, setting the number
+of charging stages to M = 3 leads to a well-performing
+optimization problem with a six-dimensional decision space,
+which is well-suited for differential evolution [42]. For the
+fast charging design problem, the primary computational cost
+arises from battery model simulations, while the cost of
+optimizing the acquisition function is relatively small (less
+than 8% of the total cost). It is worth noting that the proposed
+EIMO framework is flexible, and other optimization methods
+can also be employed for acquisition function optimization.
+To further validate the choice of differential evolution, we
+compared it with a classical optimization method, namely
+multi-start sequential quadratic programming (MS-SQP). For
+the case of using experience from SOH = 0.8, the experimental
+results show that differential evolution achieves an HV value
+of 0.746143 with 120 evaluations (245.32 s), while MS-SQP
+obtains 0.745280 with 128 evaluations (259.84 s). This indi-
+cates that differential evolution achieves better performance
+with fewer evaluations, demonstrating advantages in both op-
+timization efficiency and solution quality. Overall, differential
+evolution is a suitable choice for this problem.
+VI. CONCLUSION
+In this paper, an experience-informed multiobjective opti-
+mizer called EIMO was proposed for the charging design
+of lithium-ion batteries. In EIMO, Bayesian optimization is
+adopted to leverage the complete information from histori-
+cal data, accelerating the charging design process. By em-
+bedding the Riesz s-energy-based method into the Bayesian
+optimization framework, EIMO can effectively handle a set
+of charging objectives. Furthermore, it utilizes experience
+from other SOH levels through a specially designed transfer
+acquisition function, where the experience data are represented
+using a probability distribution. Extensive experiments and
+simulations have demonstrated that EIMO can generate a set
+of optimal charging protocols that meet diverse user demands.
+Additionally, it is more accurate and faster than methods that
+do not utilize experience, such as ParEGO and two state-of-
+the-art methods.
+REFERENCES
+[1] F. Wu, J. Maier, and Y. Yu, “Guidelines and trends for next-generation
+rechargeable lithium and lithium-ion batteries,” Chemical Society Re-
+views, vol. 49, no. 5, pp. 1569–1614, 2020.
+[2] T. Kim, W. Song, D.-Y. Son, L. K. Ono, and Y. Qi, “Lithium-ion
+batteries: outlook on present, future, and hybridized technologies,”
+Journal of Materials Chemistry A, vol. 7, no. 7, pp. 2942–2964, 2019.
+[3] Y. Cao, E. Tian, H. Chen, and H. Chen, “Multi-fault diagnosis for series-
+connected lithium-ion battery packs based on improved sensor topology
+and correlation coefficient method,” IEEE Transactions on Automation
+Science and Engineering, 2024.
+[4] B. Jiang, M. D. Berliner, K. Lai, P. A. Asinger, H. Zhao, P. K. Herring,
+M. Z. Bazant, and R. D. Braatz, “Fast charging design for lithium-ion
+batteries via bayesian optimization,” Applied Energy, vol. 307, Article:
+118244, 2022.
+[5] A. Yadu, S. S. Brahmadathan, S. Agarwal, S. DB, S. Lee, and Y. Kim,
+“On-device personalized charging strategy with an aging model for
+lithium-ion batteries using deep reinforcement learning,” IEEE Trans-
+actions on Automation Science and Engineering, 2023.
+[6] B.-C. Wang, Y.-Y. Mao, Y. Wang, and H.-X. Li, “Gaussian process-
+accelerated multiobjective evolutionary design of charging process con-
+sidering multiple user preferences,” IEEE Transactions on Industrial
+Informatics, in press, 2024.
+[7] P. M. Attia, A. Grover, N. Jin, K. A. Severson, T. M. Markov, Y.-H.
+Liao, M. H. Chen, B. Cheong, N. Perkins, Z. Yang et al., “Closed-
+loop optimization of fast-charging protocols for batteries with machine
+learning,” Nature, vol. 578, no. 7795, pp. 397–402, 2020.
+[8] X. Dong, H. Xv, T. Pan, X. Liu, J. Tian, and P. Wang, “Multi-objective
+charging optimization of lithium-ion batteries considering electrical,
+thermal, and aging behaviors using deep reinforcement learning,” IEEE
+Transactions on Automation Science and Engineering, 2025.
+[9] C. D. Korkas, S. Baldi, S. Yuan, and E. B. Kosmatopoulos, “An adaptive
+learning-based approach for nearly optimal dynamic charging of electric
+vehicle fleets,” IEEE Transactions on Intelligent Transportation Systems,
+vol. 19, no. 7, pp. 2066–2075, 2017.
+[10] M. Rouholamini, C. Wang, H. Nehrir, X. Hu, Z. Hu, H. Aki, B. Zhao,
+Z. Miao, and K. Strunz, “A review of modeling, management, and
+applications of grid-connected li-ion battery storage systems,” IEEE
+Transactions on Smart Grid, vol. 13, no. 6, pp. 4505–4524, 2022.
+[11] K. Liu, C. Zou, K. Li, and T. Wik, “Charging pattern optimization
+for lithium-ion batteries with an electrothermal-aging model,” IEEE
+Transactions on Industrial Informatics, vol. 14, no. 12, pp. 5463–5474,
+2018.
+[12] X. Hu, Y. Zheng, X. Lin, and Y. Xie, “Optimal multistage charging
+of NCA/graphite lithium-ion batteries based on electrothermal-aging
+dynamics,” IEEE Transactions on Transportation Electrification, vol. 6,
+no. 2, pp. 427–438, 2020.
+[13] X. Lin, X. Hao, Z. Liu, and W. Jia, “Health conscious fast charging
+of li-ion batteries via a single particle model with aging mechanisms,”
+Journal of Power Sources, vol. 400, pp. 305–316, 2018.
+[14] X. Lin, S. Wang, and Y. Kim, “A framework for charging strategy
+optimization using a physics-based battery model,” Journal of Applied
+Electrochemistry, vol. 49, pp. 779–793, 2019.
+[15] C. Zou, X. Hu, Z. Wei, T. Wik, and B. Egardt, “Electrochemical esti-
+mation and control for lithium-ion battery health-aware fast charging,”
+IEEE Transactions on Industrial Electronics, vol. 65, no. 8, pp. 6635–
+6645, 2017.
+[16] G. Hwang, N. Sitapure, J. Moon, H. Lee, S. Hwang, and J. S.-I.
+Kwon, “Model predictive control of lithium-ion batteries: Develop-
+ment of optimal charging profile for reduced intracycle capacity fade
+using an enhanced single particle model (spm) with first-principled
+chemical/mechanical degradation mechanisms,” Chemical Engineering
+Journal, vol. 435, p. 134768, 2022.
+[17] M. L. Betalo, I. Ullah, F. B. Tesema, Z. Wu, J. Li, and X. Bai,
+“Generative AI-Driven Multi-Agent DRL for task allocation in UAV-
+Assisted EMPD within 6G-Enabled SAGIN networks,” IEEE Internet
+of Things Journal, 2025.
+[18] M. L. Betalo, S. Leng, A. M. Seid, H. N. Abishu, A. Erbad, and X. Bai,
+“Dynamic charging and path planning for UAV-powered rechargeable
+WSNs using multi-agent deep reinforcement learning,” IEEE Transac-
+tions on Automation Science and Engineering, 2025.
+[19] M. L. Betalo, S. Leng, H. N. Abishu, A. M. Seid, M. Fakirah,
+A. Erbad, and M. Guizani, “Multi-agent DRL-based energy harvesting
+for freshness of data in UAV-assisted wireless sensor networks,” IEEE
+Transactions on Network and Service Management, vol. 21, no. 6, pp.
+6527–6541, 2024.
+[20] M. L. Betalo, S. Leng, H. N. Abishu, F. A. Dharejo, A. M. Seid,
+A. Erbad, R. A. Naqvi, L. Zhou, and M. Guizani, “Multi-agent deep re-
+inforcement learning-based task scheduling and resource sharing for O-
+RAN-empowered multi-UAV-assisted wireless sensor networks,” IEEE
+Transactions on Vehicular Technology, vol. 73, no. 7, pp. 9247–9261,
+2023.
+[21] H. Cao, Y.-Y. Mao, B.-C. Wang, and B. Luo, “Meta-reinforcement
+learning for fast charging design of diverse lithium-ion batteries,”
+Journal of Energy Storage, vol. 154, Article 2026.
+[22] Z. Xiong, B. Luo, B.-C. Wang, X. Xu, and T. Huang, “Multiobjective
+battery charging strategy based on deep reinforcement learning,” IEEE
+
+14
+Transactions on Transportation Electrification, vol. 10, no. 3, pp. 6893–
+6903, 2023.
+[23] Z. Wei, X. Yang, Y. Li, H. He, W. Li, and D. U. Sauer, “Ma-
+chine learning-based fast charging of lithium-ion battery by perceiving
+and regulating internal microscopic states,” Energy Storage Materials,
+vol. 56, pp. 62–75, 2023.
+[24] X. Wang and B. Jiang, “Multi-objective optimization for fast charging
+design of lithium-ion batteries using constrained bayesian optimization,”
+Journal of Power Sources, vol. 584, p. 233602, 2023.
+[25] G. Dong, Y. Feng, Y. Lou, M. Zhang, and J. Wei, “Data-driven
+fast charging optimization for lithium-ion battery using bayesian op-
+timization with fast convergence,” IEEE Transactions on Transportation
+Electrification, 2023.
+[26] B. Jiang, Y. Wang, Z. Ma, and Q. Lu, “Fast charging of lithium-
+ion batteries using deep bayesian optimization with recurrent neural
+network,” IEEE Transactions on Automation Science and Engineering,
+2025.
+[27] B.-C. Wang, H.-X. Li, and H.-D. Yang, “Spatial correlation-based
+incremental learning for spatiotemporal modeling of battery thermal
+process,” IEEE Transactions on Industrial Electronics, vol. 67, no. 4,
+pp. 2885–2893, 2019.
+[28] F. Ju, J. Wang, J. Li, G. Xiao, and S. Biller, “Virtual battery: A
+battery simulation framework for electric vehicles,” IEEE Transactions
+on Automation Science and Engineering, vol. 10, no. 1, pp. 5–15, 2012.
+[29] M. U. Tahir, A. Sangwongwanich, D.-I. Stroe, and F. Blaabjerg,
+“Overview of multi-stage charging strategies for li-ion batteries,” Journal
+of Energy Chemistry, 2023.
+[30] X. Wu, Y. Xia, J. Du, X. Gao, and S. Nikolay, “Multistage constant
+current charging strategy based on multiobjective current optimization,”
+IEEE Transactions on Transportation Electrification, vol. 9, no. 4, pp.
+4990–5001, 2022.
+[31] Z. Wei, Z. Quan, J. Wu, Y. Li, J. Pou, and H. Zhong, “Deep determinis-
+tic policy gradient-drl enabled multiphysics-constrained fast charging
+of lithium-ion battery,” IEEE Transactions on Industrial Electronics,
+vol. 69, no. 3, pp. 2588–2598, 2021.
+[32] S. J. Moura, F. B. Argomedo, R. Klein, A. Mirtabatabaei, and M. Krstic,
+“Battery state estimation for a single particle model with electrolyte
+dynamics,” IEEE Transactions on Control Systems Technology, vol. 25,
+no. 2, pp. 453–468, 2016.
+[33] H. Shi, L. Wang, S. Wang, C. Fernandez, X. Xiong, B. E. Dablu,
+and W. Xu, “A novel lumped thermal characteristic modeling strategy
+for the online adaptive temperature and parameter co-estimation of
+vehicle lithium-ion batteries,” Journal of Energy Storage, vol. 50, Article
+104309, 2022.
+[34] G. Suri and S. Onori, “A control-oriented cycle-life model for hybrid
+electric vehicle lithium-ion batteries,” Energy, vol. 96, pp. 644–653,
+2016.
+[35] Q. Ouyang, R. Fang, G. Xu, and Y. Liu, “User-involved charging control
+for lithium-ion batteries with economic cost optimization,” Applied
+Energy, vol. 314, p. 118878, 2022.
+[36] J. Blank, K. Deb, Y. Dhebar, S. Bandaru, and H. Seada, “Generating
+well-spaced points on a unit simplex for evolutionary many-objective
+optimization,” IEEE Transactions on Evolutionary Computation, In
+press.
+[37] J.-X. Pan, K.-T. Fang, J.-X. Pan, and K.-T. Fang, “Maximum likelihood
+estimation,” Growth Curve Models and Statistical Diagnostics, pp. 77–
+158, 2002.
+[38] L. Shen, J. Li, L. Meng, L. Zhu, and H. T. Shen, “Transfer learning-
+based state of charge and state of health estimation for li-ion batteries:
+A review,” IEEE Transactions on Transportation Electrification, vol. 10,
+no. 1, pp. 1465–1481, 2023.
+[39] Q. Zhong, L. Gao, W. Li, and A. Garg, “Transfer learning based topology
+optimization of battery cooling channels design for improved thermal
+performance,” Applied Thermal Engineering, vol. 263, p. 125400, 2025.
+[40] Y. Li, T. Wik, Y. Huang, and C. Zou, “Optimization-Free Fast Charging
+for Lithium-Ion Batteries Using Model Inversion Techniques,” IFAC-
+PapersOnLine, vol. 56, no. 2, pp. 6636–6641, 2023.
+[41] Y. Li, D. M. Vilathgamuwa, E. Wikner, Z. Wei, X. Zhang, T. Thiringer,
+T. Wik, and C. Zou, “Electrochemical model-based fast charging:
+Physical constraint-triggered pi control,” IEEE Transactions on Energy
+Conversion, vol. 36, no. 4, pp. 3208–3220, 2021.
+[42] V. Feoktistov, Differential evolution.
+Springer, 2006.
+[43] J. Knowles, “Parego: A hybrid algorithm with on-line landscape ap-
+proximation for expensive multiobjective optimization problems,” IEEE
+Transactions on Evolutionary Computation, vol. 10, no. 1, pp. 50–66,
+2006.
+[44] Z. Zhang, Y. Wang, G. Sun, and T. Pang, “A distribution information-
+based kriging-assisted evolutionary algorithm for expensive many-
+objective optimization problems,” IEEE Transactions on Evolutionary
+Computation, 2024.
+[45] Y. Li, W. Li, S. Li, and Y. Zhao, “An infill sampling criterion based
+on improvement of probability and mapping crowding distance for
+expensive multi/many-objective optimization,” Engineering Applications
+of Artificial Intelligence, vol. 133, Article 108616, 2024.
+[46] K. O’Regan, F. B. Planella, W. D. Widanage, and E. Kendrick,
+“Thermal-electrochemical parameters of a high energy lithium-ion cylin-
+drical battery,” Electrochimica Acta, vol. 425, Article 140700, 2022.
+[47] M. Ecker, T. K. D. Tran, P. Dechent, S. K¨abitz, A. Warnecke, and D. U.
+Sauer, “Parameterization of a physico-chemical model of a lithium-ion
+battery: I. Determination of parameters,” Journal of The Electrochemical
+Society, vol. 162, no. 9, pp. A1836–A1848, 2015.

@@ -1,0 +1,562 @@
+- generic [active] [ref=f6e1]:
+  - generic: LLMBO-MO · IEEE TTE 2026 · 01 / 12
+  - generic [ref=f6e2]:
+    - generic [ref=f6e3]:
+      - generic [ref=f6e5]:
+        - generic [ref=f6e6]:
+          - generic [ref=f6e7]: Paper talk · 15 min
+          - generic [ref=f6e9]: Submission · IEEE Transactions onTransportation ElectrificationAnonymous review draft
+        - generic [ref=f6e10]: Batteries · Multiobjective Bayesian Optimization · LLMs
+        - heading [level=1] [ref=f6e11]:
+          - text: Charging protocols from a model that
+          - emphasis [ref=f6e12]: reads
+          - text: batteries first.
+        - paragraph [ref=f6e13]: LLMBO-MO plugs a battery-aware LLM into a ParEGO-style MOBO loop, converting qualitative charging knowledge into a diversified initial portfolio and weight-conditioned regional restarts — so the budget of expensive simulator calls goes where it matters.
+        - generic [ref=f6e14]:
+          - generic [ref=f6e15]:
+            - generic [ref=f6e16]: Problem
+            - generic [ref=f6e17]: 3-objective MCC protocol
+          - generic [ref=f6e18]:
+            - generic [ref=f6e19]: Backbone
+            - generic [ref=f6e20]: ParEGO · MOBO · GP–EI
+          - generic [ref=f6e21]:
+            - generic [ref=f6e22]: Budget
+            - generic [ref=f6e23]: 56 simulator calls
+          - generic [ref=f6e24]:
+            - generic [ref=f6e25]: Gain over ParEGO
+            - generic [ref=f6e26]: +9.3% HV (Chen2020)
+      - generic [ref=f6e27]: I₁ · I₂ · I₃
+      - generic [ref=f6e34]: 01 / 12
+    - generic [ref=f6e35]:
+      - generic [ref=f6e37]:
+        - generic [ref=f6e38]: Section 1 · What we're trying to design
+        - heading "A charging protocol is a sequence of three currents — and three conflicts at once." [level=2] [ref=f6e39]
+        - paragraph [ref=f6e40]:
+          - text: "We optimize a multistage constant-current (MCC) protocol with K = 3 stages: each stage carries a current"
+          - generic [ref=f6e41]:
+            - text: I
+            - subscript [ref=f6e42]: k
+          - text: and a delivered SOC span
+          - generic [ref=f6e43]:
+            - text: Δs
+            - subscript [ref=f6e44]: k
+          - text: . The simulator evaluates the full charge cycle — coupled electrochemistry, thermal, and a degradation proxy — and returns a 3-vector.
+        - generic [ref=f6e45]:
+          - generic [ref=f6e46]:
+            - generic [ref=f6e47]:
+              - text: min · t
+              - subscript [ref=f6e48]: c
+            - generic [ref=f6e49]: Objective 1
+            - generic [ref=f6e50]: Charging time
+            - generic [ref=f6e51]:
+              - text: t
+              - subscript [ref=f6e52]: c
+              - text: · seconds
+            - paragraph [ref=f6e53]: Higher currents shorten the charge, but each amp also drags heat and side-reaction severity with it. The fastest protocol is rarely the durable one.
+          - generic [ref=f6e54]:
+            - generic [ref=f6e55]:
+              - text: min · ΔT
+              - subscript [ref=f6e56]: p
+            - generic [ref=f6e57]: Objective 2
+            - generic [ref=f6e58]: Peak temperature rise
+            - generic [ref=f6e59]:
+              - text: ΔT
+              - subscript [ref=f6e60]: p
+              - text: · K
+            - paragraph [ref=f6e61]: The cell is constrained to T ≤ 328.15 K. A protocol that exceeds it during the cycle is not merely suboptimal — it is infeasible and removed from the archive.
+          - generic [ref=f6e62]:
+            - generic [ref=f6e63]:
+              - text: min · D
+              - subscript [ref=f6e64]: chg
+            - generic [ref=f6e65]: Objective 3
+            - generic [ref=f6e66]: Degradation proxy
+            - generic [ref=f6e67]:
+              - text: D
+              - subscript [ref=f6e68]: chg
+              - text: · a.u.
+            - paragraph [ref=f6e69]: A trajectory-averaged control-oriented indicator of side-reaction severity — not a long-cycle fade endpoint, but one that the optimizer can read every evaluation.
+        - paragraph [ref=f6e70]:
+          - text: "Constraints: I"
+          - subscript [ref=f6e71]: min
+          - text: ≤ I(t) ≤ I
+          - subscript [ref=f6e72]: max
+          - text: ", V(t) ≤ V"
+          - subscript [ref=f6e73]: max
+          - text: ", T(t) ≤ T"
+          - subscript [ref=f6e74]: max
+          - text: on the full time horizon. Path-dependent feasibility is checked by the simulator, not by the optimizer.
+      - generic [ref=f6e75]: 3-stage MCC
+      - generic [ref=f6e82]: 02 / 12
+    - generic [ref=f6e83]:
+      - generic [ref=f6e85]:
+        - generic [ref=f6e86]: Section 2 · The computational bottleneck
+        - heading "One evaluation is a coupled PDE solve. The whole budget is 56 of them." [level=2] [ref=f6e87]
+        - generic [ref=f6e88]:
+          - generic [ref=f6e89]:
+            - heading "Each call is expensive." [level=3] [ref=f6e90]
+            - paragraph [ref=f6e91]: A single protocol evaluation runs an SPMe-based electrochemical model coupled to a thermal model, then accumulates the degradation proxy along the time trajectory. A typical cycle costs seconds-to-minutes on a workstation — small per call, huge at 56 calls per seed across five seeds across two batteries.
+            - heading "The surrogate changes the game." [level=3] [ref=f6e92]
+            - paragraph [ref=f6e93]: Gaussian-process BO and decomposition-based MOBO can find a good Pareto set with few evaluations because the GP prioritizes where the next call is informative, not where the search is convenient. ParEGO, in particular, sweeps trade-off directions through a Tchebycheff scalarization.
+          - generic [ref=f6e94]:
+            - generic [ref=f6e95]:
+              - generic [ref=f6e96]: Where MOBO still hurts
+              - text: With only a handful of evaluated points, the surrogate is sensitive to the initial design. The first six calls may already decide whether the optimizer sees a useful trade-off front at evaluation 30 — or wastes the early budget on regions that never recover.
+            - generic [ref=f6e97]:
+              - generic [ref=f6e98]: The opening-move problem
+              - text: The MOBO community has refined search strategy and acquisition design in many directions, but how to seed the database with protocol-domain-valid, decision-space-diverse points — without running a separate warm-start optimizer — has been an open question.
+      - generic [ref=f6e99]: Budget pressure
+      - generic [ref=f6e106]: 03 / 12
+    - generic [ref=f6e107]:
+      - generic [ref=f6e109]:
+        - generic [ref=f6e110]: Section 3 · The move that makes this paper
+        - heading "An LLM knows what a battery engineer knows — and we can ask it before the surrogate has anything to say." [level=2] [ref=f6e111]
+        - paragraph [ref=f6e112]: Battery knowledge is partly numerical (models, archives) and partly qualitative (typical multistage current patterns, SOC allocation heuristics, current-monotonicity rules). MOBO uses the first kind well. The second kind has been hard to feed in without a custom surrogate or a domain-specific warm-start. LLMs sit on that qualitative side naturally.
+        - generic [ref=f6e113]:
+          - generic [ref=f6e114]:
+            - generic [ref=f6e115]: A · what LLM is good at
+            - generic [ref=f6e116]: Qualitative
+            - heading "Domain text → numerical candidates" [level=3] [ref=f6e117]
+            - list [ref=f6e118]:
+              - listitem [ref=f6e119]: "Multistage current patterns: high → medium → low"
+              - listitem [ref=f6e120]: SOC allocation heuristics across the cycle
+              - listitem [ref=f6e121]: Thermal–degradation trade-off priors
+              - listitem [ref=f6e122]: Heuristic ranking of "reasonable" schedules
+          - generic [ref=f6e123]:
+            - generic [ref=f6e124]:
+              - text: B · what LLM is
+              - emphasis [ref=f6e125]: not
+              - text: used for
+            - generic [ref=f6e126]: Numerical
+            - heading "Objective values, feasibility, GP training" [level=3] [ref=f6e127]
+            - list [ref=f6e128]:
+              - listitem [ref=f6e129]: No LLM proposal enters D as an unevaluated target
+              - listitem [ref=f6e130]: No LLM output modifies the GP posterior
+              - listitem [ref=f6e131]: No LLM prediction replaces a simulator call
+              - listitem [ref=f6e132]: No LLM region restricts the feasible search space
+        - paragraph [ref=f6e133]: "Boundary: the LLM is a candidate generator and a regional restart source — not a surrogate, not a feasibility oracle, not a ground-truth labeler."
+      - generic [ref=f6e134]: Boundary of LLM use
+      - generic [ref=f6e141]: 04 / 12
+    - generic [ref=f6e142]:
+      - generic [ref=f6e144]:
+        - generic [ref=f6e145]: Section 4 · The LLMBO-MO architecture
+        - 'heading "Two LLM hooks, one numerical MOBO loop, one hard rule: simulator is the only oracle." [level=2] [ref=f6e146]'
+        - generic [ref=f6e147]:
+          - generic [ref=f6e148]: Figure · Framework
+          - img "LLMBO-MO framework diagram" [ref=f6e149]:
+            - generic [ref=f6e150]:
+              - generic [ref=f6e151]: PHASE A · INITIALIZATION
+              - generic [ref=f6e152]: PHASE B · EARLY ACQUISITION (t ≤ T_L)
+              - generic [ref=f6e153]: PHASE C · NUMERICAL LOOP
+            - generic [ref=f6e154]:
+              - generic [ref=f6e156]: LLM 𝓛
+              - generic [ref=f6e157]: "Battery-aware prompt:"
+              - generic [ref=f6e158]: 3-stage MCC + bounds
+              - generic [ref=f6e159]: → candidate pool + heuristic
+            - generic [ref=f6e160]:
+              - generic [ref=f6e162]: Repair + rank + select
+              - generic [ref=f6e163]: admissibility, diversity, soft Δs_K
+            - generic [ref=f6e164]:
+              - generic [ref=f6e166]: Numerical MOBO loop
+              - generic [ref=f6e167]: 1. Das–Dennis weight w⁽ᵗ⁾ + Riesz
+              - generic [ref=f6e168]: 2. log-transform + Tchebycheff
+              - generic [ref=f6e169]: 3. ARD Matérn-5/2 GP fit
+              - generic [ref=f6e170]: 4. EI acquisition
+              - generic [ref=f6e171]: 5. repair, append, update 𝒫
+              - generic [ref=f6e172]: — sequential until N − n₀ —
+              - generic [ref=f6e173]: Original acquisition search
+              - generic [ref=f6e174]: always retained as fallback
+              - generic [ref=f6e175]: + region anchors as restarts
+              - generic [ref=f6e176]: (only when t ≤ T_L)
+            - generic [ref=f6e177]:
+              - generic [ref=f6e179]: LLM 𝓛 · regional
+              - generic [ref=f6e180]: "Prompt: w⁽ᵗ⁾, ranges,"
+              - generic [ref=f6e181]: selected pts, BO state
+              - generic [ref=f6e182]: → point / region / none
+              - generic [ref=f6e183]: clipped, repaired, accepted
+            - generic [ref=f6e184]:
+              - generic [ref=f6e186]: Simulator 𝒮
+              - generic [ref=f6e187]: SPMe + thermal
+              - generic [ref=f6e188]: coupled ODE solve
+              - generic [ref=f6e189]: returns
+              - generic [ref=f6e190]: f(θ) = [ t_c , ΔT_p , D_chg ]
+              - generic [ref=f6e191]: 𝟙_feas(θ)
+              - generic [ref=f6e192]: path-dependent V, T
+              - generic [ref=f6e193]: checked at every t
+              - generic [ref=f6e194]: 1 protocol = 1 call
+              - generic [ref=f6e195]: only oracle
+            - generic [ref=f6e196]: init portfolio
+            - generic [ref=f6e197]: "θ_{t+1} → evaluate"
+            - generic [ref=f6e198]: f, 𝟙_feas → 𝒟, 𝒫
+            - generic [ref=f6e199]: region restarts (t ≤ T_L)
+            - generic [ref=f6e201]: HARD INVARIANT — every θ that enters 𝒟 has been evaluated by 𝒮, and every 𝒫 member is feasible.
+        - generic [ref=f6e202]:
+          - generic [ref=f6e203]: LLM input (text → candidates / region)
+          - generic [ref=f6e205]: Initial portfolio → numerical BO
+          - generic [ref=f6e207]: Simulator is the only oracle
+          - generic [ref=f6e209]: Retained numerical fallback
+      - generic [ref=f6e211]: Architecture
+      - generic [ref=f6e218]: 05 / 12
+    - generic [ref=f6e219]:
+      - generic [ref=f6e221]:
+        - generic [ref=f6e222]: Section 5 · Mechanism 1 of 2
+        - 'heading "LLM-informed initialization: domain text → admissible, diverse first six points." [level=2] [ref=f6e223]'
+        - paragraph [ref=f6e224]: We ask the LLM for a pool of numerical protocol candidates plus a heuristic score. We then screen for admissibility, repair, rank by a soft penalty on the terminal SOC span, prefer nonincreasing current sequences, and pull a portfolio that maximizes a score-softpenalty-monotonicity-diversity objective. The rest of the six-eval budget is filled with random protocol-domain-valid points. Every selected θ is evaluated by 𝒮 before joining 𝒟.
+        - generic [ref=f6e225]:
+          - generic [ref=f6e226]:
+            - heading "Selection score (Eq. 7)" [level=3] [ref=f6e227]
+            - generic [ref=f6e228]:
+              - text: "# h_ws: LLM heuristic in [0,1] # p_soft: clip((Δs_K^soft − Δs_K)/w_soft, 0, 1) # 𝟙_mono: 1 if nonincreasing I sequence else 0 # d_min : nearest-neighbor distance to 𝒞_sel (normalized coords) J_ws(θ) = h_ws(θ) − ω"
+              - subscript [ref=f6e229]: p
+              - text: · p_soft(θ) + ω
+              - subscript [ref=f6e230]: m
+              - text: · 𝟙_mono(θ) + ω
+              - subscript [ref=f6e231]: d
+              - text: · d_min(θ, 𝒞_sel)
+          - generic [ref=f6e232]:
+            - heading "The chain, in three steps" [level=3] [ref=f6e233]
+            - generic [ref=f6e234]:
+              - generic [ref=f6e235]:
+                - generic [ref=f6e236]: "1"
+                - generic [ref=f6e237]: Prompt
+                - heading "Battery-aware pool" [level=3] [ref=f6e238]
+                - paragraph [ref=f6e239]: Bounds, 3-stage geometry, current ordering, SOC allocation, qualitative priors.
+              - generic [ref=f6e240]:
+                - generic [ref=f6e241]: "2"
+                - generic [ref=f6e242]: Screen + repair
+                - heading "Admissible, diverse" [level=3] [ref=f6e243]
+                - paragraph [ref=f6e244]: Drop non-numeric / non-finite, clip boxes, reject Δs_K < Δs_K^min, pick top-20% by J_ws.
+            - generic [ref=f6e246]:
+              - generic [ref=f6e247]: "3"
+              - generic [ref=f6e248]: Simulator
+              - heading "All six → 𝒮 before 𝒟" [level=3] [ref=f6e249]
+              - paragraph [ref=f6e250]: LLM changes the distribution of evaluation locations, not objective values or feasibility.
+      - generic [ref=f6e251]: Initialization
+      - generic [ref=f6e258]: 06 / 12
+    - generic [ref=f6e259]:
+      - generic [ref=f6e261]:
+        - generic [ref=f6e262]: Section 6 · Mechanism 2 of 2
+        - 'heading "Bounded weight-conditioned regional guidance: restarts, not replacements." [level=2] [ref=f6e263]'
+        - paragraph [ref=f6e264]:
+          - text: After the first six calls populate 𝒟, and only for t ≤ T
+          - subscript [ref=f6e265]: L
+          - text: ", we ask the LLM for a region — given the current decomposition weight, observed ranges, current best, and a compact state summary. The region is parsed, clipped, repaired, and accepted only if admissible. Its anchors join the numerical EI restarts; the original acquisition search is unchanged."
+        - generic [ref=f6e266]:
+          - generic [ref=f6e267]:
+            - generic [ref=f6e268]: A · LLM does
+            - generic [ref=f6e269]: Adds
+            - heading "Region anchors" [level=3] [ref=f6e270]
+            - list [ref=f6e271]:
+              - listitem [ref=f6e272]: Provide point, hyperrectangle, or "no preference"
+              - listitem [ref=f6e273]: Return is rejected if too narrow, too broad, or infeasible
+              - listitem [ref=f6e274]: Anchors live only inside the existing restart pool
+              - listitem [ref=f6e275]: "\"No preference\" leaves the search untouched"
+          - generic [ref=f6e276]:
+            - generic [ref=f6e277]:
+              - text: B · LLM does
+              - emphasis [ref=f6e278]: not
+            - generic [ref=f6e279]: Cannot
+            - heading "Modify the loop" [level=3] [ref=f6e280]
+            - list [ref=f6e281]:
+              - listitem [ref=f6e282]: Cannot replace the acquisition function
+              - listitem [ref=f6e283]: Cannot restrict the feasible search space
+              - listitem [ref=f6e284]: Cannot inject GP training targets or Pareto members
+              - listitem [ref=f6e285]:
+                - text: Cannot continue after t > T
+                - subscript [ref=f6e286]: L
+        - generic [ref=f6e287]:
+          - generic [ref=f6e288]: Why "weight-conditioned"
+          - text: The LLM prompt is conditioned on the active decomposition direction w⁽ᵗ⁾ and the BO state at iteration t. So the regional preference is a local look-ahead for the current trade-off — not a global, weight-independent prior.
+      - generic [ref=f6e289]: Region guidance
+      - generic [ref=f6e296]: 07 / 12
+    - generic [ref=f6e297]:
+      - generic [ref=f6e299]:
+        - generic [ref=f6e300]: Section 7 · Headline number
+        - heading "On Chen2020 with 56 simulator calls, LLMBO-MO leads ParEGO by 9.3% on mean final hypervolume." [level=2] [ref=f6e301]
+        - generic [ref=f6e302]:
+          - generic [ref=f6e304]:
+            - text: +9.3%
+            - generic [ref=f6e305]: mean final HV gain over ParEGO, 5 seeds (8409–8413), Chen2020
+          - generic [ref=f6e306]: LLMBO-MO 0.3848 ± 0.0073 ParEGO 0.3520 ± 0.0169 NSGA-II 0.3265 ± 0.0220 ↘ +17.9% DISK 0.3085 ± 0.0267 ↘ +24.8% PIMD 0.2941 ± 0.0195 ↘ +30.8%
+        - generic [ref=f6e307]:
+          - generic [ref=f6e308]:
+            - generic [ref=f6e309]: ▎LLMBO-MO
+            - generic [ref=f6e310]: "0.385"
+            - generic [ref=f6e312]: +9.3%
+          - generic [ref=f6e313]:
+            - generic [ref=f6e314]: ParEGO
+            - generic [ref=f6e315]: "0.352"
+            - generic [ref=f6e317]: —
+          - generic [ref=f6e318]:
+            - generic [ref=f6e319]: NSGA-II
+            - generic [ref=f6e320]: "0.327"
+            - generic [ref=f6e322]: +17.9% vs ours
+          - generic [ref=f6e323]:
+            - generic [ref=f6e324]: DISK
+            - generic [ref=f6e325]: "0.309"
+            - generic [ref=f6e327]: +24.8% vs ours
+          - generic [ref=f6e328]:
+            - generic [ref=f6e329]: PIMD
+            - generic [ref=f6e330]: "0.294"
+            - generic [ref=f6e332]: +30.8% vs ours
+        - paragraph [ref=f6e333]: Same five seeds for every method · same simulator · same HV reference convention · 6 init + 50 sequential = 56 calls.
+      - generic [ref=f6e334]: Chen2020 · 5 seeds
+      - generic [ref=f6e341]: 08 / 12
+    - generic [ref=f6e342]:
+      - generic [ref=f6e344]:
+        - generic [ref=f6e345]: Section 8 · Cross-battery check
+        - heading "The gap holds on a second parameterization — Ecker2015, same 5 seeds, same 56-call budget." [level=2] [ref=f6e346]
+        - generic [ref=f6e347]:
+          - generic [ref=f6e348]:
+            - generic [ref=f6e349]:
+              - generic [ref=f6e350]: Evaluation 30 · mid-budget
+              - generic [ref=f6e351]: +28.3%
+            - img [ref=f6e352]:
+              - generic [ref=f6e354]: "0.4333"
+              - generic [ref=f6e356]: "0.5559"
+              - generic [ref=f6e357]: ParEGO
+              - generic [ref=f6e358]: LLMBO-MO
+            - generic [ref=f6e359]:
+              - generic [ref=f6e360]: mean HV at t = 30
+              - generic [ref=f6e361]: 5 seeds (8409–8413)
+          - generic [ref=f6e362]:
+            - generic [ref=f6e363]:
+              - generic [ref=f6e364]: Evaluation 56 · final
+              - generic [ref=f6e365]: +17.8%
+            - img [ref=f6e366]:
+              - generic [ref=f6e368]: "0.4760"
+              - generic [ref=f6e370]: "0.5605"
+              - generic [ref=f6e371]: ParEGO
+              - generic [ref=f6e372]: LLMBO-MO
+            - generic [ref=f6e373]:
+              - generic [ref=f6e374]: mean HV at t = 56
+              - generic [ref=f6e375]: "SD: 0.0008 vs 0.0039"
+        - generic [ref=f6e376]:
+          - generic [ref=f6e377]:
+            - generic [ref=f6e378]: Mid-budget separation
+            - generic [ref=f6e379]: 0.5559vs 0.4333
+            - generic [ref=f6e380]: LLMBO-MO already dominates by t = 30, before the BO loop has had time to compensate.
+            - generic [ref=f6e381]: "01"
+          - generic [ref=f6e382]:
+            - generic [ref=f6e383]: Final separation
+            - generic [ref=f6e384]: 0.5605vs 0.4760
+            - generic [ref=f6e385]: The gap is preserved at the end of the budget. Standard deviation shrinks 5× (0.0039 → 0.0008).
+            - generic [ref=f6e386]: "02"
+          - generic [ref=f6e387]:
+            - generic [ref=f6e388]: What it is — and isn't
+            - generic [ref=f6e389]: additionalcheck
+            - generic [ref=f6e390]: An additional battery-model check, not a formal cross-battery transfer study. Caveats spelled out in §V-D.
+            - generic [ref=f6e391]: "03"
+      - generic [ref=f6e392]: Ecker2015
+      - generic [ref=f6e399]: 09 / 12
+    - generic [ref=f6e400]:
+      - generic [ref=f6e402]:
+        - generic [ref=f6e403]: Section 9 · Which mechanism carries the gain?
+        - heading "Battery-specific initialization is the load-bearing piece. Regional guidance is the small refinement." [level=2] [ref=f6e404]
+        - table [ref=f6e405]:
+          - rowgroup [ref=f6e406]:
+            - row [ref=f6e407]:
+              - columnheader "Initialization source" [ref=f6e408]
+              - columnheader "Final HV (10 matched seeds)" [ref=f6e409]
+          - rowgroup [ref=f6e410]:
+            - row [ref=f6e411]:
+              - cell "Random" [ref=f6e412]
+              - cell "0.31062 ± 0.04303" [ref=f6e413]
+            - row [ref=f6e414]:
+              - cell "Detailed generic prompt" [ref=f6e415]
+              - cell "0.31371 ± 0.04675" [ref=f6e416]
+            - row [ref=f6e417]:
+              - cell "Battery-specific LLM prompt" [ref=f6e418]
+              - cell "0.36890 ± 0.00824" [ref=f6e419]
+        - paragraph [ref=f6e420]:
+          - text: Gain = 0.05828 · Holm-corrected p = 0.005859 · effect size d
+          - subscript [ref=f6e421]: z
+          - text: = 1.309. Same downstream BO; only the initial portfolio source changes.
+        - generic [ref=f6e422]:
+          - generic [ref=f6e423]:
+            - heading "Short-budget ablation (3 seeds · 16 calls)" [level=3] [ref=f6e424]
+            - table [ref=f6e425]:
+              - rowgroup [ref=f6e426]:
+                - row [ref=f6e427]:
+                  - columnheader "Variant" [ref=f6e428]
+                  - columnheader "Mean HV" [ref=f6e429]
+                  - columnheader "SD" [ref=f6e430]
+                  - columnheader "Δ vs base" [ref=f6e431]
+              - rowgroup [ref=f6e432]:
+                - row [ref=f6e433]:
+                  - cell "Numerical MOBO baseline" [ref=f6e434]
+                  - cell "0.2907" [ref=f6e435]
+                  - cell "0.0451" [ref=f6e436]
+                  - cell "—" [ref=f6e437]
+                - row [ref=f6e438]:
+                  - cell "+ LLM-informed init" [ref=f6e439]
+                  - cell "0.3462" [ref=f6e440]
+                  - cell "0.0109" [ref=f6e441]
+                  - cell "+0.0555" [ref=f6e442]
+                - row [ref=f6e443]:
+                  - cell "+ Regional guidance only" [ref=f6e444]
+                  - cell "0.2980" [ref=f6e445]
+                  - cell "0.0462" [ref=f6e446]
+                  - cell "+0.0072" [ref=f6e447]
+                - row [ref=f6e448]:
+                  - cell "Complete LLMBO-MO" [ref=f6e449]
+                  - cell "0.3500" [ref=f6e450]
+                  - cell "0.0039" [ref=f6e451]
+                  - cell "+0.0593" [ref=f6e452]
+          - generic [ref=f6e453]:
+            - generic [ref=f6e454]:
+              - generic [ref=f6e455]: What this says
+              - text: "The big jump comes from LLM-informed initialization (+0.0555). Regional guidance alone is within noise (+0.0072, n = 3). When combined, regional guidance tightens dispersion: the complete method has the highest mean and smallest SD (0.0039) of the four."
+            - generic [ref=f6e456]:
+              - generic [ref=f6e457]: What we will not over-claim
+              - text: Three seeds do not establish an independent systematic benefit for regional guidance. Initialization carries the headline effect; regional guidance is a small complementary refinement.
+      - generic [ref=f6e458]: Ablation
+      - generic [ref=f6e465]: 10 / 12
+    - generic [ref=f6e466]:
+      - generic [ref=f6e468]:
+        - generic [ref=f6e469]: Section 10 · Reading the solutions
+        - 'heading "The Pareto set is interpretable: a current-ladder from \"fast\" to \"gentle\" with five distinct trade-offs." [level=2] [ref=f6e470]'
+        - table [ref=f6e471]:
+          - rowgroup [ref=f6e472]:
+            - row [ref=f6e473]:
+              - columnheader "ID" [ref=f6e474]
+              - columnheader "I₁" [ref=f6e475]
+              - columnheader "I₂" [ref=f6e476]
+              - columnheader "I₃" [ref=f6e477]
+              - columnheader "Δs₁" [ref=f6e478]
+              - columnheader "Δs₂" [ref=f6e479]
+              - columnheader "Δs₃" [ref=f6e480]
+              - columnheader [ref=f6e481]:
+                - text: t
+                - subscript [ref=f6e482]: c
+                - text: (s)
+              - columnheader [ref=f6e483]:
+                - text: ΔT
+                - subscript [ref=f6e484]: p
+                - text: (K)
+              - columnheader [ref=f6e485]:
+                - text: D
+                - subscript [ref=f6e486]: chg
+          - rowgroup [ref=f6e487]:
+            - row [ref=f6e488]:
+              - cell "A" [ref=f6e489]
+              - cell "6.000" [ref=f6e490]
+              - cell "5.000" [ref=f6e491]
+              - cell "3.000" [ref=f6e492]
+              - cell "0.400" [ref=f6e493]
+              - cell "0.300" [ref=f6e494]
+              - cell "0.100" [ref=f6e495]
+              - cell "2880" [ref=f6e496]
+              - cell "7.567" [ref=f6e497]
+              - cell "1.261" [ref=f6e498]
+            - row [ref=f6e499]:
+              - cell "B" [ref=f6e500]
+              - cell "3.475" [ref=f6e501]
+              - cell "3.633" [ref=f6e502]
+              - cell "3.000" [ref=f6e503]
+              - cell "0.100" [ref=f6e504]
+              - cell "0.219" [ref=f6e505]
+              - cell "0.481" [ref=f6e506]
+              - cell "4490" [ref=f6e507]
+              - cell "3.292" [ref=f6e508]
+              - cell "0.826" [ref=f6e509]
+            - row [ref=f6e510]:
+              - cell "C" [ref=f6e511]
+              - cell "2.782" [ref=f6e512]
+              - cell "2.000" [ref=f6e513]
+              - cell "3.000" [ref=f6e514]
+              - cell "0.211" [ref=f6e515]
+              - cell "0.100" [ref=f6e516]
+              - cell "0.489" [ref=f6e517]
+              - cell "5199" [ref=f6e518]
+              - cell "3.069" [ref=f6e519]
+              - cell "0.680" [ref=f6e520]
+            - row [ref=f6e521]:
+              - cell "D" [ref=f6e522]
+              - cell "2.000" [ref=f6e523]
+              - cell "3.942" [ref=f6e524]
+              - cell "3.000" [ref=f6e525]
+              - cell "0.400" [ref=f6e526]
+              - cell "0.100" [ref=f6e527]
+              - cell "0.300" [ref=f6e528]
+              - cell "5857" [ref=f6e529]
+              - cell "3.049" [ref=f6e530]
+              - cell "0.573" [ref=f6e531]
+            - row [ref=f6e532]:
+              - cell "E" [ref=f6e533]
+              - cell "2.000" [ref=f6e534]
+              - cell "2.000" [ref=f6e535]
+              - cell "2.000" [ref=f6e536]
+              - cell "0.245" [ref=f6e537]
+              - cell "0.153" [ref=f6e538]
+              - cell "0.403" [ref=f6e539]
+              - cell "7200" [ref=f6e540]
+              - cell "1.528" [ref=f6e541]
+              - cell "0.640" [ref=f6e542]
+        - paragraph [ref=f6e543]: Each row is a simulator-evaluated, feasible, nondominated record. SOC spans sum to 0.8.
+        - generic [ref=f6e544]:
+          - generic [ref=f6e545]:
+            - generic [ref=f6e546]: Fast (A)
+            - generic [ref=f6e547]: 2880s
+            - generic [ref=f6e548]: Aggressive step-down current. Highest peak temperature rise (7.57 K) and highest degradation proxy (1.26). Feasible — still under 328.15 K.
+            - generic [ref=f6e549]: A
+          - generic [ref=f6e550]:
+            - generic [ref=f6e551]: Balanced (C)
+            - generic [ref=f6e552]:
+              - text: "0.68"
+              - generic [ref=f6e553]:
+                - text: D
+                - subscript [ref=f6e554]: chg
+            - generic [ref=f6e555]: Monotonic-decreasing ladder. Mid-range charging time, low degradation, low temperature. The kind of profile an engineer would propose by hand.
+            - generic [ref=f6e556]: C
+          - generic [ref=f6e557]:
+            - generic [ref=f6e558]: Gentle (E)
+            - generic [ref=f6e559]: 1.53K
+            - generic [ref=f6e560]: Flat 2 A profile. Lowest temperature rise (1.53 K), but longest charge (7200 s, 2 h). The "battery-first" corner of the front.
+            - generic [ref=f6e561]: E
+      - generic [ref=f6e562]: Pareto front
+      - generic [ref=f6e569]: 11 / 12
+    - generic [ref=f6e570]:
+      - generic [ref=f6e572]:
+        - generic [ref=f6e573]: Section 11 · What to take home
+        - heading "Where the LLM helps, where it doesn't, and what we explicitly leave out." [level=2] [ref=f6e574]
+        - generic [ref=f6e575]:
+          - generic [ref=f6e576]:
+            - generic [ref=f6e577]: ✓ Take
+            - generic [ref=f6e578]: Three findings
+            - heading "What LLMBO-MO shows" [level=3] [ref=f6e579]
+            - list [ref=f6e580]:
+              - listitem [ref=f6e581]: A ParEGO backbone + battery-aware LLM warm start beats the same backbone with random init (+9.3% on Chen2020, +17.8% on Ecker2015).
+              - listitem [ref=f6e582]: The initialization carries the gain; regional guidance is a small, complementary refinement that tightens dispersion.
+              - listitem [ref=f6e583]: Simulator remains the only oracle — no LLM value enters 𝒟 or 𝒫 unevaluated.
+          - generic [ref=f6e584]:
+            - generic [ref=f6e585]: "! Boundary"
+            - generic [ref=f6e586]: What we don't claim
+            - heading "Scope, kept honest" [level=3] [ref=f6e587]
+            - list [ref=f6e588]:
+              - listitem [ref=f6e589]:
+                - text: All results are simulation-based; D
+                - subscript [ref=f6e590]: chg
+                - text: is a trajectory-averaged proxy, not a measured capacity-fade endpoint.
+              - listitem [ref=f6e591]: qEHVI / qNEHVI baselines not included — this is a backbone-matched comparison, not an exhaustive SOTA ranking.
+              - listitem [ref=f6e592]: Regional-guidance ablation uses three seeds; independent contribution is less firmly established than initialization.
+              - listitem [ref=f6e593]: Cross-LLM-backend and prompt-realization sweeps are out of scope; the prompt is fixed to V4-Flash.
+        - generic [ref=f6e594]:
+          - generic [ref=f6e595]:
+            - generic [ref=f6e596]: Where to plug in
+            - generic [ref=f6e597]: backbone-agnostic
+            - generic [ref=f6e598]: Any scalarization-MOBO method (qEHVI, qNEHVI, MOEA/D-EGO) can take the same two LLM hooks without changing the loop.
+            - generic [ref=f6e599]: ↗
+          - generic [ref=f6e600]:
+            - generic [ref=f6e601]: Where to extend
+            - generic [ref=f6e602]: physicalvalidation
+            - generic [ref=f6e603]: The next move is a closed-loop bench test on a physical cell — calibrated capacity fade, not proxy. This is a simulation paper, not a cell one.
+            - generic [ref=f6e604]: ↗
+          - generic [ref=f6e605]:
+            - generic [ref=f6e606]: Thank you
+            - generic [ref=f6e607]: questions
+            - generic [ref=f6e608]: Code, prompts, seeds, and the figures generator are documented in the README; reproducibility is in Appendix C.
+            - generic [ref=f6e609]: ↗
+      - generic [ref=f6e610]: Wrap
+      - generic [ref=f6e617]: 12 / 12
+  - navigation:
+    - generic: SPACE / ← → · scroll · 12 slides

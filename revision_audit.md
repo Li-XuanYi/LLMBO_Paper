@@ -1,88 +1,60 @@
 # Manuscript Revision Audit
 
-## Scope
+## Current evidence contract
 
-This audit covers the current LaTeX manuscript in
-`D:/Users/aa133/Desktop/Paper`. It distinguishes presentation changes from
-changes that would alter the archived optimization experiment.
+- `D:/Users/aa133/Desktop/Paper` is the canonical manuscript.
+- No new simulator or LLM calls were made for this revision.
+- All manuscript-facing numbers are defined in `sections/experiment_values.tex`.
+- Chen2020 reports five archived seeds per method under a 56-evaluation cap.
+- The Chen LLMBO-MO/ParEGO seed-8409 trajectories come from the supplied
+  five-way figure archive; the remaining seed entries are mapped in the result
+  provenance record.
+- Ecker2015 reports the five-seed mean curve with sample-standard-deviation
+  bands and separates the evaluation-30 and evaluation-56 comparisons.
+- The objective-preprocessing figure reports five-seed mean HV and sample-
+  standard-deviation bands for min--max, Z-score, and no normalization.
+- The optimal-protocol plot is explicitly indexed by algorithmic iteration;
+  its final archive means are 49.4 and 45.8 and are not treated as HV.
+- Pareto representatives A--E are feasible, globally nondominated database
+  records with seed and observation provenance in `results/`.
+- HV is interpreted only within one battery parameterization.
+- The current manuscript defines posterior-covariance Region-Lift as the
+  proposed online mechanism, but the retained historical main/component
+  archives are not treated as an isolated test of that mechanism.
 
-## Current structure
+## Claim closure
 
-1. Introduction
-2. Related Work
-3. Fast-Charging Problem and Evaluation Model
-4. Proposed LLMBO-MO Framework
-   - framework overview;
-   - protocol-domain-screened warm start;
-   - objective transformation and ParEGO backbone;
-   - weight-conditioned regional preference;
-   - bounded posterior-covariance coupling;
-   - complete procedure.
-5. Numerical Validation and Discussion
-   - setup and comparison protocol;
-   - main fixed-budget results;
-   - Pareto and trajectory interpretation;
-   - component study;
-   - limitations.
-6. Conclusion
-
-This order keeps the problem, simulator, numerical optimizer, LLM advisory
-interface, and evidence in a reviewer-readable causal sequence.
-
-## Formula and terminology audit
-
-| Item | Current treatment | Status |
+| Topic | Current treatment | Status |
 |---|---|---|
-| Charging protocol | Generic \(K\)-stage notation; no instance-specific stage count in Table I | Pass |
-| Third objective | `degradation proxy` in arbitrary units | Pass |
-| Temperature objective | `peak temperature rise` | Pass |
-| LLM output | screened preference/advisory information, not observed objective data | Pass |
-| Feasibility | protocol-domain checks before simulation and operational checks after simulation | Pass |
-| Routine formulas | concise and mostly unnumbered | Pass |
-| Main innovation | one numbered bounded posterior-covariance mean adjustment | Pass |
-| Component-only operator | confined to the component study and identified by \(B_\delta\) | Pass |
-| Hyperparameters | core values centralized in Table I | Pass |
-| HV | common ideal/reference box within each parameterization | Pass |
+| LLM authority | Advisory candidate generation and ranking only | Pass |
+| Simulator authority | Sole objective oracle; only evaluated protocols train the GP | Pass |
+| Proposed Region-Lift mechanism | Uniform feasible anchors, posterior cross-covariance, bounded signed acquisition-time mean shift, unchanged predictive standard deviation | Pass |
+| Main Chen historical evidence | Candidate-pool/restart-era archive; no causal attribution to corrected mean shift | Pass with limitation |
+| Total budget | Six initialization plus 50 BO calls | Pass |
+| Chen result | \(0.3848\pm0.0073\) vs. \(0.3778\pm0.0169\), descriptive five-archive summary | Pass with limitation |
+| Ecker result | \(28.3\%\) at evaluation 30; \(17.8\%\) at evaluation 56 | Pass |
+| Objective preprocessing | Scale-balanced variants are stable; no significance claim between min--max and Z-score | Pass |
+| Optimal protocol set | Per-iteration archive-growth diagnostic, distinct from equal-call sample efficiency | Pass |
+| Pareto representatives | A--E figure labels and parameter table use identical database records | Pass |
+| Prompt mechanism | Ten-seed, short-budget controlled study | Pass |
+| Regional contribution | No independent causal benefit claimed until a corrected matched coupling-on/off study is complete | Pass with limitation |
+| Physical validation | Not claimed; hardware photograph removed from the manuscript | Pass |
 
-The exact global-range fallback, anchor weighting, entropy/dispersion quality
-gate, confidence and trust terms, covariance jitter, variance floor, temporal
-attenuation, and shift clipping are all defined before use.
+## Presentation closure
 
-## Evidence and attribution
+- The title page contains anonymous review metadata rather than IEEE template
+  examples.
+- The Chen five-way plot has `LLMBO-MO` and `HV` labels.
+- Figure captions state the seed and uncertainty identity of every curve.
+- Fig. 1 uses top floating and keeps the feedback arrow inside the panel frame.
+- Tables use booktabs, consistent precision, and no outcome-count column.
+- The abstract, introduction, experiments, and conclusion draw values from one
+  macro file.
 
-- Chen2020 and Ecker2015 both use seeds 8409--8413.
-- Every run uses six initialization evaluations and 50 BO evaluations.
-- Table II reports sample means and sample standard deviations over the five
-  seeds.
-- The principal comparison concerns complete configurations. It does not claim
-  that the observed difference is caused by the regional operator alone.
-- The component study provides bounded, seed-dependent evidence and is not
-  described as uniform synergy.
-- The laboratory platform establishes the intended replay interface; all
-  reported quantitative evidence remains simulation based.
+## Evidence gaps that wording cannot repair
 
-## Figure and table audit
-
-- Fig. 1 presents a generic fast-charging optimization formulation.
-- Fig. 2 restores the supplied workflow and distinguishes screened
-  initialization from early advisory guidance.
-- Fig. 3 appears near the start of the experimental section and has an
-  explicitly simulation-only caption.
-- Table I contains the fixed budget and core settings without exposing a long
-  list of simulator constants.
-- Table II is adjacent to the principal numerical interpretation.
-- Fig. 4 opens the Pareto/trajectory interpretation page.
-- Table III replaces the visually redundant ablation box plot.
-
-## Remaining evidence gaps requiring new experiments
-
-The following cannot be repaired by wording or layout:
-
-1. a matched qEHVI/qNEHVI comparison;
-2. an identical-initial-database study that isolates acquisition guidance;
-3. a simultaneously executed component study from one code snapshot;
-4. a calibrated lifetime model or measured capacity-fade endpoint;
-5. controlled physical replay with independently defined protection limits.
-
-The manuscript states these limits and avoids claims that require those
-additional experiments.
+1. synchronized reruns from one code snapshot;
+2. matched qEHVI/qNEHVI baselines;
+3. a controlled acquisition-only regional-coupling study;
+4. degradation-proxy calibration;
+5. physical-cell validation.

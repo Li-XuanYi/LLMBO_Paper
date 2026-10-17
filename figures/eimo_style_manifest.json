@@ -1,0 +1,54 @@
+{
+  "style": "EIMO-like Times New Roman; enlarged single-column typography",
+  "new_simulations": false,
+  "source_sha256": {
+    "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\\uff08HV\uff0905-03\\curve_data\\hv_convergence_5way_plotted_curves.csv": "911d11ff8db019f200c390671dbfe92917838c0017852ca974a6463f44635fac",
+    "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\Ecker2015_HV05-12\\curve_data\\hv_convergence_parego_vs_llmbo.csv": "96ecf986b3a78060f4739bfcc3912cac15e16d126a349385d542cd5daced5005",
+    "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Ablation_Exp\\experiment_records\\ablation_4way_3seeds_10iter_deepseek_v3_codex_2026_05_17\\plot_manifest.json": "c45db796a35bede118940ff19617848aade50deaef135b54eaeef3407e9fd8d2",
+    "D:\\Users\\aa133\\Desktop\\Paper\\results\\abc_charging_profiles.json": "6b66f51a56b74df9b2ce91d8785595fb80fd44e0ce2211ea4b296b7ace193380",
+    "D:\\Users\\aa133\\Desktop\\Paper\\results\\pareto_representatives.json": "0eef8cdc1bfd5531dd93be0daeabbb495d20f94215de11cdff97b4cad06d8e98"
+  },
+  "figures": {
+    "Fig3": {
+      "outputs": [
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\chen2020_hv_5way.pdf",
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\chen2020_hv_5way.png",
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\chen2020_hv_5way_600dpi.png"
+      ],
+      "evaluations": 56
+    },
+    "Fig4": {
+      "outputs": [
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\ecker2015_hv.pdf",
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\ecker2015_hv.png",
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\ecker2015_hv_600dpi.png"
+      ],
+      "evaluations": 56,
+      "seeds": 5,
+      "uncertainty": "sample standard deviation",
+      "display_scale": 0.3,
+      "evaluation_30": {
+        "parego_mean": 0.43328164792647617,
+        "llmbo_mo_mean": 0.5558822732026308
+      },
+      "evaluation_56": {
+        "parego_mean": 0.47596880927108104,
+        "parego_sample_sd": 0.0038977449993606293,
+        "llmbo_mo_mean": 0.5605251669797603,
+        "llmbo_mo_sample_sd": 0.0008191884384810173
+      }
+    },
+    "Fig5": {
+      "outputs": [
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\ablation_hv_box.pdf",
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\ablation_hv_box.png"
+      ]
+    },
+    "Fig7": {
+      "outputs": [
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\abc_charging_profiles.pdf",
+        "D:\\Users\\aa133\\Desktop\\Paper\\figures\\abc_charging_profiles.png"
+      ]
+    }
+  }
+}

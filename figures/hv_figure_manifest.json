@@ -1,0 +1,129 @@
+{
+  "metric_label": "HV",
+  "new_simulator_runs": false,
+  "new_llm_calls": false,
+  "chen2020": {
+    "outputs": [
+      "figures\\chen2020_hv_5way.pdf",
+      "figures\\chen2020_hv_5way.png"
+    ],
+    "evaluations": 56,
+    "source": "Compare_Exp/experiment_records/（HV）05-03/curve_data/hv_convergence_5way_plotted_curves.csv",
+    "llmbo_mo_center_line": "archived seed 8409 trajectory",
+    "parego_center_line": "archived seed 8409 trajectory",
+    "llmbo_mo_final": 0.38482555920297173,
+    "parego_final": 0.3523110937014429,
+    "relative_difference_percent": 9.2274873071,
+    "band_note": "LLMBO-MO and ParEGO use stored visualization envelopes; NSGA-II, DISK, and PIMD use five-run sample standard deviations."
+  },
+  "ecker2015": {
+    "outputs": [
+      "figures\\ecker2015_hv.pdf",
+      "figures\\ecker2015_hv.png"
+    ],
+    "evaluations": 56,
+    "seeds": 5,
+    "uncertainty": "sample standard deviation",
+    "display_scale": 0.3,
+    "evaluation_30": {
+      "parego_mean": 0.43328164792647617,
+      "llmbo_mo_mean": 0.5558822732026308
+    },
+    "evaluation_56": {
+      "parego_mean": 0.47596880927108104,
+      "parego_sample_sd": 0.0038977449993606293,
+      "llmbo_mo_mean": 0.5605251669797603,
+      "llmbo_mo_sample_sd": 0.0008191884384810173
+    }
+  },
+  "objective_normalization": {
+    "outputs": [
+      "figures\\objective_normalization_hv.pdf",
+      "figures\\objective_normalization_hv.png"
+    ],
+    "evaluations": 56,
+    "seeds": 5,
+    "uncertainty": "sample standard deviation",
+    "evaluation_30": {
+      "minmax": 0.3355175492,
+      "zscore": 0.3919738965,
+      "none": 0.3255400945
+    },
+    "evaluation_56": {
+      "minmax_mean": 0.4146460929,
+      "minmax_sample_sd": 0.0067477785,
+      "zscore_mean": 0.4121532055,
+      "zscore_sample_sd": 0.0078462095,
+      "none_mean": 0.3825539222,
+      "none_sample_sd": 0.0358229734
+    }
+  },
+  "optimal_protocols": {
+    "outputs": [
+      "figures\\optimal_protocols_curve.pdf",
+      "figures\\optimal_protocols_curve.png"
+    ],
+    "iterations": 50,
+    "seeds": 5,
+    "uncertainty": "archived across-run standard deviation",
+    "definition": "feasible Pareto-nondominated archive entries",
+    "final_mean": {
+      "LLMBO-MO": 49.4,
+      "ParEGO": 45.8
+    },
+    "sources": {
+      "LLMBO-MO": [
+        "optimized_experiments/region_lift_v2_50iter_seed01234_2026_04_29/seed0/warmstart_region_lifted_gp/summary.json",
+        "optimized_experiments/region_lift_v2_50iter_seed01234_2026_04_29/seed1/warmstart_region_lifted_gp/summary.json",
+        "optimized_experiments/region_lift_v2_50iter_seed01234_2026_04_29/seed2/warmstart_region_lifted_gp/summary.json",
+        "optimized_experiments/region_lift_v2_50iter_seed01234_2026_04_29/seed3/warmstart_region_lifted_gp/summary.json",
+        "optimized_experiments/region_lift_v2_50iter_seed01234_2026_04_29/seed4/warmstart_region_lifted_gp/summary.json"
+      ],
+      "ParEGO": [
+        "optimized_experiments/parego_matlab_reference_5seeds_50iter_2026_05_06/seed0/parego_matlab_reference/summary.json",
+        "optimized_experiments/parego_matlab_reference_5seeds_50iter_2026_05_06/seed1/parego_matlab_reference/summary.json",
+        "optimized_experiments/parego_matlab_reference_5seeds_50iter_2026_05_06/seed2/parego_matlab_reference/summary.json",
+        "optimized_experiments/parego_matlab_reference_5seeds_50iter_2026_05_06/seed3/parego_matlab_reference/summary.json",
+        "optimized_experiments/parego_matlab_reference_5seeds_50iter_2026_05_06/seed4/parego_matlab_reference/summary.json"
+      ]
+    }
+  },
+  "pareto_representatives": {
+    "outputs": [
+      "figures\\pareto_protocols_ae.pdf",
+      "figures\\pareto_protocols_ae.png"
+    ],
+    "results_json": "results\\pareto_representatives.json",
+    "results_csv": "results\\pareto_representatives.csv",
+    "seeds": [
+      8409,
+      8410,
+      8411,
+      8412,
+      8413
+    ],
+    "n_global_nondominated": 158,
+    "labels": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ]
+  },
+  "component_ablation": {
+    "outputs": [
+      "figures\\ablation_hv_box.png"
+    ],
+    "evaluations": 16,
+    "seeds": [8409, 8410, 8411],
+    "uncertainty": "sample standard deviation",
+    "source": "Ablation_Exp/experiment_records/ablation_4way_3seeds_10iter_deepseek_v3_codex_2026_05_17"
+  },
+  "sources": {
+    "chen_csv": "hv_convergence_5way_plotted_curves.csv",
+    "ecker_csv": "hv_convergence_parego_vs_llmbo.csv",
+    "normalization_csv": "llmbomo_normalization_hv.csv",
+    "optimal_manifest": "manifest.json"
+  }
+}

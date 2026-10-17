@@ -1,0 +1,35 @@
+{
+  "order": [
+    "refFastChargeReview",
+    "nref2",
+    "refGPA",
+    "nref3",
+    "nref7",
+    "nref8",
+    "nref6",
+    "refZhuMOBO",
+    "refPriorCharging",
+    "nref12",
+    "refKuaiLLMBO",
+    "refEIMO",
+    "ref4",
+    "ref8",
+    "ref9",
+    "refDISK",
+    "refPIMD",
+    "ref5"
+  ],
+  "removed_uncited": [
+    "nref1",
+    "nref10",
+    "nref11",
+    "nref13",
+    "nref4",
+    "nref5",
+    "nref9",
+    "ref15",
+    "ref6",
+    "ref7",
+    "refSuri"
+  ]
+}
