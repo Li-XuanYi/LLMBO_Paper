@@ -459,8 +459,8 @@ window is 0\% to 80\% SOC.\\
 Decision variables and bounds: $I_1\in[2.0,6.0]$~A,
 $I_2\in[2.0,5.0]$~A, $I_3\in[2.0,3.0]$~A,
 $\Delta s_1\in[0.10,0.40]$, $\Delta s_2\in[0.10,0.30]$.\\
-Constraints: keep $\Delta s_1+\Delta s_2\le 0.65$ whenever possible
-(practical hard limit $0.70$).
+Constraints: hard limit $\Delta s_1+\Delta s_2<0.70$; safety margin:
+keep $\Delta s_1+\Delta s_2\le 0.65$ whenever possible.
 \textcolor{red}{A decreasing current profile $I_1\ge I_2\ge I_3$ is
 recommended, since high currents at low SOC carry a lower risk of lithium
 plating than the same currents near full charge.}\\
@@ -481,9 +481,11 @@ around one style}. Respond with only a JSON array.}
 You are guiding a battery charging Bayesian optimization loop.\\
 Iteration $t$ of $T$; weight vector
 $\mathbf w^{(t)}=(w_1,w_2,w_3)$; current best scalarized value
-$g_t^{\mathrm{best}}$. Decision variables and bounds as in
-Fig.~\ref{fig:prompt_warmstart}; hard constraint
-$\Delta s_1+\Delta s_2<0.70$.\\
+$g_t^{\mathrm{best}}$. Decision variables and bounds: $I_1\in[2.0,6.0]$~A,
+$I_2\in[2.0,5.0]$~A, $I_3\in[2.0,3.0]$~A,
+$\Delta s_1\in[0.10,0.40]$, $\Delta s_2\in[0.10,0.30]$; hard constraint
+$\Delta s_1+\Delta s_2<0.70$ (safety margin: keep
+$\Delta s_1+\Delta s_2\le 0.65$ whenever possible).\\
 Return exactly one JSON object with one of two structures:\\
 \hspace*{1em}\texttt{"point"}: \texttt{\{I1, I2, I3, dSOC1, dSOC2,
 confidence\}}\\
