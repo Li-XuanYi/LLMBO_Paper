@@ -1,64 +1,71 @@
-# LLMBO-MO Paper (IEEE TTE)
+# LLMBO-MO Paper (IEEE TII)
 
-Canonical LaTeX source for the IEEE Transactions on Transportation
-Electrification review manuscript.
+Anonymous Regular Paper for initial submission to **IEEE Transactions on
+Industrial Informatics**. The current manuscript is based on remote revision
+`28faba1` from `origin/codex/tte-revision-v2`, including its real-cell validation.
 
-## Structure
+## Canonical source and build
 
 ```text
-main.tex                         Root document and shared macros
-sections/experiment_values.tex  Single source of reported numerical values
-sections/*.tex                  Manuscript sections and references
-figures/                        Vector and raster figure assets
-scripts/make_hv_figures.py      Deterministic HV figure generator
-claim_evidence_matrix.md        Reviewer-facing claim/evidence audit
-revision_audit.md               Reproducibility and presentation audit
+main.tex                         Repository-root build entry
+LLMBO_MO/IEEE_TII/main.tex       Canonical, consolidated manuscript
+LLMBO_MO/IEEE_TII/figures/       Current figure assets
+LLMBO_MO/IEEE_TII/IEEEtran.cls   IEEE Transactions class
+submission/TII_checklist.md      Submission requirements and validation notes
+output/pdf/TII_anonymous.pdf     Generated review PDF
 ```
 
-The title block is anonymized for review. Replace `Anonymous Authors` with the
-final author, affiliation, correspondence, and funding metadata before a
-non-anonymous submission.
-
-## Build
+Build from the repository root:
 
 ```powershell
 latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 ```
 
-References are maintained as `\bibitem` entries in
-`sections/references.tex`; no BibTeX or biber step is required.
+This produces `main.pdf`. Building directly inside `LLMBO_MO/IEEE_TII/` is
+also supported. The consolidated manuscript includes its sections, numerical
+macros, and `thebibliography`; no BibTeX or biber step is required.
 
-## Experimental values and figures
+**Edit `LLMBO_MO/IEEE_TII/main.tex`.** The split files in `sections/` and
+`LLMBO_MO/IEEE_TII/sections/`, and the root-level figure assets, are historical
+working copies and are not inputs to the current manuscript. The former
+`LLMBO_MO/IEEE_TTE/` directory has been renamed to `IEEE_TII`.
 
-Do not type result values independently into individual sections. Update
-`sections/experiment_values.tex` and regenerate the manuscript so the
-abstract, introduction, tables, and conclusion remain synchronized.
+## Review format
 
-The HV figures are generated from archived curve CSV files:
+- IEEEtran journal format, 10 pt, two columns, US Letter.
+- Initial Regular Paper: at most 10 pages, including figures and references.
+- Anonymous title block and running heads; empty PDF Author metadata.
+- No author names, affiliations, e-mails, ORCIDs, acknowledgments, funding
+  identifiers, biographies, or author photographs in the review manuscript.
+- Existing self-citations remain ordinary third-person references.
+- No Note to Practitioners. A cover letter is optional and must remain separate
+  from the anonymous manuscript.
 
-```powershell
-python scripts/make_hv_figures.py `
-  --chen-csv <chen-five-way-curve.csv> `
-  --ecker-csv <ecker-five-seed-curve.csv> `
-  --normalization-csv <normalization-five-seed-curve.csv> `
-  --optimal-manifest <optimal-protocol-source-manifest.json> `
-  --pareto-database <seed=database.json> `
-  --output-dir figures
-```
+Author details, institutional primary e-mails, and ORCIDs must be supplied in
+the submission system. Consult `submission/TII_checklist.md` and the official
+guidelines before uploading.
 
-`figures/hv_figure_manifest.json` records the sources used for the current
-assets. The Chen figure intentionally mixes two visualization conventions:
-LLMBO-MO and ParEGO use representative seed-8409 centers with proxy envelopes,
-whereas NSGA-II, DISK, and PIMD use five-run mean/standard-deviation curves.
-Formal final statistics are reported in the manuscript tables.
-The same generator produces the Ecker2015, objective-preprocessing, optimal-
-protocol-archive, and A--E Pareto figures.  The selected protocol records and
-their seed/observation provenance are written to `results/`.
+## Evidence and editing boundary
 
-## Evidence boundary
+The format conversion preserves the latest methods, equations, figures,
+tables, references, and real-cell results. The abstract is shortened to fit
+within 250 words, keywords are alphabetized, and the section roadmap now
+includes real-cell validation. The current real-cell section includes an
+experimental-platform photograph. No new simulator, LLM optimization, or hardware experiments
+are performed by this conversion. The aging objective remains a
+simulation-based relative indicator; real-cell validation covers charging
+time, voltage, and temperature response.
 
-The revision uses existing archives only; no new simulator or LLM calls were
-made. The Chen five-seed summary combines compatible historical archives and
-is descriptive. The manuscript does not claim matched qEHVI/qNEHVI results,
-an independently isolated regional-coupling effect, calibrated capacity fade,
-or physical-cell validation.
+AI assistance in this conversion is limited to manuscript formatting,
+abstract editing, build-entry cleanup, and verification. The authors should
+review the changes and determine any disclosure required by the journal.
+
+The latest pagination repair removes a fixed reference break and produces
+nine pages. See `submission/simulation_dominance_audit.md` for the subsequent
+source-data audit of protocol dominance and the unresolved Chen2020 mean-HV
+reporting mismatch.
+
+Six TTE references have subsequently been replaced with verified TII papers.
+The corresponding related-work descriptions now match the cited methods;
+all 28 references retain their citation keys and order. The replacement
+mapping and DOI evidence are in `submission/TII_reference_replacement_audit.md`.

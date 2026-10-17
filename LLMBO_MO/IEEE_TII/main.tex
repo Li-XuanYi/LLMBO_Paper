@@ -1,9 +1,10 @@
 % ============================================================================
-% IEEE Transactions on Transportation Electrification
+% IEEE Transactions on Industrial Informatics
+% Anonymous Regular Paper for initial double-blind review (maximum 10 pages).
 % LLMBO-MO: LLM-Informed Multiobjective Bayesian Optimization
 % for Battery Fast-Charging Protocol Design
 % ============================================================================
-\documentclass[journal]{IEEEtran}
+\documentclass[journal,10pt]{IEEEtran}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{mathptmx}
@@ -22,7 +23,12 @@
 \usepackage{array}
 \usepackage{url}
 \usepackage[hidelinks,bookmarksnumbered]{hyperref}
-\usepackage{orcidlink}
+\hypersetup{
+  pdftitle={Battery Fast-Charging Protocol Design via Large Language Model-Informed Multiobjective Bayesian Optimization},
+  pdfauthor={},
+  pdfsubject={Anonymous manuscript submitted to IEEE Transactions on Industrial Informatics},
+  pdfkeywords={Lithium-ion batteries, battery charging, Bayesian optimization, large language models, multiobjective optimization}
+}
 \urlstyle{same}
 \renewcommand{\figureautorefname}{Fig.}
 \renewcommand{\tableautorefname}{Table}
@@ -30,7 +36,8 @@
 % Keep one figure at each column top; compact tables may follow it.
 \setcounter{topnumber}{1}
 \setcounter{dbltopnumber}{1}
-\graphicspath{{figures/}}
+% Support compilation from either the repository root or this directory.
+\graphicspath{{LLMBO_MO/IEEE_TII/figures/}{figures/}}
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 \newcommand{\btheta}{\boldsymbol{\theta}}
@@ -140,69 +147,55 @@
 \title{Battery Fast-Charging Protocol Design via\\
 Large Language Model-Informed Multiobjective Bayesian Optimization}
 
-\author{%
-Xuanyi~Li\textsuperscript{a}\,\orcidlink{0009-0009-9775-1612},
-Lincong~Xie\textsuperscript{a}, Jinmao~Jia\textsuperscript{a}\,\orcidlink{0009-0006-2092-9820},
-Bing-Chuan~Wang\textsuperscript{a}\,\orcidlink{0000-0002-0234-2843},~\IEEEmembership{Senior~Member,~IEEE,}
-Heng~Li\textsuperscript{b}\,\orcidlink{0000-0001-5592-7004},~\IEEEmembership{Member,~IEEE,}
-and~Yun~Feng\textsuperscript{c}\,\orcidlink{0000-0002-6512-3293},~\IEEEmembership{Senior~Member,~IEEE}%
-% Affiliation markers: a = CSU Automation; b = CSU Electronic Information;
-% c = Hunan University Artificial Intelligence and Robotics.
-\thanks{\textsuperscript{a}Xuanyi Li, Lincong Xie, Jinmao Jia, and Bing-Chuan Wang
-are with the School of Automation,
-Central South University, Changsha 410083, China (e-mail: bingcwang@csu.edu.cn).}
-\thanks{\textsuperscript{b}Heng Li is with the School of Electronic Information,
-Central South University, Changsha 410075, China (e-mail: liheng@csu.edu.cn).}
-\thanks{\textsuperscript{c}Yun Feng is with the School of Artificial Intelligence and Robotics,
-Hunan University, Changsha 410082, China (e-mail: fyrobot@hnu.edu.cn).}
-}
-
-% \markboth{Submitted to IEEE Transactions on Transportation Electrification}%
-% {Anonymous Authors: LLM-Informed MOBO for Battery Fast Charging}
+% Author names, affiliations, e-mails, ORCIDs, funding, and acknowledgments
+% belong in the submission system, outside this anonymous review manuscript.
+\author{}
+\markboth{Submitted to IEEE Transactions on Industrial Informatics}%
+{Anonymous Manuscript}
 
 \maketitle
 % BEGIN: sections/abstract.tex
 % ============================================================================
 % Abstract (humanizer-informed revision; original narrative retained)
 % ============================================================================
+
 \begin{abstract}
-Lithium-ion batteries are widely used in electric vehicles and energy-storage
-systems, making efficient and reliable fast charging increasingly important.
-As charging requirements become more diverse, charging strategies must balance
-charging speed, safety, and battery degradation under different user
-preferences. Bayesian optimization (BO) reduces the number of simulator
-evaluations by using a probabilistic surrogate model and an acquisition
-function to select candidate protocols. However, two challenges remain when
-observations are scarce. First, uninformed initialization does not use available
-battery-domain knowledge when selecting initial charging protocols. Second,
-incorporating such knowledge during sequential BO requires accounting for the
-changing trade-offs in multiobjective optimization. Large language models
-(LLMs) offer a way to incorporate task-specific prior knowledge into BO.
-Accordingly, this paper proposes LLMBO-MO, an LLM-informed multiobjective
-Bayesian optimization framework for lithium-ion battery charging design.
-LLMBO-MO first uses an LLM-informed warm start, in which the LLM proposes
-initial charging protocols from battery-domain knowledge, followed by
-candidate screening and diversity-aware selection. During the early search,
-the LLM also proposes a preferred region for the current scalarization
-weights. The regional guidance uses Gaussian process (GP) posterior
-cross-covariance to apply bounded adjustments to the mean used in
-expected improvement. These adjustments alter the ranking of candidate
-protocols. Under a budget of 56 simulator evaluations, LLMBO-MO achieves a
-9.3\% higher mean final hypervolume than ParEGO on Chen2020. An advantage over
-ParEGO is also observed on Ecker2015. Representative Pareto protocols are
-further executed on real M50T cells. Results show that the LLMBO-MO
-protocol completes a 4.0~Ah charge in 64.8~min, about 100~min faster than
-the manufacturer-recommended CC-CV setting and 3.0~min faster than ParEGO,
-while maintaining a lower peak temperature rise than ParEGO on every
-tested cell.
+Designing fast-charging protocols for lithium-ion batteries
+requires balancing charging time, temperature rise, and
+degradation under limited evaluation budgets. Although
+Bayesian optimization (BO) reduces simulation costs,
+incorporating qualitative battery-domain knowledge into
+the optimization process remains challenging when
+observations are scarce. This paper proposes LLMBO-MO,
+a large language model (LLM)-informed multiobjective BO
+framework for battery fast-charging protocol design.
+An LLM-informed warm start generates initial protocols
+from battery-domain knowledge, followed by candidate
+screening and diversity-aware selection. During early
+optimization, the LLM identifies promising search regions
+conditioned on the current scalarization weights.
+Gaussian process posterior cross-covariance incorporates
+these regional preferences into the expected improvement
+acquisition function to guide subsequent evaluations.
+Under a budget of 56 simulation evaluations, LLMBO-MO
+achieves a 9.3\% higher mean final hypervolume than
+ParEGO on Chen2020, with a corresponding advantage
+on Ecker2015. The selected LLMBO-MO protocol strictly
+Pareto-dominates the ParEGO protocol in simulation
+across charging time, peak temperature rise, and
+a model-based aging indicator. In the analyzed three-cell
+experimental subset, compared with ParEGO, LLMBO-MO
+reduces the average charging time from 67.78 to 64.77 min,
+a reduction of 4.4\%, and the mean peak temperature rise
+from 7.33 to 6.84 K, a reduction of 0.49 K.
 \end{abstract}
 
+
 \begin{IEEEkeywords}
-Lithium-ion batteries, battery charging, Bayesian optimization,
-large language models, multiobjective optimization.
+Battery charging, Bayesian optimization, large language models,
+lithium-ion batteries, multiobjective optimization.
 \end{IEEEkeywords}
 % END: sections/abstract.tex
-\IEEEpeerreviewmaketitle
 
 % BEGIN: sections/introduction.tex
 % ============================================================================
@@ -254,18 +247,20 @@ and number of tests. Jiang \emph{et al.}~\cite{nref7} investigated BO for
 minimum-time charging subject to degradation-related constraints and compared
 acquisition functions for multistage protocols. Wang and Jiang~\cite{nref8}
 extended this approach to charging-time and cycle-life trade-offs using
-Tchebycheff scalarization and constrained BO. Dong \emph{et al.}~\cite{refDongBO}
-developed a data-driven BO scheme for minimum-time charging with fast
-convergence and explicit safety constraints. More recently,
-Zhu \emph{et al.}~\cite{refZhuMOBO} combined early degradation prediction with
-multiobjective BO to consider knee-point capacity and cycle life.
+Tchebycheff scalarization and constrained BO. Complementary approaches address
+constrained fast charging through model-based control and reinforcement
+learning. Dong \emph{et al.}~\cite{refDongBO} developed a distributionally robust
+model predictive control strategy using the Wasserstein metric for battery
+charging. Hao \emph{et al.}~\cite{refZhuMOBO} used a differential-GP surrogate
+in adaptive model-based reinforcement learning to account for battery aging
+while handling voltage and temperature constraints.
 Wang \emph{et al.}~\cite{refEIMO} further proposed experience-informed
 multiobjective optimization (EIMO), which transfers optimization experience
 across battery health states to reduce the simulation cost of charging design.
 GP-assisted evolutionary charging design has also addressed multiple user
-preferences while reducing simulation requirements~\cite{refGPA}. Despite
-these advances, the search is driven primarily by numerical observations
-collected during the optimization process.
+preferences while reducing simulation requirements~\cite{refGPA}. In the
+BO-based approaches, candidate selection remains primarily driven by numerical
+observations collected during the optimization process.
 
 Battery-domain knowledge can complement these numerical observations when only
 a few evaluations are available. In particular, prior knowledge of how
@@ -291,11 +286,12 @@ introduced LLAMBO and investigated LLM-based warm starting, surrogate modeling,
 and candidate sampling, with empirical results on hyperparameter optimization.
 Ciss\'e \emph{et al.}~\cite{refBORA} proposed BORA, which uses LLM-based domain
 guidance to suggest promising regions for BO. In the battery domain,
-Bian \emph{et al.}~\cite{refBianLLM} adapted LLMs to state-of-charge estimation,
+Hou \emph{et al.}~\cite{refBianLLM} used prompt-driven fine-tuning of a
+pretrained language model for joint state-of-charge and state-of-health estimation,
 and Kuai \emph{et al.}~\cite{refKuaiLLMBO} applied LLM-enhanced BO to
-electrochemical parameter identification. These studies suggest that LLMs
-can provide task-specific prior information when numerical observations
-are scarce. Compared with approaches requiring explicitly constructed
+electrochemical parameter identification. Together, these studies motivate
+using LLMs to incorporate task-specific information into data-efficient battery
+optimization. Compared with approaches requiring explicitly constructed
 mathematical priors or task-specific search rules, LLMs offer a potentially
 more flexible way to translate qualitative domain knowledge into candidate
 protocols and search preferences. For fast-charging multiobjective design,
@@ -348,7 +344,8 @@ of this work are summarized as follows.
 The remainder of this paper is organized as follows.
 Sections~\ref{sec:problem} and~\ref{sec:model_section} present the charging
 problem and battery model, respectively. Section~\ref{sec:method} describes
-LLMBO-MO. Section~\ref{sec:experiments} reports the experiments, and
+LLMBO-MO. Section~\ref{sec:experiments} reports the numerical experiments.
+Section~\ref{sec:realcell} presents experimental validation on real cells.
 Section~\ref{sec:conclusion} concludes the paper.
 
 % END: sections/introduction.tex
@@ -1190,143 +1187,144 @@ below the prescribed limit.
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\linewidth]{neware_protocol_screenshot.png}
-  \caption{The charging protocols computed by LLMBO-MO and ParEGO,
-  translated from the Pareto set into step-parameter files for the NEWARE
-  battery testing system. Each row corresponds to one working step
-  (constant-current charge, rest, and cyclic repetition) with its cutoff
-  voltage/current and record conditions.}
-  \label{fig:neware_protocol}
+  \includegraphics[width=\linewidth]{experimental_platform.png}
+  \caption{Experimental Platform.}
+  \label{fig:experimental_platform}
 \end{figure}
+
+
 
 \subsection{Experimental Setup}
 
-To examine whether the protocols computed in simulation can be executed
-directly on hardware, representative Pareto protocols returned by LLMBO-MO
-and ParEGO under the Chen2020 parameterization were tested on real cells
-together with the manufacturer-recommended charging setting. Three LG
-INR21700 M50T cells were charged by a NEWARE CT-4008-5V20A-A battery
-cycler at an ambient temperature of about 25$^\circ$C, and a surface
-temperature sensor was attached at the same position on each cell. The
-peak temperature rise is measured relative to the cell surface temperature
-at the start of charging.
+Real-cell charging experiments were conducted using a NEWARE
+CT-4008-5V20A-A battery testing system and LG INR21700 M50T
+lithium-ion cells with a nominal capacity of 5 Ah. The ambient
+temperature was approximately 25$^\circ$C. The experimental
+platform is shown in Fig.~\ref{fig:experimental_platform}.
+The battery cycler recorded the terminal voltage, current,
+and charged capacity, while an auxiliary temperature module
+measured the cell surface temperature.
 
-Three protocols were compared. The baseline is the
-manufacturer-recommended CC-CV setting, which applies a 1.455~A constant
-current followed by a 4.20~V constant-voltage stage with a 0.05~A cutoff
-current. The LLMBO-MO protocol applies 3.90~A, 3.76~A, and 3.00~A with
-stage transitions at 40\% and 70\% SOC, and the ParEGO protocol applies
-3.40~A, 4.79~A, and 2.99~A with transitions at 11.5\% and 41.2\% SOC; on
-the cycler, the stage transitions were implemented using the accumulated
-charged capacity. Each protocol was executed twice on each of the three
-cells, and every run charged 4.0~Ah. The hardware validation covers
-charging time and temperature response. As stated in
-Section~\ref{sec:aging}, the aging indicator $Q_s$ is a relative
-degradation measure for a single charging process; a hardware comparison
-of degradation would require hundreds of cycles and is left for future
-work.
+Three charging protocols were considered: LLMBO-MO, ParEGO,
+and conventional CC-CV. LLMBO-MO employed a three-stage
+constant-current protocol with currents of 3.90, 3.76, and
+3.00 A, switching at 40\% and 70\% SOC. ParEGO used currents
+of 3.40, 4.79, and 2.99 A, switching at 11.5\% and 41.2\%
+SOC. The CC-CV setting used a constant current of 1.455 A,
+a constant voltage of 4.20 V, and a cutoff current of
+0.05 A. All protocols were terminated after delivering
+4.0 Ah, corresponding to 80\% of the nominal capacity.
+
+For the reported three-cell comparison, each protocol was
+tested twice on each cell, with discharge and rest steps
+between charging runs. The results are presented as the mean
+and sample standard deviation of six measurements. Charging
+time, peak temperature rise, and maximum terminal voltage
+were recorded. Peak temperature rise was calculated relative
+to the cell surface temperature at the beginning of charging.
 
 \begin{table}[!t]
-\caption{Real-Cell Charging Results (Mean $\pm$ Standard Deviation Over
-Three Cells, Two Repeats Each)}
+\caption{Real-Cell Charging Results}
 \label{tab:realcell_results}
 \centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lccc}
 \toprule
-Protocol & $t_c$ (min) & $T_p$ (K) & Max voltage (V) \\
+Protocol & $t_c$ (min) & $T_p$ (K) & Max. voltage (V) \\
 \midrule
-CC-CV & 165.06\,$\pm$\,0.16 & 1.80\,$\pm$\,1.23 & 4.121\,$\pm$\,0.003 \\
-ParEGO & 67.78\,$\pm$\,0.03 & 7.33\,$\pm$\,0.64 & 4.158\,$\pm$\,0.005 \\
-LLMBO-MO & \textbf{64.77\,$\pm$\,0.01} & \textbf{6.84\,$\pm$\,0.78} & 4.159\,$\pm$\,0.006 \\
+CC-CV &
+$165.06\pm0.16$ &
+$1.80\pm1.23$ &
+$4.121\pm0.003$ \\
+ParEGO &
+$67.78\pm0.03$ &
+$7.33\pm0.64$ &
+$4.158\pm0.005$ \\
+LLMBO-MO &
+$\mathbf{64.77\pm0.01}$ &
+$\mathbf{6.84\pm0.78}$ &
+$4.159\pm0.006$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Results}
 
-Table~\ref{tab:realcell_results} summarizes the measured charging time,
-peak temperature rise, and maximum terminal voltage; every run charged
-4.0~Ah. The two optimized protocols charge the cells about 100~min faster
-than the manufacturer-recommended CC-CV setting. Between them, the
-LLMBO-MO protocol is on average 3.0~min faster than the ParEGO protocol,
-and it produces a lower peak temperature rise on each of the three cells
-(6.0 vs.\ 6.7~K, 7.1 vs.\ 7.2~K, and 7.4 vs.\ 8.1~K). The ordering of the
-two protocols in both objectives therefore agrees with the simulation
-results in Section~V.
+The experimental results are summarized in
+Table~\ref{tab:realcell_results}. LLMBO-MO achieved an
+average charging time of 64.77 min, compared with
+67.78 min for ParEGO, representing a 4.4\% reduction.
+The average peak temperature rise was also reduced
+from 7.33 K to 6.84 K. The three cells included in
+the analysis exhibited the same ordering in both
+charging time and peak temperature rise.
 
-The measured charging times also match the simulated predictions closely:
-the LLMBO-MO and ParEGO protocols took 3886~s and 4067~s on average,
-within 0.2\% of the simulated 3883~s and 4060~s. The peak temperature
-rises (6.84~K and 7.33~K) are higher than the simulated values (4.56~K and
-5.00~K), indicating that the lumped thermal model underestimates the
-surface temperature rise under high-current charging; the relative
-comparison between the two protocols, however, is preserved. The larger
-variability of the CC-CV temperature rise arises because this rise is
-measured relative to the pre-charge surface temperature, which drifted
-with the ambient conditions between repeats.
+In simulation, the selected LLMBO-MO protocol strictly
+Pareto-dominated the corresponding ParEGO protocol,
+achieving lower charging time, peak temperature rise,
+and aging indicator. The real-cell measurements confirmed
+the same ordering in the two experimentally evaluated
+objectives, charging time and peak temperature rise.
 
-Two further observations support the validity of the comparison. First,
-under both optimized protocols the terminal voltage remained below the
-4.20~V limit, with a measured maximum of about 4.16~V. Second, the CC-CV
-runs never entered the constant-voltage stage within the 4.0~Ah window, as
-the terminal voltage stayed below 4.20~V; the comparison is therefore made
-at an equal charged capacity for all three protocols. Overall, the
-protocols computed from the simulation model were executed on real cells
-without modification, and the measured time--temperature trade-off
-reproduced the simulated Pareto ordering.
+The conventional CC-CV setting required 165.06 min
+and produced a peak temperature rise of 1.80 K,
+reflecting the charging-time and thermal trade-off
+associated with its lower charging current. Since
+charging was terminated at 4.0 Ah, the CC-CV tests
+ended before reaching the constant-voltage stage.
 % END: sections/realcell.tex
-% BEGIN: sections/conclusion.tex
+
+
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper proposed LLMBO-MO, an LLM-informed multiobjective Bayesian
-optimization framework for multistage battery fast-charging protocol design
-under limited simulation budgets. The design task is formulated as a
-constrained multiobjective problem balancing charging time, peak temperature
-rise, and charging-induced degradation, and is solved by decomposition-based
-BO, in which successive Tchebycheff scalarizations are modeled by GP
-surrogates and sampled by maximizing EI. First, the LLM-informed warm start
-uses charging-variable definitions, operating constraints, and battery-domain
-knowledge to propose initial protocols; candidate screening and
-diversity-aware selection are then combined with random valid protocols to
-construct the initial simulation design. Second, during the early search, the
-LLM provides a preferred region conditioned on the active scalarization
-weight. Third, the regional guidance uses GP posterior cross-covariance to
-translate
-the regional preference into a bounded adjustment of the mean used to compute
-EI, and standard EI is used when no valid regional preference is available.
+This paper proposed LLMBO-MO, an LLM-informed multiobjective
+Bayesian optimization framework for multistage battery
+fast-charging protocol design under limited simulation budgets.
+First, an LLM-informed warm start incorporates battery-domain
+knowledge and operating constraints to generate initial charging
+protocols, followed by feasibility screening and diversity-aware
+selection. Second, the LLM identifies promising search regions
+according to the current multiobjective preference. Third,
+GP posterior cross-covariance is used to incorporate regional
+guidance into the acquisition function, directing the subsequent
+optimization process.
 
-Under a budget of 56 battery-model evaluations, LLMBO-MO achieved the highest
-final mean HV among all compared methods on both battery parameterizations.
-On Chen2020, the mean final HV was \ChenLLMBOMean, compared with
-\ChenParEGOMean\ for ParEGO, corresponding to a \ChenFinalGain\ increase; on
-Ecker2015, the corresponding values were \EckerLLMBOMean\ and
-\EckerParEGOMean. The initialization study showed that battery-specific
-prompting improved short-budget optimization more than generic prompting,
-and the component study showed that the warm start accounted for
-most of the improvement, while regional guidance further increased the mean
-final HV from \AblationWarmMean\ to \AblationFullMean. Comparisons across LLM
-backends further indicated that the final performance is robust to the
-choice of backend.
+Under a budget of 56 battery-model evaluations, LLMBO-MO
+achieved the highest final mean HV among the compared methods
+on both battery parameterizations. On Chen2020, the mean final
+HV increased from \ChenParEGOMean\ for ParEGO to
+\ChenLLMBOMean, representing a \ChenFinalGain\ improvement.
+On Ecker2015, the corresponding values increased from
+\EckerParEGOMean\ to \EckerLLMBOMean.
+The initialization and ablation studies showed that
+battery-domain-informed initialization contributed substantially
+to the performance improvement, while regional guidance
+provided further gains.
 
-The computed protocols were further executed on three real M50T cells: the
-measured charging times matched the simulated predictions within
-0.2\%, and the time--temperature ordering between the LLMBO-MO and ParEGO
-protocols was reproduced on every tested cell, although the lumped thermal
-model underestimated the absolute temperature rise. The degradation
-objective remains a simulation-based relative indicator, and the computed
-protocols are optimal within the considered three-stage MCC policy class
-rather than globally optimal charging trajectories. Future work will
-validate the aging objective through long-term cycling, assess regional
-guidance over wider operating conditions, and extend the framework to
-other cell chemistries and pack-level charging.
+Real-cell experiments further evaluated the optimized charging
+protocols. For the three cells included in the analysis,
+LLMBO-MO reduced the average charging time by 4.4\% compared
+with ParEGO, from 67.78 to 64.77 min, while reducing the
+average peak temperature rise from 7.33 to 6.84 K.
+The selected LLMBO-MO protocol strictly Pareto-dominated
+the ParEGO protocol in simulation across charging time,
+peak temperature rise, and aging indicator. The real-cell
+measurements showed the same performance ordering in
+charging time and peak temperature rise.
+Future work will investigate long-term cycling degradation
+and extend the framework to different battery chemistries
+and operating conditions.
 % END: sections/conclusion.tex
 % BEGIN: sections/references.tex
 % Bibliography supplied by the authors; stable keys retained.
 % Entries reordered by first citation; LGBO proceedings link verified.
-% TTE-supporting entries added: refTuXFC, refFanReview, refHuMulti,
-% refDongBO, refBianLLM.
+% Six TTE entries replaced with topic-aligned TII articles on 2026-10-17.
+% DOI and publication metadata verified against Crossref publisher records;
+% original citation keys retained to preserve numbering and cross-references.
 
+% Let references flow naturally; fixed reference breaks can create an extra page.
 \begin{thebibliography}{99}
 
 \bibitem{refFastChargeReview}
@@ -1337,12 +1335,13 @@ A.~Tomaszewska \textit{et al.},
 {doi:10.1016/j.etran.2019.100011}.
 
 \bibitem{refTuXFC}
-H.~Tu, H.~Feng, S.~Srdic, and S.~Lukic,
-``Extreme fast charging of electric vehicles: A technology overview,''
-\textit{IEEE Trans. Transp. Electrific.},
-vol.~5, no.~4, pp.~861--878, 2019,
-\href{https://doi.org/10.1109/TTE.2019.2958709}
-{doi:10.1109/TTE.2019.2958709}.
+Y.~Gao \textit{et al.},
+``Health-aware multiobjective optimal charging strategy with coupled
+electrochemical-thermal-aging model for lithium-ion battery,''
+\textit{IEEE Trans. Ind. Informat.},
+vol.~16, no.~5, pp.~3417--3429, 2020,
+\href{https://doi.org/10.1109/TII.2019.2935326}
+{doi:10.1109/TII.2019.2935326}.
 
 \bibitem{nref2}
 K.~Liu, C.~Zou, K.~Li, and T.~Wik,
@@ -1354,22 +1353,22 @@ vol.~14, no.~12, pp.~5463--5474, 2018,
 {doi:10.1109/TII.2018.2866493}.
 
 \bibitem{refFanReview}
-C.~Fan, Y.~Wang, Q.~Peng, and K.~Liu,
-``Towards plating-free fast charging for lithium-ion batteries:
-A review of optimization aspects,''
-\textit{IEEE Trans. Transp. Electrific.},
-early access, 2026,
-\href{https://doi.org/10.1109/TTE.2026.3736242}
-{doi:10.1109/TTE.2026.3736242}.
+Q.~Ouyang, J.~Chen, J.~Zheng, and H.~Fang,
+``Optimal multiobjective charging for lithium-ion battery packs:
+A hierarchical control approach,''
+\textit{IEEE Trans. Ind. Informat.},
+vol.~14, no.~9, pp.~4243--4253, 2018,
+\href{https://doi.org/10.1109/TII.2018.2825245}
+{doi:10.1109/TII.2018.2825245}.
 
 \bibitem{refHuMulti}
-X.~Hu, Y.~Zheng, X.~Lin, and Y.~Xie,
-``Optimal multistage charging of NCA/graphite lithium-ion batteries
-based on electrothermal-aging dynamics,''
-\textit{IEEE Trans. Transp. Electrific.},
-vol.~6, no.~2, pp.~427--438, 2020,
-\href{https://doi.org/10.1109/TTE.2020.2977092}
-{doi:10.1109/TTE.2020.2977092}.
+N.~Tian, H.~Fang, and Y.~Wang,
+``Real-time optimal lithium-ion battery charging based on explicit
+model predictive control,''
+\textit{IEEE Trans. Ind. Informat.},
+vol.~17, no.~2, pp.~1318--1330, 2021,
+\href{https://doi.org/10.1109/TII.2020.2983176}
+{doi:10.1109/TII.2020.2983176}.
 
 \bibitem{refGPA}
 B.-C.~Wang, Y.-Y.~Mao, Y.~Wang, and H.-X.~Li,
@@ -1412,22 +1411,22 @@ B.~Shahriari \textit{et al.},
 {doi:10.1109/JPROC.2015.2494218}.
 
 \bibitem{refDongBO}
-G.~Dong, Y.~Feng, Y.~Lou, M.~Zhang, and J.~Wei,
-``Data-driven fast charging optimization for lithium-ion battery
-using Bayesian optimization with fast convergence,''
-\textit{IEEE Trans. Transp. Electrific.},
-vol.~10, no.~2, pp.~4173--4183, 2024,
-\href{https://doi.org/10.1109/TTE.2023.3311813}
-{doi:10.1109/TTE.2023.3311813}.
+G.~Dong, Z.~Zhu, Y.~Lou, J.~Yu, L.~Wu, and J.~Wei,
+``Optimal charging of lithium-ion battery using distributionally robust
+model predictive control with Wasserstein metric,''
+\textit{IEEE Trans. Ind. Informat.},
+vol.~20, no.~5, pp.~7630--7640, 2024,
+\href{https://doi.org/10.1109/TII.2024.3363079}
+{doi:10.1109/TII.2024.3363079}.
 
 \bibitem{refZhuMOBO}
-R.~Zhu, W.~Peng, F.~Yang, and M.~Xie,
-``Fast-charging protocols design of lithium-ion battery:
-A multiple-objective Bayesian optimization perspective,''
-\textit{IEEE Trans. Transp. Electrific.},
-vol.~11, no.~3, pp.~8327--8338, 2025,
-\href{https://doi.org/10.1109/TTE.2025.3539853}
-{doi:10.1109/TTE.2025.3539853}.
+Y.~Hao, Q.~Lu, X.~Wang, and B.~Jiang,
+``Adaptive model-based reinforcement learning for fast-charging
+optimization of lithium-ion batteries,''
+\textit{IEEE Trans. Ind. Informat.},
+vol.~20, no.~1, pp.~127--137, 2024,
+\href{https://doi.org/10.1109/TII.2023.3257299}
+{doi:10.1109/TII.2023.3257299}.
 
 \bibitem{refEIMO}
 B.-C.~Wang, Y.-Y.~Mao, J.-M.~Jia, J.~Liu, and Y.~Wang,
@@ -1475,13 +1474,13 @@ in \textit{Proc. 34th Int. Joint Conf. Artif. Intell. (IJCAI)},
 {doi:10.24963/ijcai.2025/553}.
 
 \bibitem{refBianLLM}
-C.~Bian, X.~Han, Z.~Duan, C.~Deng, S.~Yang, and J.~Feng,
-``Hybrid prompt-driven large language model for robust
-state-of-charge estimation of multitype Li-ion batteries,''
-\textit{IEEE Trans. Transp. Electrific.},
-vol.~11, no.~1, pp.~426--437, 2025,
-\href{https://doi.org/10.1109/TTE.2024.3391938}
-{doi:10.1109/TTE.2024.3391938}.
+L.~Hou, Y.~Shang, T.~Qiu, X.~Zhang, Y.~Zhu, and X.~Gu,
+``Prompt-driven fine-tuning large language model for multistate
+coestimation of lithium-ion batteries,''
+\textit{IEEE Trans. Ind. Informat.},
+vol.~22, no.~8, pp.~6647--6658, 2026,
+\href{https://doi.org/10.1109/TII.2025.3631017}
+{doi:10.1109/TII.2025.3631017}.
 
 \bibitem{refKuaiLLMBO}
 X.~Kuai, J.-H.~Ren, B.-C.~Wang, and Y.~Feng,

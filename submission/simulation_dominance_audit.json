@@ -1,0 +1,136 @@
+{
+  "scope": "Archived Chen2020 records; no new simulator or LLM calls",
+  "objective_order": [
+    "charging_time_s",
+    "temperature_rise_K",
+    "aging_indicator"
+  ],
+  "all_objectives_minimized": true,
+  "selected_protocols": {
+    "llmbo_mo": {
+      "source": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\seed8409_llmbo_vs_parego_50iter\\seed8409\\llmbo_mo\\database.json",
+      "observation_number": 7,
+      "zero_based_index": 6,
+      "iteration": 1,
+      "theta": [
+        3.9004013729715443,
+        3.758672557096327,
+        3.0,
+        0.4,
+        0.2999756044248352
+      ],
+      "objectives": [
+        3883.0,
+        4.554698003664299,
+        0.8897015906260146
+      ],
+      "feasible": true,
+      "in_recomputed_front": true,
+      "in_stored_front": true
+    },
+    "parego_matlab_reference": {
+      "source": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\seed8409_llmbo_vs_parego_50iter\\seed8409\\parego_matlab_reference\\database.json",
+      "observation_number": 52,
+      "zero_based_index": 51,
+      "iteration": 46,
+      "theta": [
+        3.39711737007188,
+        4.788830209898036,
+        2.9916543657045156,
+        0.11476043063261704,
+        0.2972314382949903
+      ],
+      "objectives": [
+        4060.0,
+        4.9989536406231885,
+        0.9262181663540269
+      ],
+      "feasible": true,
+      "in_recomputed_front": true,
+      "in_stored_front": true
+    }
+  },
+  "selected_llmbo_strictly_better_in_all_objectives": true,
+  "selected_pair_improvement_percent": [
+    4.359605911330049,
+    8.886972532585972,
+    3.9425458336405144
+  ],
+  "five_seed_fronts": [
+    {
+      "seed": 8409,
+      "sources": {
+        "llmbo_mo": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\optimized_experiments\\region_lift_force_pool_local_sweep_seed8409_2026_05_01\\seed8409\\wider_active16_ext32\\database.json",
+        "parego": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\optimized_experiments\\parego_matlab_reference_seed8409_50iter_2026_05_05\\seed8409\\parego_matlab_reference\\database.json"
+      },
+      "llmbo_front_size": 37,
+      "parego_front_size": 45,
+      "parego_points_dominated_by_llmbo": 1,
+      "llmbo_points_dominated_by_parego": 4,
+      "archived_llmbo_hv": 0.38482555920297173,
+      "archived_parego_hv": 0.3523110937014429,
+      "hv_agrees_with_paper_manifest": true
+    },
+    {
+      "seed": 8410,
+      "sources": {
+        "llmbo_mo": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8410\\llmbo_mo\\database.json",
+        "parego": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8410\\parego\\database.json"
+      },
+      "llmbo_front_size": 41,
+      "parego_front_size": 46,
+      "parego_points_dominated_by_llmbo": 2,
+      "llmbo_points_dominated_by_parego": 5,
+      "archived_llmbo_hv": 0.382604888270038,
+      "archived_parego_hv": 0.37609783087818255,
+      "hv_agrees_with_paper_manifest": true
+    },
+    {
+      "seed": 8411,
+      "sources": {
+        "llmbo_mo": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8411\\llmbo_mo\\database.json",
+        "parego": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8411\\parego\\database.json"
+      },
+      "llmbo_front_size": 47,
+      "parego_front_size": 48,
+      "parego_points_dominated_by_llmbo": 3,
+      "llmbo_points_dominated_by_parego": 1,
+      "archived_llmbo_hv": 0.39391512431537407,
+      "archived_parego_hv": 0.3994554477734361,
+      "hv_agrees_with_paper_manifest": true
+    },
+    {
+      "seed": 8412,
+      "sources": {
+        "llmbo_mo": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8412\\llmbo_mo\\database.json",
+        "parego": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8412\\parego\\database.json"
+      },
+      "llmbo_front_size": 44,
+      "parego_front_size": 43,
+      "parego_points_dominated_by_llmbo": 0,
+      "llmbo_points_dominated_by_parego": 3,
+      "archived_llmbo_hv": 0.3886212393270976,
+      "archived_parego_hv": 0.37929761034100756,
+      "hv_agrees_with_paper_manifest": true
+    },
+    {
+      "seed": 8413,
+      "sources": {
+        "llmbo_mo": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8413\\llmbo_mo\\database.json",
+        "parego": "D:\\Users\\aa133\\Desktop\\BO_Multi_12_20\\New_LLMBO\\Compare_Exp\\experiment_records\\computational_time_3algo_5seeds_50iter_2026_05_12\\seed8413\\parego\\database.json"
+      },
+      "llmbo_front_size": 42,
+      "parego_front_size": 48,
+      "parego_points_dominated_by_llmbo": 2,
+      "llmbo_points_dominated_by_parego": 2,
+      "archived_llmbo_hv": 0.3741890250159762,
+      "archived_parego_hv": 0.3820582167849328,
+      "hv_agrees_with_paper_manifest": true
+    }
+  ],
+  "archived_mean_hv": {
+    "llmbo_mo": 0.3848311672262915,
+    "parego": 0.37784403989580034,
+    "relative_gain_percent": 1.8492093543193144
+  }
+}
