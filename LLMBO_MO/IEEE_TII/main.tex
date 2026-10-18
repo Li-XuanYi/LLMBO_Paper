@@ -785,7 +785,7 @@ charging protocols from the computed Pareto set are inspected.
 \toprule
 Parameter & Value \\
 \midrule
-Primary parameterization & Chen2020, LG INR21700-M50 \\
+Primary parameterization & Chen2020 (initial), re-identified on INR21700 M50T \\
 Additional parameterization & Ecker2015 \\
 Chen2020 nominal capacity & 5.0 Ah \\
 Chen2020 cell voltage range & 2.50--4.20 V \\
@@ -824,11 +824,14 @@ Tchebycheff coefficient $\rho_{\mathrm{aug}}$ & \RhoAug \\
 \subsection{Experimental Setup}
 
 The optimization environment is an electrochemical--thermal--aging model
-developed in PyBaMM, with model parameters taken from experimentally
-identified parameterizations of real lithium-ion cells. The main case uses
-the Chen2020 parameterization of the LG INR21700-M50
-cell~\cite{ref8}. A second case uses Ecker2015~\cite{ref9} to examine
-performance with a different battery parameterization. The objectives are
+developed in PyBaMM. For the main case, the electrochemical and thermal
+parameters were initialized from the Chen2020 parameterization of the LG
+INR21700 cell~\cite{ref8} and re-identified against voltage and
+temperature measurements of INR21700 M50T cells~\cite{refEIMO}. The
+hardware validation in Section~\ref{sec:realcell} uses the same cell
+type. A second case
+uses Ecker2015~\cite{ref9} to examine performance with a different
+battery parameterization. The objectives are
 charging time $t_c$, peak temperature rise $T_p$, and aging indicator $Q_s$.
 The battery and algorithm settings are summarized in
 Tables~\ref{tab:battery_settings} and~\ref{tab:algorithm_settings}.
@@ -1268,6 +1271,14 @@ achieving lower charging time, peak temperature rise,
 and aging indicator. The real-cell measurements confirmed
 the same ordering in the two experimentally evaluated
 objectives, charging time and peak temperature rise.
+
+The measured charging times are close to the simulated
+predictions. The measured peak temperature rises are higher
+than the simulated values, which is expected because the
+thermal parameters were identified under discharging
+conditions, while the hardware tests concern multistage
+high-current charging. The ordering between the two
+protocols is nevertheless consistent with the simulation.
 
 The conventional CC-CV setting required 165.06 min
 and produced a peak temperature rise of 1.80 K,
