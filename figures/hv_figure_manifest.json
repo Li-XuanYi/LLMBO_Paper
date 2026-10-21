@@ -8,7 +8,7 @@
       "figures\\chen2020_hv_5way.png"
     ],
     "evaluations": 56,
-    "source": "Compare_Exp/experiment_records/（HV）05-03/curve_data/hv_convergence_5way_plotted_curves.csv",
+    "source": "Compare_Exp/experiment_records/\uff08HV\uff0905-03/curve_data/hv_convergence_5way_plotted_curves.csv",
     "llmbo_mo_center_line": "archived seed 8409 trajectory",
     "parego_center_line": "archived seed 8409 trajectory",
     "llmbo_mo_final": 0.38482555920297173,
@@ -106,17 +106,20 @@
     "labels": [
       "A",
       "B",
-      "C",
-      "D",
-      "E"
-    ]
+      "C"
+    ],
+    "selection": "fixed (see results/pareto_representatives.json: fixed_specs)"
   },
   "component_ablation": {
     "outputs": [
       "figures\\ablation_hv_box.png"
     ],
     "evaluations": 16,
-    "seeds": [8409, 8410, 8411],
+    "seeds": [
+      8409,
+      8410,
+      8411
+    ],
     "uncertainty": "sample standard deviation",
     "source": "Ablation_Exp/experiment_records/ablation_4way_3seeds_10iter_deepseek_v3_codex_2026_05_17"
   },

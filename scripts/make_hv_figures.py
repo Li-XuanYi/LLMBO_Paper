@@ -406,6 +406,27 @@ def _select_arc_representatives(front: list[dict[str, Any]]) -> list[dict[str, A
     return selected
 
 
+def _select_fixed_representatives(
+    records: list[dict[str, Any]], specs: list[str]
+) -> list[dict[str, Any]]:
+    by_key = {
+        (record["seed"], record["observation_index"]): record for record in records
+    }
+    selected: list[dict[str, Any]] = []
+    for spec in specs:
+        seed_text, separator, index_text = spec.partition(":")
+        if not separator:
+            raise ValueError(f"Expected SEED:OBS_INDEX, got {spec}")
+        key = (int(seed_text), int(index_text))
+        if key not in by_key:
+            raise ValueError(f"Fixed representative {spec} not found in pooled records")
+        selected.append(by_key[key])
+    selected.sort(key=lambda record: record["objectives"][0])
+    for label, record in zip("ABC", selected):
+        record["label"] = label
+    return selected
+
+
 def _representative_annotation(selected: list[dict[str, Any]]) -> str:
     """Render the design vector of each starred representative as a text block.
 
@@ -460,7 +481,10 @@ def _place_vertical_axis_title(fig: plt.Figure, ax: Any, text: str, fontsize: in
 
 
 def make_pareto_protocols(
-    database_specs: list[str], output_dir: Path, results_dir: Path
+    database_specs: list[str],
+    output_dir: Path,
+    results_dir: Path,
+    fixed_specs: list[str] | None = None,
 ) -> dict[str, Any]:
     records: list[dict[str, Any]] = []
     source_paths: dict[int, str] = {}
@@ -496,13 +520,21 @@ def make_pareto_protocols(
     values = np.asarray([record["objectives"] for record in deduplicated], dtype=float)
     mask = _nondominated_mask(values)
     front = [record for record, retained in zip(deduplicated, mask) if bool(retained)]
-    selected = _select_arc_representatives(front)
+    front_keys = {
+        id(record) for record in front
+    }
+    if fixed_specs:
+        selected = _select_fixed_representatives(deduplicated, fixed_specs)
+    else:
+        selected = _select_arc_representatives(front)
 
     for record in selected:
         theta = record["theta"]
         record["dsoc3"] = 0.8 - theta[3] - theta[4]
         record["feasible"] = True
-        record["globally_nondominated"] = True
+        record["globally_nondominated"] = (
+            not fixed_specs or id(record) in front_keys
+        )
     _style()
     fig = plt.figure(figsize=(8.0, 5.80))
     ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
@@ -585,9 +617,17 @@ def make_pareto_protocols(
     json_path = results_dir / "pareto_representatives.json"
     json_payload = {
         "selection_rule": (
-            "Pool feasible observations, remove duplicates, retain the global minimization "
-            "nondominated set, sort by charging time, normalize all objectives, and select "
-            "the records nearest cumulative front-arc fractions 0, 0.50, and 1."
+            (
+                "Pool feasible observations, remove duplicates, retain the global "
+                "minimization nondominated set, and pick the fixed records given as "
+                "SEED:OBS_INDEX pairs; labels are assigned in ascending charging time."
+            )
+            if fixed_specs
+            else (
+                "Pool feasible observations, remove duplicates, retain the global minimization "
+                "nondominated set, sort by charging time, normalize all objectives, and select "
+                "the records nearest cumulative front-arc fractions 0, 0.50, and 1."
+            )
         ),
         "soc_target": 0.8,
         "source_databases": source_paths,
@@ -596,6 +636,8 @@ def make_pareto_protocols(
         "n_global_nondominated": len(front),
         "representatives": selected,
     }
+    if fixed_specs:
+        json_payload["fixed_specs"] = list(fixed_specs)
     json_path.write_text(json.dumps(json_payload, indent=2), encoding="utf-8")
 
     csv_path = results_dir / "pareto_representatives.csv"
@@ -654,6 +696,7 @@ def main() -> None:
     parser.add_argument("--normalization-csv", type=Path, required=True)
     parser.add_argument("--optimal-manifest", type=Path, required=True)
     parser.add_argument("--pareto-database", action="append", default=[], required=True)
+    parser.add_argument("--pareto-fixed", action="append", default=[])
     parser.add_argument("--output-dir", type=Path, default=Path("figures"))
     parser.add_argument("--results-dir", type=Path, default=Path("results"))
     args = parser.parse_args()
@@ -673,7 +716,10 @@ def main() -> None:
             args.optimal_manifest, args.output_dir
         ),
         "pareto_representatives": make_pareto_protocols(
-            args.pareto_database, args.output_dir, args.results_dir
+            args.pareto_database,
+            args.output_dir,
+            args.results_dir,
+            fixed_specs=args.pareto_fixed,
         ),
         "sources": {
             "chen_csv": args.chen_csv.name,

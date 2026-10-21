@@ -1,5 +1,5 @@
 {
-  "selection_rule": "Pool feasible observations, remove duplicates, retain the global minimization nondominated set, sort by charging time, normalize all objectives, and select the records nearest cumulative front-arc fractions 0, 0.50, and 1.",
+  "selection_rule": "Pool feasible observations, remove duplicates, retain the global minimization nondominated set, and pick the fixed records given as SEED:OBS_INDEX pairs; labels are assigned in ascending charging time.",
   "soc_target": 0.8,
   "source_databases": {
     "8409": "optimized_experiments/region_lift_force_pool_local_sweep_seed8409_2026_05_01/seed8409/wider_active16_ext32/database.json",
@@ -13,70 +13,75 @@
   "n_global_nondominated": 158,
   "representatives": [
     {
-      "seed": 8409,
-      "observation_index": 29,
-      "theta": [
-        6.0,
-        5.0,
-        3.0,
-        0.4,
-        0.2999951281178859
-      ],
-      "objectives": [
-        2880.0,
-        7.566964191322911,
-        1.2606511928531257
-      ],
-      "source": "bo",
-      "database": "optimized_experiments/region_lift_force_pool_local_sweep_seed8409_2026_05_01/seed8409/wider_active16_ext32/database.json",
-      "label": "A",
-      "dsoc3": 0.1000048718821141,
-      "feasible": true,
-      "globally_nondominated": true
-    },
-    {
-      "seed": 8411,
-      "observation_index": 25,
-      "theta": [
-        2.7822368877007393,
-        2.0,
-        3.0,
-        0.2114557877991428,
-        0.1
-      ],
-      "objectives": [
-        5199.0,
-        3.0693375911278964,
-        0.680413947411352
-      ],
-      "source": "bo",
-      "database": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed8411/llmbo_mo/database.json",
-      "label": "B",
-      "dsoc3": 0.4885442122008573,
-      "feasible": true,
-      "globally_nondominated": true
-    },
-    {
       "seed": 8413,
-      "observation_index": 52,
+      "observation_index": 53,
       "theta": [
-        2.0,
-        2.0,
-        2.0,
-        0.24459565881610779,
-        0.15264080714266048
+        4.47715357371367,
+        4.372560930501405,
+        3.0,
+        0.3999999982657158,
+        0.3
       ],
       "objectives": [
-        7200.0,
-        1.5284471887453095,
-        0.6401365294994713
+        3443.0,
+        5.72951020093081,
+        0.9896443564564015
       ],
       "source": "bo",
       "database": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed8413/llmbo_mo/database.json",
+      "label": "A",
+      "dsoc3": 0.10000000173428425,
+      "feasible": true,
+      "globally_nondominated": true
+    },
+    {
+      "seed": 8409,
+      "observation_index": 7,
+      "theta": [
+        3.9004013729715443,
+        3.758672557096327,
+        3.0,
+        0.4,
+        0.2999756044248352
+      ],
+      "objectives": [
+        3883.0,
+        4.554698003664299,
+        0.8897015906260146
+      ],
+      "source": "bo",
+      "database": "optimized_experiments/region_lift_force_pool_local_sweep_seed8409_2026_05_01/seed8409/wider_active16_ext32/database.json",
+      "label": "B",
+      "dsoc3": 0.10002439557516485,
+      "feasible": true,
+      "globally_nondominated": true
+    },
+    {
+      "seed": 8410,
+      "observation_index": 18,
+      "theta": [
+        3.5528755367621154,
+        2.0,
+        2.3203318359939193,
+        0.1,
+        0.1
+      ],
+      "objectives": [
+        6062.0,
+        2.0175454886712374,
+        0.7085717864714801
+      ],
+      "source": "bo",
+      "database": "Compare_Exp/experiment_records/computational_time_3algo_5seeds_50iter_2026_05_12/seed8410/llmbo_mo/database.json",
       "label": "C",
-      "dsoc3": 0.4027635340412318,
+      "dsoc3": 0.6000000000000001,
       "feasible": true,
       "globally_nondominated": true
     }
+  ],
+  "fixed_specs": [
+    "8413:53",
+    "8409:7",
+    "8410:18"
   ]
 }

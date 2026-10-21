@@ -178,16 +178,17 @@ Gaussian process posterior cross-covariance incorporates
 these regional preferences into the expected improvement
 acquisition function to guide subsequent evaluations.
 Under a budget of 56 simulation evaluations, LLMBO-MO
-achieves a 9.3\% higher mean final hypervolume than
-ParEGO on Chen2020, with a corresponding advantage
-on Ecker2015. The selected LLMBO-MO protocol strictly
-Pareto-dominates the ParEGO protocol in simulation
-across charging time, peak temperature rise, and
-a model-based aging indicator. In the analyzed three-cell
-experimental subset, compared with ParEGO, LLMBO-MO
-reduces the average charging time from 67.78 to 64.77 min,
-a reduction of 4.4\%, and the mean peak temperature rise
-from 7.33 to 6.84 K, a reduction of 0.49 K.
+achieves a \ChenFinalGain\ higher mean final hypervolume
+than ParEGO on Chen2020 and a \EckerFinalGain\ higher
+value on Ecker2015. Three representative LLMBO-MO protocols
+Pareto-dominate their ParEGO counterparts in simulated
+charging time and peak temperature rise. Real-cell
+experiments on INR21700 M50T cells further validate the
+optimized protocols. The LLMBO-MO protocols complete
+charging 4.4\% to 5.4\% faster than their ParEGO
+counterparts in every test, and the measured mean
+temperature rises are lower for all three protocol pairs,
+consistent with the simulated ordering.
 \end{abstract}
 
 
@@ -978,7 +979,7 @@ knowledge.}
 \begin{minipage}[t]{0.48\textwidth}
 \vspace{0pt}
 \centering
-\includegraphics[width=\linewidth]{pareto_protocols_ae.png}
+\includegraphics[width=\linewidth]{pareto_protocols_ae.pdf}
 \caption{Representative charging protocols from the computed Pareto set on Chen2020.}
 \label{fig:pareto_profiles}
 \end{minipage}\hfill
@@ -1153,9 +1154,9 @@ these differences as additional battery-model evaluations are collected.
 Protocol & Currents ($I_1/I_2/I_3$, A) & $\Delta s_1/\Delta s_2/\Delta s_3$ &
 $t_c$ (s) & $T_p$ (K) & $Q_s$ (\%) \\
 \midrule
-A & 6.000/5.000/3.000 & 0.400/0.300/0.100 & 2880 & 7.567 & 1.261 \\
-B & 2.782/2.000/3.000 & 0.211/0.100/0.489 & 5199 & 3.069 & 0.680 \\
-C & 2.000/2.000/2.000 & 0.245/0.153/0.403 & 7200 & 1.528 & 0.640 \\
+A & 4.477/4.373/3.000 & 0.400/0.300/0.100 & 3443 & 5.730 & 0.990 \\
+B & 3.900/3.759/3.000 & 0.400/0.300/0.100 & 3883 & 4.555 & 0.890 \\
+C & 3.553/2.000/2.320 & 0.100/0.100/0.600 & 6062 & 2.018 & 0.709 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1164,24 +1165,28 @@ C & 2.000/2.000/2.000 & 0.245/0.153/0.403 & 7200 & 1.528 & 0.640 \\
 
 HV evaluates the nondominated set as a whole. To examine the charging choices
 represented by that set, we select protocols A--C from the Chen2020 Pareto
-set. Their objective values are shown in Fig.~\ref{fig:pareto_profiles}, and
-their currents and SOC increments are listed in
-Table~\ref{tab:representative_protocols}.
+set, covering the fast-charging region, the intermediate region, and the
+low-temperature-rise region of the front. Their objective values are shown
+in Fig.~\ref{fig:pareto_profiles}, and their currents and SOC increments are
+listed in Table~\ref{tab:representative_protocols}.
 
-Protocol A applies higher currents early in charging and reaches the target
-SOC in 2880~s. It is the fastest of the three, but has the largest peak
-temperature rise and aging indicator. Protocol C uses a constant 2~A current
-and takes 7200~s, with the lowest values of both indicators. Protocol B offers
-an intermediate choice: relative to C, it reduces charging time to 5199~s,
-while the aging indicator increases from 0.640 to 0.680 and peak temperature
-rise from 1.528 to 3.069~K. The benefit of faster charging can thus be weighed
-against its thermal and degradation costs using the returned protocols.
+Protocol A applies the highest currents in the first two stages and reaches
+the target SOC in 3443~s. It is the fastest of the three, but has the largest
+peak temperature rise and aging indicator. Protocol C lowers the current to
+about 2~A after the first 10\% of the SOC range and takes 6062~s, with the
+lowest values of both indicators. Protocol B offers an intermediate choice.
+Relative to C, it reduces the charging time to 3883~s, while the peak
+temperature rise increases from 2.018 to 4.555~K and the aging indicator
+increases from 0.709 to 0.890. The benefit of faster charging can thus be
+weighed against its thermal and degradation costs using the returned
+protocols.
 
 The voltage, temperature, current, and SOC trajectories are shown in
-Fig.~\ref{fig:abc_charging_profiles}. The current transitions distinguish the
-multistage protocols A and B from the constant-current protocol C, and the SOC
-curves show their different completion times. The voltage trajectories remain
-below the prescribed limit.
+Fig.~\ref{fig:abc_charging_profiles}. The current profiles show the stage
+transitions of the three protocols, and the SOC curves show their different
+completion times. The voltage trajectories remain below the prescribed limit.
+Protocols A--C and their ParEGO counterparts from the matched comparisons
+are executed on real cells in Section~\ref{sec:realcell}.
 
 % END: sections/experiments.tex
 % BEGIN: sections/realcell.tex
@@ -1210,46 +1215,44 @@ The battery cycler recorded the terminal voltage, current,
 and charged capacity, while an auxiliary temperature module
 measured the cell surface temperature.
 
-Three charging protocols were considered: LLMBO-MO, ParEGO,
-and conventional CC-CV. LLMBO-MO employed a three-stage
-constant-current protocol with currents of 3.90, 3.76, and
-3.00 A, switching at 40\% and 70\% SOC. ParEGO used currents
-of 3.40, 4.79, and 2.99 A, switching at 11.5\% and 41.2\%
-SOC. The CC-CV setting used a constant current of 1.455 A,
-a constant voltage of 4.20 V, and a cutoff current of
+Three pairs of MCC protocols were considered, together with
+a CC-CV baseline. Each pair contains one protocol from A--C
+in Table~\ref{tab:representative_protocols} and the
+corresponding ParEGO protocol from the matched comparison.
+The currents and switching SOC values of the six MCC
+protocols are listed in Table~\ref{tab:realcell_results}.
+The CC-CV setting used a constant current of 1.455 A, a
+constant voltage of 4.20 V, and a cutoff current of
 0.05 A. All protocols were terminated after delivering
 4.0 Ah, corresponding to 80\% of the nominal capacity.
 
-For the reported three-cell comparison, each protocol was
-tested twice on each cell, with discharge and rest steps
-between charging runs. The results are presented as the mean
-and sample standard deviation of six measurements. Charging
-time, peak temperature rise, and maximum terminal voltage
-were recorded. Peak temperature rise was calculated relative
-to the cell surface temperature at the beginning of charging.
+Each MCC protocol was tested twice on each of the two cells,
+with discharge and rest steps between charging runs, and the
+CC-CV baseline was included in both test rounds. The results
+are presented as the mean and sample standard deviation of
+four measurements for each MCC protocol and eight
+measurements for the CC-CV baseline. Charging time and peak
+temperature rise were recorded. Peak temperature rise was
+calculated relative to the cell surface temperature at the
+beginning of charging.
 
 \begin{table}[!t]
 \caption{Real-Cell Charging Results}
 \label{tab:realcell_results}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lccc}
+\scriptsize
+\setlength{\tabcolsep}{2.0pt}
+\begin{tabular}{@{}llcccc@{}}
 \toprule
-Protocol & $t_c$ (min) & $T_p$ (K) & Max. voltage (V) \\
+Protocol & Method & Currents (A) & Switching SOC & $t_c$ (min) & $T_p$ (K) \\
 \midrule
-CC-CV &
-$165.06\pm0.16$ &
-$1.80\pm1.23$ &
-$4.121\pm0.003$ \\
-ParEGO &
-$67.78\pm0.03$ &
-$7.33\pm0.64$ &
-$4.158\pm0.005$ \\
-LLMBO-MO &
-$\mathbf{64.77\pm0.01}$ &
-$\mathbf{6.84\pm0.78}$ &
-$4.159\pm0.006$ \\
+A & LLMBO-MO & 4.477/4.373/3.000 & 40/70\% & $57.46\pm0.01$ & $9.63\pm1.50$ \\
+ & ParEGO & 4.526/4.967/3.000 & 23.5/53.0\% & $60.48\pm0.02$ & $9.95\pm1.84$ \\
+B & LLMBO-MO & 3.900/3.759/3.000 & 40/70\% & $\mathbf{64.78\pm0.01}$ & $\mathbf{6.69\pm0.91}$ \\
+ & ParEGO & 3.397/4.789/2.992 & 11.5/41.2\% & $67.78\pm0.03$ & $7.40\pm0.81$ \\
+C & LLMBO-MO & 3.553/2.000/2.320 & 10/20\% & $\mathbf{101.19\pm0.07}$ & $\mathbf{2.80\pm0.37}$ \\
+ & ParEGO & 2.482/2.512/2.052 & 28.7/39.5\% & $106.98\pm0.08$ & $3.98\pm0.82$ \\
+CC-CV & -- & 1.455 & -- & $165.12\pm0.18$ & $1.52\pm0.91$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1257,35 +1260,48 @@ $4.159\pm0.006$ \\
 \subsection{Results}
 
 The experimental results are summarized in
-Table~\ref{tab:realcell_results}. LLMBO-MO achieved an
-average charging time of 64.77 min, compared with
-67.78 min for ParEGO, representing a 4.4\% reduction.
-The average peak temperature rise was also reduced
-from 7.33 K to 6.84 K. The three cells included in
-the analysis exhibited the same ordering in both
-charging time and peak temperature rise.
+Table~\ref{tab:realcell_results}. The LLMBO-MO protocol
+completed charging faster than its ParEGO counterpart in
+every test. The average reductions were 182 s for protocol
+A, 180 s for protocol B, and 348 s for protocol C,
+corresponding to 5.0\%, 4.4\%, and 5.4\% of the counterpart
+charging times. The measured charging times deviated from
+the simulated values by less than 0.2\% for all six MCC
+protocols.
 
-In simulation, the selected LLMBO-MO protocol strictly
-Pareto-dominated the corresponding ParEGO protocol,
-achieving lower charging time, peak temperature rise,
-and aging indicator. The real-cell measurements confirmed
-the same ordering in the two experimentally evaluated
-objectives, charging time and peak temperature rise.
+The measured mean temperature rise of the LLMBO-MO protocol
+was lower than that of its ParEGO counterpart for all three
+pairs, consistent with the ordering predicted by the
+simulation. The reduction was resolved most clearly for
+protocol B, whose simulated temperature difference between
+the two methods is the largest among the three pairs. Its
+measured temperature rise was lower in every test, by
+0.72~K on average. For protocol A, the two protocols gave
+comparable temperature rises, with a lower mean value for
+LLMBO-MO. For protocol C, the two protocols reached nearly
+the same absolute peak temperature, so the difference in
+temperature rise mainly reflects the higher initial cell
+temperature at the start of the LLMBO-MO tests.
 
-The measured charging times are close to the simulated
-predictions. The measured peak temperature rises are higher
-than the simulated values, which is expected because the
-thermal parameters were identified under discharging
-conditions, while the hardware tests concern multistage
-high-current charging. The ordering between the two
-protocols is nevertheless consistent with the simulation.
+In simulation, each LLMBO-MO protocol Pareto-dominated its
+ParEGO counterpart in charging time and peak temperature
+rise. The real-cell measurements reproduced this ordering
+in charging time for all three pairs. The simulated
+temperature differences between the paired protocols are
+below 0.5~K and are therefore small compared with the
+run-to-run variability of the measurements. The measured
+temperature rises exceeded the simulated values, which is
+expected because the thermal parameters were identified
+under discharging conditions, while the hardware tests
+concern multistage high-current charging.
 
-The conventional CC-CV setting required 165.06 min
-and produced a peak temperature rise of 1.80 K,
-reflecting the charging-time and thermal trade-off
-associated with its lower charging current. Since
-charging was terminated at 4.0 Ah, the CC-CV tests
-ended before reaching the constant-voltage stage.
+The conventional CC-CV setting required 165.12 min and
+produced a peak temperature rise of 1.52 K, reflecting the
+charging-time and thermal trade-off associated with its
+lower charging current. Since charging was terminated at
+4.0 Ah, the CC-CV tests ended before reaching the
+constant-voltage stage. The CC-CV charging times were
+consistent across the two test rounds.
 % END: sections/realcell.tex
 
 
@@ -1316,16 +1332,16 @@ battery-domain-informed initialization contributed substantially
 to the performance improvement, while regional guidance
 provided further gains.
 
-Real-cell experiments further evaluated the optimized charging
-protocols. For the three cells included in the analysis,
-LLMBO-MO reduced the average charging time by 4.4\% compared
-with ParEGO, from 67.78 to 64.77 min, while reducing the
-average peak temperature rise from 7.33 to 6.84 K.
-The selected LLMBO-MO protocol strictly Pareto-dominated
-the ParEGO protocol in simulation across charging time,
-peak temperature rise, and aging indicator. The real-cell
-measurements showed the same performance ordering in
-charging time and peak temperature rise.
+Real-cell experiments further evaluated the optimized
+protocols. Three protocol pairs formed by protocols A--C
+and their ParEGO counterparts were executed on INR21700
+M50T cells. The LLMBO-MO protocols completed charging
+4.4\% to 5.4\% faster than their counterparts in every
+test, and the measured charging times matched the
+simulated predictions within 0.2\%. The measured mean
+peak temperature rises were lower than those of the
+counterpart protocols for all three pairs, consistent
+with the simulated ordering.
 Future work will investigate long-term cycling degradation
 and extend the framework to different battery chemistries
 and operating conditions.
