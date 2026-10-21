@@ -338,14 +338,14 @@ of this work are summarized as follows.
     and evolutionary methods~\cite{refDISK,refPIMD,refNSGAII} are conducted
     on Chen2020. Initialization and ablation studies show that battery-specific
     initialization accounts for most of the improvement in the short-budget
-    experiments.
+    simulations.
 
 \end{itemize}
 
 The remainder of this paper is organized as follows.
 Sections~\ref{sec:problem} and~\ref{sec:model_section} present the charging
 problem and battery model, respectively. Section~\ref{sec:method} describes
-LLMBO-MO. Section~\ref{sec:experiments} reports the numerical experiments.
+LLMBO-MO. Section~\ref{sec:experiments} reports the simulation results.
 Section~\ref{sec:realcell} presents experimental validation on real cells.
 Section~\ref{sec:conclusion} concludes the paper.
 
@@ -398,7 +398,7 @@ t_c(\theta)=3600Q_{\mathrm{eff}}\sum_{k=1}^{K}\frac{\Delta s_k}{I_k}
 \label{eq:charging_time}
 \end{equation}
 where $Q_{\mathrm{eff}}$ is the effective cell capacity in Ah and current is
-measured in A. The experiments use $K=3$, giving five independent decision
+measured in A. The simulations use $K=3$, giving five independent decision
 variables.
 
 \subsection{Constrained Multiobjective Charging Design}
@@ -769,8 +769,8 @@ The overall procedure is summarized in Algorithm~\ref{alg:llmbo}.
 \section{Numerical Validation and Discussion}
 \label{sec:experiments}
 
-The experiments examine whether LLM guidance improves charging optimization
-at a fixed simulation budget and which part of the guidance accounts for the
+The simulation study examines whether LLM guidance improves charging
+optimization at a fixed budget and which part of the guidance accounts for the
 gain. Comparisons with other optimizers are followed by initialization and
 component studies. LLM backends are also compared, and representative
 charging protocols from the computed Pareto set are inspected.
@@ -801,7 +801,7 @@ Positive electrode diffusivity & $4.80\times10^{-15}$ m$^2$\,s$^{-1}$ \\
 \end{table}
 
 \begin{table}[!t]
-\caption{Main Experimental Settings}
+\caption{Main Simulation Settings}
 \label{tab:algorithm_settings}
 \centering
 \footnotesize
@@ -822,17 +822,18 @@ Tchebycheff coefficient $\rho_{\mathrm{aug}}$ & \RhoAug \\
 \end{tabular}
 \end{table}
 
-\subsection{Experimental Setup}
+\subsection{Simulation Setup}
 
-The optimization environment is constructed in PyBaMM using a coupled electrochemical–thermal–aging model.
-The primary simulation case is based on the Chen2020 parameterization of the LG INR21700 cell~\cite{ref8}, 
-with electrochemical and thermal parameters re-identified using experimental voltage and temperature measurements from INR21700 M50T cells,
-This parameterization provides a cell-specific basis for evaluating charging protocols.
-The subsequent real-cell experiments employ the same M50T cell type. Additionally, the Ecker2015 parameterization is considered to evaluate the optimization framework under different battery-model parameters. The
-hardware validation in Section~\ref{sec:realcell} uses the same cell
-type. A second case
-uses Ecker2015~\cite{ref9} to examine performance with a different
-battery parameterization. The objectives are
+The optimization environment is constructed in PyBaMM using a coupled
+electrochemical--thermal--aging model. The primary simulation case is
+based on the Chen2020 parameterization of the LG INR21700 cell~\cite{ref8},
+with electrochemical and thermal parameters re-identified using
+experimental voltage and temperature measurements from INR21700 M50T
+cells. This parameterization provides a cell-specific basis for
+evaluating charging protocols. The real-cell experiments in
+Section~\ref{sec:realcell} employ the same M50T cell type. A second
+simulation case uses the Ecker2015 parameterization~\cite{ref9} to
+examine performance under different battery-model parameters. The objectives are
 charging time $t_c$, peak temperature rise $T_p$, and aging indicator $Q_s$.
 The battery and algorithm settings are summarized in
 Tables~\ref{tab:battery_settings} and~\ref{tab:algorithm_settings}.
@@ -1202,8 +1203,6 @@ are executed on real cells in Section~\ref{sec:realcell}.
   \label{fig:experimental_platform}
 \end{figure}
 
-
-
 \subsection{Experimental Setup}
 
 Real-cell charging experiments were conducted using a NEWARE
@@ -1257,7 +1256,6 @@ CC-CV & -- & 1.455 & -- & $165.12\pm0.18$ & $1.52\pm0.91$ \\
 \end{tabular}
 \end{table}
 
-
 \subsection{Results}
 
 The real-cell experimental results are summarized in
@@ -1276,7 +1274,7 @@ The conventional CC-CV reference required 165.12~min
 and produced a mean peak temperature rise of 1.52~K,
 reflecting the trade-off between charging duration and
 thermal response at a lower charging current. As the
-experiment was terminated after delivering 4.0~Ah,
+experiments were terminated after delivering 4.0~Ah,
 the CC-CV reference did not enter the constant-voltage
 phase.
 
