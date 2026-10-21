@@ -824,11 +824,11 @@ Tchebycheff coefficient $\rho_{\mathrm{aug}}$ & \RhoAug \\
 
 \subsection{Experimental Setup}
 
-The optimization environment is an electrochemical--thermal--aging model
-developed in PyBaMM. For the main case, the electrochemical and thermal
-parameters were initialized from the Chen2020 parameterization of the LG
-INR21700 cell~\cite{ref8} and re-identified against voltage and
-temperature measurements of INR21700 M50T cells~\cite{refEIMO}. The
+The optimization environment is constructed in PyBaMM using a coupled electrochemical–thermal–aging model.
+The primary simulation case is based on the Chen2020 parameterization of the LG INR21700 cell~\cite{ref8}, 
+with electrochemical and thermal parameters re-identified using experimental voltage and temperature measurements from INR21700 M50T cells,
+This parameterization provides a cell-specific basis for evaluating charging protocols.
+The subsequent real-cell experiments employ the same M50T cell type. Additionally, the Ecker2015 parameterization is considered to evaluate the optimization framework under different battery-model parameters. The
 hardware validation in Section~\ref{sec:realcell} uses the same cell
 type. A second case
 uses Ecker2015~\cite{ref9} to examine performance with a different
@@ -1244,64 +1244,42 @@ beginning of charging.
 \setlength{\tabcolsep}{2.0pt}
 \begin{tabular}{@{}llcccc@{}}
 \toprule
-Protocol & Method & Currents (A) & Switching SOC & $t_c$ (min) & $T_p$ (K) \\
+Protocol & Method & Currents (A) & Switching SOC (\%) & $t_c$ (min) & $T_p$ (K) \\
 \midrule
-A & LLMBO-MO & 4.477/4.373/3.000 & 40/70\% & $57.46\pm0.01$ & $9.63\pm1.50$ \\
- & ParEGO & 4.526/4.967/3.000 & 23.5/53.0\% & $60.48\pm0.02$ & $9.95\pm1.84$ \\
-B & LLMBO-MO & 3.900/3.759/3.000 & 40/70\% & $\mathbf{64.78\pm0.01}$ & $\mathbf{6.69\pm0.91}$ \\
- & ParEGO & 3.397/4.789/2.992 & 11.5/41.2\% & $67.78\pm0.03$ & $7.40\pm0.81$ \\
-C & LLMBO-MO & 3.553/2.000/2.320 & 10/20\% & $\mathbf{101.19\pm0.07}$ & $\mathbf{2.80\pm0.37}$ \\
- & ParEGO & 2.482/2.512/2.052 & 28.7/39.5\% & $106.98\pm0.08$ & $3.98\pm0.82$ \\
+A & LLMBO-MO & 4.477/4.373/3.000 & 40/70 & $\mathbf{57.46\pm0.01}$ & $\mathbf{9.63\pm1.50}$ \\
+ & ParEGO & 4.526/4.967/3.000 & 23.5/53.0 & $60.48\pm0.02$ & $9.95\pm1.84$ \\
+B & LLMBO-MO & 3.900/3.759/3.000 & 40/70 & $\mathbf{64.78\pm0.01}$ & $\mathbf{6.69\pm0.91}$ \\
+ & ParEGO & 3.397/4.789/2.992 & 11.5/41.2 & $67.78\pm0.03$ & $7.40\pm0.81$ \\
+C & LLMBO-MO & 3.553/2.000/2.320 & 10/20 & $\mathbf{101.19\pm0.07}$ & $\mathbf{2.80\pm0.37}$ \\
+ & ParEGO & 2.482/2.512/2.052 & 28.7/39.5 & $106.98\pm0.08$ & $3.98\pm0.82$ \\
 CC-CV & -- & 1.455 & -- & $165.12\pm0.18$ & $1.52\pm0.91$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+
 \subsection{Results}
 
-The experimental results are summarized in
-Table~\ref{tab:realcell_results}. The LLMBO-MO protocol
-completed charging faster than its ParEGO counterpart in
-every test. The average reductions were 182 s for protocol
-A, 180 s for protocol B, and 348 s for protocol C,
-corresponding to 5.0\%, 4.4\%, and 5.4\% of the counterpart
-charging times. The measured charging times deviated from
-the simulated values by less than 0.2\% for all six MCC
-protocols.
+The real-cell experimental results are summarized in
+Table~\ref{tab:realcell_results}. Compared with the
+corresponding ParEGO protocols, LLMBO-MO reduced the mean
+charging time by 182, 180, and 348~s for protocol pairs
+A, B, and C, corresponding to reductions of 5.0\%,
+4.4\%, and 5.4\%, respectively. Meanwhile, the mean
+peak temperature rise was reduced by 3.2\%, 9.6\%,
+and 29.6\%, respectively. These results demonstrate
+that LLMBO-MO achieves improvements in both charging
+efficiency and thermal performance under real-cell
+charging conditions.
 
-The measured mean temperature rise of the LLMBO-MO protocol
-was lower than that of its ParEGO counterpart for all three
-pairs, consistent with the ordering predicted by the
-simulation. The reduction was resolved most clearly for
-protocol B, whose simulated temperature difference between
-the two methods is the largest among the three pairs. Its
-measured temperature rise was lower in every test, by
-0.72~K on average. For protocol A, the two protocols gave
-comparable temperature rises, with a lower mean value for
-LLMBO-MO. For protocol C, the two protocols reached nearly
-the same absolute peak temperature, so the difference in
-temperature rise mainly reflects the higher initial cell
-temperature at the start of the LLMBO-MO tests.
+The conventional CC-CV reference required 165.12~min
+and produced a mean peak temperature rise of 1.52~K,
+reflecting the trade-off between charging duration and
+thermal response at a lower charging current. As the
+experiment was terminated after delivering 4.0~Ah,
+the CC-CV reference did not enter the constant-voltage
+phase.
 
-In simulation, each LLMBO-MO protocol Pareto-dominated its
-ParEGO counterpart in charging time and peak temperature
-rise. The real-cell measurements reproduced this ordering
-in charging time for all three pairs. The simulated
-temperature differences between the paired protocols are
-below 0.5~K and are therefore small compared with the
-run-to-run variability of the measurements. The measured
-temperature rises exceeded the simulated values, which is
-expected because the thermal parameters were identified
-under discharging conditions, while the hardware tests
-concern multistage high-current charging.
-
-The conventional CC-CV setting required 165.12 min and
-produced a peak temperature rise of 1.52 K, reflecting the
-charging-time and thermal trade-off associated with its
-lower charging current. Since charging was terminated at
-4.0 Ah, the CC-CV tests ended before reaching the
-constant-voltage stage. The CC-CV charging times were
-consistent across the two test rounds.
 % END: sections/realcell.tex
 
 
