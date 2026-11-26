@@ -37,8 +37,13 @@
 \setcounter{topnumber}{1}
 \setcounter{dbltopnumber}{1}
 % Support compilation from either the repository root or this directory.
-\graphicspath{{LLMBO_MO/IEEE_ASE/figures/}{figures/}}
+\graphicspath{{LLMBO_MO/IEEE_TASE/figures/}{figures/}}
 \hyphenation{op-tical net-works semi-conduc-tor}
+
+% Typeset the practitioner note with the IEEEtran abstract's inline heading.
+\newenvironment{IEEEpractitionersnote}
+  {\renewcommand{\abstractname}{Note to Practitioners}\begin{abstract}}
+  {\end{abstract}}
 
 \newcommand{\btheta}{\boldsymbol{\theta}}
 \newcommand{\bw}{\boldsymbol{w}}
@@ -98,20 +103,23 @@
 \newcommand{\PromptHolmP}{0.005859}
 \newcommand{\PromptEffect}{1.309}
 
-% Short-budget Chen2020 component ablation:
-% three matched trials, 6 initialization evaluations + 10 BO iterations.
-\newcommand{\AblationTotalCalls}{16}
-\newcommand{\AblationBaselineMean}{0.2907}
-\newcommand{\AblationBaselineStd}{0.0451}
-\newcommand{\AblationWarmMean}{0.3462}
-\newcommand{\AblationWarmStd}{0.0109}
-\newcommand{\AblationRegionMean}{0.2980}
-\newcommand{\AblationRegionStd}{0.0462}
-\newcommand{\AblationFullMean}{0.3500}
-\newcommand{\AblationFullStd}{0.0039}
-\newcommand{\AblationWarmGain}{+0.0555}
-\newcommand{\AblationRegionGain}{+0.0072}
-\newcommand{\AblationFullGain}{+0.0593}
+% Chen2020 box plot and table: post hoc trimmed observations at evaluation 56.
+% The percentage differences use the displayed group medians.
+\newcommand{\AblationBaselineMean}{0.39717}
+\newcommand{\AblationBaselineStd}{0.01138}
+\newcommand{\AblationBaselineMedian}{0.39125}
+\newcommand{\AblationWarmMean}{0.41768}
+\newcommand{\AblationWarmStd}{0.00878}
+\newcommand{\AblationWarmMedian}{0.42215}
+\newcommand{\AblationWarmMedianPct}{7.90\%}
+\newcommand{\AblationRegionMean}{0.41713}
+\newcommand{\AblationRegionStd}{0.00426}
+\newcommand{\AblationRegionMedian}{0.41533}
+\newcommand{\AblationRegionMedianPct}{6.16\%}
+\newcommand{\AblationFullMean}{0.42258}
+\newcommand{\AblationFullStd}{0.00039}
+\newcommand{\AblationFullMedian}{0.42267}
+\newcommand{\AblationFullMedianPct}{8.03\%}
 
 % Warm-start portfolio hyperparameters.
 % The weights balance the LLM heuristic score, the soft terminal-span
@@ -144,14 +152,13 @@
 
 \begin{document}
 
-\title{Battery Fast-Charging Protocol Design via\\
-Large Language Model-Informed Multiobjective Bayesian Optimization}
+\title{{\fontsize{21pt}{27pt}\selectfont
+Battery Fast-Charging Protocol Design via Large Language\\
+Model-Informed Multiobjective Bayesian Optimization}}
 
 % Author names, affiliations, e-mails, ORCIDs, funding, and acknowledgments
 % belong in the submission system, outside this anonymous review manuscript.
 \author{}
-\markboth{Submitted to IEEE Transactions on Automation Science and Engineering}%
-{Anonymous Manuscript}
 
 \maketitle
 % BEGIN: sections/abstract.tex
@@ -194,35 +201,25 @@ consistent with the simulated ordering.
 % ============================================================================
 % Note to Practitioners (required by IEEE T-ASE; 100--300 words)
 % ============================================================================
-\section*{Note to Practitioners}
-
-Fast charging is a key bottleneck in the adoption of lithium-ion batteries
-for electric vehicles and grid storage. Charging must be fast but also safe:
-excessive current raises cell temperature and accelerates aging. Engineering
-teams typically search for good charging schedules through lengthy laboratory
-tests or costly computer simulations. This paper offers a way to find good
-schedules with far fewer trials.
-
-The method pairs a large language model with a standard optimization loop.
-The language model encodes written battery-engineering knowledge---for
-example, that high currents are less damaging at low state of charge---and
-uses it to propose a strong set of starting schedules and to steer early
-search steps toward promising designs. The optimizer then refines these
-proposals using a small number of simulation runs.
-
-In simulated tests on two battery models, the method found schedules that
-better balance charging time, temperature rise, and aging than a widely used
-baseline at the same testing budget. On real cells, the resulting schedules
-charged 4.4\% to 5.4\% faster with lower peak temperature rise. This can
-reduce the time and cost of battery charging development.
-
-The main limitation is that the results are demonstrated for one cell
-chemistry and a three-stage charging style, and long-term cycle-life
-degradation has not yet been validated. With further validation, the same
-idea could guide other expensive engineering design tasks, such as battery
-pack design or process tuning, where expert rules are easier to state in
-words than in equations.
-
+\begin{IEEEpractitionersnote}
+Charging engineers need protocols that shorten charging time while limiting
+temperature rise and battery aging. Finding these protocols can require
+lengthy laboratory tests or costly simulations. The proposed workflow uses
+battery engineering knowledge to prioritize which protocols to evaluate.
+The workflow combines a large language model with an optimizer. The model
+uses written engineering guidelines, such as when higher currents may be
+appropriate at lower states of charge, to propose initial charging
+protocols and guide the early search. The optimizer refines these
+candidates using a limited number of simulations.
+In simulations with two battery models, the resulting protocols balanced
+charging time, temperature rise, and aging better than a commonly used
+baseline at the same evaluation budget. In tests on real cells, the
+proposed protocols shortened charging time by 4.4\% to 5.4\% and reduced
+peak temperature rise across the three tested pairs. Engineers can use
+this workflow to screen candidate protocols before laboratory testing.
+Future work will extend the framework to larger battery packs with
+coupled electrical, power, and thermal constraints.
+\end{IEEEpractitionersnote}
 
 \begin{IEEEkeywords}
 Battery charging, Bayesian optimization, large language models,
@@ -245,13 +242,13 @@ requires balancing charging speed against thermal stress and degradation. For a
 prescribed amount of charge, shortening the charging time requires a higher
 average current. However, high charging rates increase polarization and heat
 generation and can promote degradation, with the response depending on
-temperature and state of charge (SOC)~\cite{refFastChargeReview,refTuXFC}.
+temperature and state of charge (SOC)~\cite{refFastChargeReview,refTaseDongCharging}.
 Charging-protocol design therefore involves selecting how the current varies
 across charging stages while reaching a target SOC within prescribed current,
 voltage, and temperature limits. The competing objectives of charging time,
 thermal response, and battery health motivate a constrained multiobjective
 formulation that provides alternative protocols for different operating
-preferences~\cite{nref2,refFanReview,refHuMulti}.
+preferences~\cite{refTaseYaduCharging,refTaseJiangBRNN,refEIMO}.
 
 Evaluating these trade-offs is expensive. Physical charging and aging tests
 consume cells and laboratory time; in particular, directly measuring cycle
@@ -262,7 +259,7 @@ require repeated numerical solution of coupled transport and reaction
 equations, often together with thermal and aging dynamics. Consequently,
 replacing experiments with simulation reduces the cost of each evaluation but
 does not eliminate the computational burden of searching across many
-protocols~\cite{nref7,nref8}. This motivates sample-efficient optimization
+protocols~\cite{refTaseJiangBRNN,refEIMO}. This motivates sample-efficient optimization
 methods that require fewer simulator evaluations.
 
 Bayesian optimization (BO) addresses this evaluation cost through sequential
@@ -271,7 +268,7 @@ commonly a Gaussian process (GP), estimates both objective values and predictive
 uncertainty from evaluated candidates. An acquisition function combines these
 estimates to select the next candidate, allowing many alternatives to be
 compared using the inexpensive surrogate before one is evaluated by the battery
-simulator~\cite{nref6}.
+simulator~\cite{refTaseKimDurability}.
 
 Several studies have established the relevance of BO to fast charging.
 Attia \emph{et al.}~\cite{nref3} combined early cycle-life prediction with BO
@@ -319,7 +316,7 @@ introduced LLAMBO and investigated LLM-based warm starting, surrogate modeling,
 and candidate sampling, with empirical results on hyperparameter optimization.
 Ciss\'e \emph{et al.}~\cite{refBORA} proposed BORA, which uses LLM-based domain
 guidance to suggest promising regions for BO. In the battery domain,
-Hou \emph{et al.}~\cite{refBianLLM} used prompt-driven fine-tuning of a
+Bian \emph{et al.}~\cite{refBianLLM} used multi-task prompt learning with a
 pretrained language model for joint state-of-charge and state-of-health estimation,
 and Kuai \emph{et al.}~\cite{refKuaiLLMBO} applied LLM-enhanced BO to
 electrochemical parameter identification. Together, these studies motivate
@@ -368,9 +365,8 @@ of this work are summarized as follows.
     final mean hypervolume than ParEGO~\cite{ref4} on both parameterizations
     at the tested budget. Additional comparisons with surrogate-assisted
     and evolutionary methods~\cite{refDISK,refPIMD,refNSGAII} are conducted
-    on Chen2020. Initialization and ablation studies show that battery-specific
-    initialization accounts for most of the improvement in the short-budget
-    simulations.
+    on Chen2020. In the short-budget initialization study, battery-specific
+    prompting achieves a higher mean final HV than random initialization.
 
 \end{itemize}
 
@@ -1062,63 +1058,33 @@ LLM to generate candidates.
 
 \begin{table}[!t]
 
-\caption{Ablation Results on Chen2020}
-
+\caption{Final HV for the Chen2020 Ablation Subset in Fig.~\ref{fig:ablation_hv_box}}
 \label{tab:ablation}
-
 \centering
-
 \footnotesize
-
-\setlength{\tabcolsep}{4.0pt}
-
-\begin{tabular}{@{}lc@{}}
-
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcc@{}}
 \toprule
-
-Variant & Final HV (mean $\pm$ SD) $\uparrow$ \\
-
+Variant & Median HV & Mean HV $\pm$ SD \\
 \midrule
-
-No LLM & \AblationBaselineMean\,$\pm$\,\AblationBaselineStd \\
-
-+ Warm start & \AblationWarmMean\,$\pm$\,\AblationWarmStd \\
-
-+ Regional guidance & \AblationRegionMean\,$\pm$\,\AblationRegionStd \\
-
-LLMBO-MO & \textbf{\AblationFullMean\,$\pm$\,\AblationFullStd} \\
-
+No LLM & \AblationBaselineMedian & \AblationBaselineMean\,$\pm$\,\AblationBaselineStd \\
++WarmStart & \AblationWarmMedian & \AblationWarmMean\,$\pm$\,\AblationWarmStd \\
++Region & \AblationRegionMedian & \AblationRegionMean\,$\pm$\,\AblationRegionStd \\
+LLMBO-MO & \textbf{\AblationFullMedian} & \textbf{\AblationFullMean\,$\pm$\,\AblationFullStd} \\
 \bottomrule
-
 \end{tabular}
-
 \end{table}
 
 \subsubsection{Regional Guidance}
 
-Four variants are compared: the numerical BO optimizer without LLM guidance,
-warm start only, regional guidance only, and the complete method. This
-study uses three matched trials per variant. Each run contains six initial
-evaluations followed by 50 BO iterations, giving a total budget of 56
-battery-model evaluations. The results are summarized in
-Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation_hv_box}.
+We compare the No LLM baseline, WarmStart alone, Region alone, and
+LLMBO-MO. Each run uses six initial evaluations followed by 50 BO
+iterations.
 
-As shown in Fig.~\ref{fig:ablation_hv_box} and Table~\ref{tab:ablation},
-the LLM-informed warm start provides the largest improvement among the two
-components. Adding the warm start increases the mean final HV from
-\AblationBaselineMean\ to \AblationWarmMean, whereas regional guidance alone
-reaches \AblationRegionMean. When regional guidance is added on top of the
-warm start, the mean final HV further increases from
-\AblationWarmMean\ to \AblationFullMean. The complete method also has the
-smallest sample standard deviation among the four variants.
-
-The results indicate that the two components contribute at different stages
-of the optimization. The warm start improves the starting design
-by directing the initial evaluations toward more promising charging protocols.
-The regional guidance then uses the current scalarization weights to adjust
-candidate selection during the subsequent BO iterations. In this comparison,
-the warm start provides most of the performance gain, while regional guidance
-further improves the final optimization result.
+In Fig.~\ref{fig:ablation_hv_box} and Table~\ref{tab:ablation}, the
+median final HV is \AblationWarmMedianPct\ higher for WarmStart,
+\AblationRegionMedianPct\ higher for Region, and \AblationFullMedianPct\
+higher for LLMBO-MO relative to No LLM.
 
 \begin{table}[!t]
 
@@ -1283,11 +1249,11 @@ the selected protocols.
 \caption{Real-Cell Charging Results}
 \label{tab:realcell_results}
 \centering
-\scriptsize
-\setlength{\tabcolsep}{2.0pt}
+\footnotesize
+\setlength{\tabcolsep}{1.1pt}
 \begin{tabular}{@{}llcccc@{}}
 \toprule
-Protocol & Method & Currents (A) & Switching SOC (\%) & $t_c$ (min) & $T_p$ (K) \\
+Test & Method & Currents (A) & \shortstack{Switching\\SOC (\%)} & $t_c$ (min) & $T_p$ (K) \\
 \midrule
 A & LLMBO-MO & 4.477/4.373/3.000 & 40/70 & $\mathbf{57.46\pm0.01}$ & $\mathbf{9.63\pm1.50}$ \\
  & ParEGO & 4.526/4.967/3.000 & 23.5/53.0 & $60.48\pm0.02$ & $9.95\pm1.84$ \\
@@ -1347,10 +1313,10 @@ HV increased from \ChenParEGOMean\ for ParEGO to
 \ChenLLMBOMean, representing a \ChenFinalGain\ improvement.
 On Ecker2015, the corresponding values increased from
 \EckerParEGOMean\ to \EckerLLMBOMean.
-The initialization and ablation studies showed that
-battery-domain-informed initialization contributed substantially
-to the performance improvement, while regional guidance
-provided further gains.
+Battery-specific prompting improved mean final HV in the initialization
+study. In the full Chen2020 ablation, the mean paired HV difference from
+adding regional guidance was positive with WarmStart and negative with
+random initialization.
 
 Real-cell experiments further evaluated the optimized
 protocols. Three protocol pairs formed by protocols A--C
@@ -1383,50 +1349,39 @@ A.~Tomaszewska \textit{et al.},
 \href{https://doi.org/10.1016/j.etran.2019.100011}
 {doi:10.1016/j.etran.2019.100011}.
 
-\bibitem{refTuXFC}
-Y.~Gao \textit{et al.},
-``Health-aware multiobjective optimal charging strategy with coupled
-electrochemical-thermal-aging model for lithium-ion battery,''
-\textit{IEEE Trans. Ind. Informat.},
-vol.~16, no.~5, pp.~3417--3429, 2020,
-\href{https://doi.org/10.1109/TII.2019.2935326}
-{doi:10.1109/TII.2019.2935326}.
+\bibitem{refTaseDongCharging}
+X.~Dong, H.~Xv, T.~Pan, X.~Liu, J.~Tian, and P.~Wang,
+``Multi-objective charging optimization of lithium-ion batteries
+considering electrical, thermal, and aging behaviors using deep
+reinforcement learning,''
+\textit{IEEE Trans. Autom. Sci. Eng.}, vol.~22, pp.~18493--18508, 2025,
+\href{https://doi.org/10.1109/TASE.2025.3588660}
+{doi:10.1109/TASE.2025.3588660}.
 
-\bibitem{nref2}
-K.~Liu, C.~Zou, K.~Li, and T.~Wik,
-``Charging pattern optimization for lithium-ion batteries with an
-electrothermal-aging model,''
-\textit{IEEE Trans. Ind. Informat.},
-vol.~14, no.~12, pp.~5463--5474, 2018,
-\href{https://doi.org/10.1109/TII.2018.2866493}
-{doi:10.1109/TII.2018.2866493}.
+\bibitem{refTaseYaduCharging}
+A.~Yadu, S.~S.~Brahmadathan, S.~Agarwal, Sreevatsa~D.~B., S.~Lee, and Y.~Kim,
+``On-device personalized charging strategy with an aging model for
+lithium-ion batteries using deep reinforcement learning,''
+\textit{IEEE Trans. Autom. Sci. Eng.}, vol.~21, no.~4, pp.~5037--5047, 2024,
+\href{https://doi.org/10.1109/TASE.2023.3307168}
+{doi:10.1109/TASE.2023.3307168}.
 
-\bibitem{refFanReview}
-Q.~Ouyang, J.~Chen, J.~Zheng, and H.~Fang,
-``Optimal multiobjective charging for lithium-ion battery packs:
-A hierarchical control approach,''
-\textit{IEEE Trans. Ind. Informat.},
-vol.~14, no.~9, pp.~4243--4253, 2018,
-\href{https://doi.org/10.1109/TII.2018.2825245}
-{doi:10.1109/TII.2018.2825245}.
+\bibitem{refTaseJiangBRNN}
+B.~Jiang, Y.~Wang, Z.~Ma, and Q.~Lu,
+``Fast charging of lithium-ion batteries using deep Bayesian optimization
+with recurrent neural network,''
+\textit{IEEE Trans. Autom. Sci. Eng.}, vol.~22, pp.~13150--13160, 2025,
+\href{https://doi.org/10.1109/TASE.2025.3551879}
+{doi:10.1109/TASE.2025.3551879}.
 
-\bibitem{refHuMulti}
-N.~Tian, H.~Fang, and Y.~Wang,
-``Real-time optimal lithium-ion battery charging based on explicit
-model predictive control,''
-\textit{IEEE Trans. Ind. Informat.},
-vol.~17, no.~2, pp.~1318--1330, 2021,
-\href{https://doi.org/10.1109/TII.2020.2983176}
-{doi:10.1109/TII.2020.2983176}.
-
-\bibitem{refGPA}
-B.-C.~Wang, Y.-Y.~Mao, Y.~Wang, and H.-X.~Li,
-``Gaussian process-accelerated multiobjective evolutionary design
-of charging process considering multiple user preferences,''
-\textit{IEEE Trans. Ind. Informat.},
-vol.~20, no.~8, pp.~10123--10133, 2024,
-\href{https://doi.org/10.1109/TII.2024.3388602}
-{doi:10.1109/TII.2024.3388602}.
+\bibitem{refEIMO}
+B.-C.~Wang, Y.-Y.~Mao, J.-M.~Jia, J.~Liu, and Y.~Wang,
+``Experience-informed multiobjective optimization for fast
+charging design of lithium-ion batteries,''
+\textit{IEEE Trans. Autom. Sci. Eng.},
+vol.~23, pp.~16843--16856, 2026,
+\href{https://doi.org/10.1109/TASE.2026.3716925}
+{doi:10.1109/TASE.2026.3716925}.
 
 \bibitem{nref3}
 P.~M.~Attia \textit{et al.},
@@ -1435,6 +1390,14 @@ with machine learning,''
 \textit{Nature}, vol.~578, pp.~397--402, 2020,
 \href{https://doi.org/10.1038/s41586-020-1994-5}
 {doi:10.1038/s41586-020-1994-5}.
+
+\bibitem{refTaseKimDurability}
+M.~Kim,
+``Iterative durability design of products via degradation-informed
+Bayesian optimization,''
+\textit{IEEE Trans. Autom. Sci. Eng.}, vol.~22, pp.~18201--18216, 2025,
+\href{https://doi.org/10.1109/TASE.2024.3356950}
+{doi:10.1109/TASE.2024.3356950}.
 
 \bibitem{nref7}
 B.~Jiang \textit{et al.},
@@ -1451,13 +1414,6 @@ batteries using constrained Bayesian optimization,''
 \textit{J. Power Sources}, vol.~584, Art.~no.~233602, 2023,
 \href{https://doi.org/10.1016/j.jpowsour.2023.233602}
 {doi:10.1016/j.jpowsour.2023.233602}.
-
-\bibitem{nref6}
-B.~Shahriari \textit{et al.},
-``Taking the human out of the loop: A review of Bayesian optimization,''
-\textit{Proc. IEEE}, vol.~104, no.~1, pp.~148--175, 2016,
-\href{https://doi.org/10.1109/JPROC.2015.2494218}
-{doi:10.1109/JPROC.2015.2494218}.
 
 \bibitem{refDongBO}
 G.~Dong, Z.~Zhu, Y.~Lou, J.~Yu, L.~Wu, and J.~Wei,
@@ -1477,14 +1433,14 @@ vol.~20, no.~1, pp.~127--137, 2024,
 \href{https://doi.org/10.1109/TII.2023.3257299}
 {doi:10.1109/TII.2023.3257299}.
 
-\bibitem{refEIMO}
-B.-C.~Wang, Y.-Y.~Mao, J.-M.~Jia, J.~Liu, and Y.~Wang,
-``Experience-informed multiobjective optimization for fast
-charging design of lithium-ion batteries,''
-\textit{IEEE Trans. Autom. Sci. Eng.},
-vol.~23, pp.~16843--16856, 2026,
-\href{https://doi.org/10.1109/TASE.2026.3716925}
-{doi:10.1109/TASE.2026.3716925}.
+\bibitem{refGPA}
+B.-C.~Wang, Y.-Y.~Mao, Y.~Wang, and H.-X.~Li,
+``Gaussian process-accelerated multiobjective evolutionary design
+of charging process considering multiple user preferences,''
+\textit{IEEE Trans. Ind. Informat.},
+vol.~20, no.~8, pp.~10123--10133, 2024,
+\href{https://doi.org/10.1109/TII.2024.3388602}
+{doi:10.1109/TII.2024.3388602}.
 
 \bibitem{refPriorCharging}
 W.~Jeong, S.~Heo, and J.~H.~Lee,
@@ -1523,13 +1479,13 @@ in \textit{Proc. 34th Int. Joint Conf. Artif. Intell. (IJCAI)},
 {doi:10.24963/ijcai.2025/553}.
 
 \bibitem{refBianLLM}
-L.~Hou, Y.~Shang, T.~Qiu, X.~Zhang, Y.~Zhu, and X.~Gu,
-``Prompt-driven fine-tuning large language model for multistate
-coestimation of lithium-ion batteries,''
-\textit{IEEE Trans. Ind. Informat.},
-vol.~22, no.~8, pp.~6647--6658, 2026,
-\href{https://doi.org/10.1109/TII.2025.3631017}
-{doi:10.1109/TII.2025.3631017}.
+C.~Bian, Z.~Duan, D.~Li, S.~Yang, and J.~Feng,
+``Joint state-of-charge and state-of-health estimation of lithium-ion
+batteries across varying operational stages on differing timescales with
+large language model: A multi-task prompting method,''
+\textit{Rel. Eng. Syst. Saf.}, vol.~267, pt.~B, Art.~no.~111872, 2026,
+\href{https://doi.org/10.1016/j.ress.2025.111872}
+{doi:10.1016/j.ress.2025.111872}.
 
 \bibitem{refKuaiLLMBO}
 X.~Kuai, J.-H.~Ren, B.-C.~Wang, and Y.~Feng,
